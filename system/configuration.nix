@@ -346,7 +346,16 @@ in
     enable = true;
     keyboards.compx-mouse = {
       ids = [ "25a7:fa0a" ];
-      settings.main = { leftshift = "f14"; };
+      settings.main = {
+        # Spare button by the thumb; firmware sends KEY_LEFTSHIFT.
+        leftshift = "f14";
+        # Thumb side button (BTN_SIDE, code 275) as a paste key.
+        # S-insert rather than C-v: Ctrl+V collides with things terminal
+        # programs already use (vim's visual block, readline's quoted
+        # insert), whereas Shift+Insert is paste in GTK, Qt and browsers
+        # and is claimed by essentially no TUI.
+        mouse1 = "S-insert";
+      };
     };
   };
 
