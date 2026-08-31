@@ -887,7 +887,7 @@ in
               {
                 name = "org.kde.plasma.icontasks";
                 config.General.launchers =
-                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop";
+                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop,applications:com.obsproject.Studio.desktop";
               }
               "org.kde.plasma.marginsseparator"
 
