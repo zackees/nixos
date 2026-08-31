@@ -1,13 +1,7 @@
-[PlasmaViews][Panel 60]
+[PlasmaViews][Panel 200]
 floating=0
 
-[PlasmaViews][Panel 60][Defaults]
-thickness=44
-
-[PlasmaViews][Panel 88]
-floating=0
-
-[PlasmaViews][Panel 88][Defaults]
+[PlasmaViews][Panel 200][Defaults]
 thickness=44
 
 [Updates]
