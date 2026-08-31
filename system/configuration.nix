@@ -152,6 +152,7 @@ in
     inetutils           # telnet, ftp, hostname, ping variants
     kdePackages.ksshaskpass  # graphical password prompt for sudo -A / ssh
     voxtype             # push-to-talk voice-to-text (Meta+H)
+    pciutils            # lspci; voxtype's GPU probe needs it to name the card
 
     alsa-utils          # amixer/aplay/arecord
     alsa-scarlett-gui   # 48V, gain, air, pad, direct monitor for the 2i2
@@ -218,10 +219,11 @@ in
     eff = "$EDITOR \"$(ff)\"";
   };
 
-  # Stock nixpkgs voxtype omits the OSD: upstream gates the on-screen
-  # indicator behind the osd-gtk4 / osd-native cargo features, and the
-  # package's buildFeatures list only ever enables the Vulkan and ONNX ones,
-  # so it ships voxtype-osd with no frontend for it to launch.
+  # Stock nixpkgs voxtype omits the OSD, and any GPU backend with it.
+  # voxtype's Cargo.toml declares `default = []` and the nixpkgs package
+  # passes no features at all, so the stock build has neither an OSD
+  # frontend for voxtype-osd to launch nor a Whisper GPU backend -- every
+  # feature this machine wants has to be named here.
   #
   # NOTE: buildRustPackage converts `buildFeatures` into `cargoBuildFeatures`
   # when the function is applied, so overrideAttrs must set the latter.
@@ -241,6 +243,33 @@ in
       });
     })
   ];
+
+  # ── Graphics ────────────────────────────────────────────────
+  # The card is a GA106 (RTX 3060) and was running on nouveau, which is why
+  # the desktop felt sluggish: nouveau has no reclocking for Ampere, so the
+  # GPU sits at its lowest power state no matter the load. The proprietary
+  # driver fixes that, and is also the only way to get CUDA for whisper.
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.graphics.enable = true;
+
+  hardware.nvidia = {
+    # Required for Wayland. KWin will not start on NVIDIA without KMS, and
+    # this is also what lets the driver hand off the console at boot.
+    modesetting.enable = true;
+
+    # open = true is not optional here. NVIDIA dropped the closed kernel
+    # module for Turing and newer, and 595 ships only the open one for this
+    # card; the "open" in the name is the KERNEL MODULE, not the userspace
+    # driver, which stays proprietary either way.
+    open = true;
+
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+
+    # Desktop, not a laptop: no hybrid graphics to suspend, and the runtime
+    # power management is a known source of wake-up hangs on desktops.
+    powerManagement.enable = false;
+  };
 
   # ── Dictation ────────────────────────────────────────────────
   # voxtype transcribes speech and types it at the cursor. It defaults to
