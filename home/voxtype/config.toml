@@ -27,6 +27,14 @@ mode = "push_to_talk"
 # stock nixpkgs omits.
 enabled = true
 
+[vad]
+# Voice activity detection, so silence is never handed to whisper. Needs
+# ggml-silero-vad.bin in ~/.local/share/voxtype/models (scripts/04-apply-home.sh
+# fetches it). backend = "whisper" uses that model; "energy" is the
+# model-free fallback and is markedly less accurate with background noise.
+enabled = true
+backend = "whisper"
+
 [audio]
 # You have three capture devices (Cam Link 4K, Scarlett 2i2, Elgato Wave:3).
 # "default" follows the PipeWire default source; set explicitly with a name
@@ -39,6 +47,12 @@ max_duration_secs = 60
 model = "base.en"
 language = "en"
 on_demand_loading = false
+# Transcription used to cost a flat ~10.2s whether the clip was 0.9s or 1.5s,
+# because whisper.cpp pads every recording out to its full 30s context window.
+# This shrinks the window for clips under 22.5s, which is every dictation.
+# Off by default upstream only because large-v3/turbo can fall into repetition
+# loops with it; base.en does not.
+context_window_optimization = true
 
 [output]
 # ydotool, not wtype: KWin does not implement the virtual keyboard protocol.

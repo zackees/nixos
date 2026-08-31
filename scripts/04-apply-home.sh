@@ -43,9 +43,20 @@ say "voxtype dictation"
 mkdir -p "$HOME/.config/voxtype" "$HOME/.local/share/applications"
 keep "$HOME/.config/voxtype/config.toml"
 cp "$REPO/home/voxtype/config.toml" "$HOME/.config/voxtype/config.toml"
-# Meta+H is a KDE global shortcut that launches this .desktop entry; the
-# kglobalshortcutsrc restored below is what binds the key to it.
+# Meta+H is NOT bound to this entry any more -- push-to-talk needs a key
+# release event, which KGlobalAccel does not have, so the hotkey moved into
+# voxtype's own evdev reader (see [hotkey] in config.toml). The entry stays
+# only as a menu/KRunner way to toggle dictation without the hotkey.
 cp "$REPO/home/applications/voxtype-toggle.desktop" "$HOME/.local/share/applications/"
+
+# Models are not in the repo: ggml-base.en.bin is 141 MB and the VAD model
+# comes from HuggingFace. Without them voxtype starts fine and then fails at
+# the first transcription, which is a confusing way to find out. Both
+# commands are no-ops once the file is on disk.
+if command -v voxtype >/dev/null 2>&1; then
+  voxtype setup --download --model base.en --no-post-install
+  voxtype setup vad
+fi
 
 say "KDE / Plasma user state"
 # KDE rewrites these files at runtime, so they are captured rather than
