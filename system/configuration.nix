@@ -1044,19 +1044,33 @@ in
                 config.General.launcherUrls = lib.concatStringsSep "," dockLaunchers;
               }
 
-              "org.kde.plasma.marginsseparator"
+              # An expanding spacer either side is what centres the window
+              # list. fill = false below is the other half: a task manager
+              # left to fill would eat the whole gap and sit hard against the
+              # launchers, which is where it was before. Sized to its content
+              # and floated between two spacers, it lands mid-panel instead.
+              {
+                panelSpacer = {
+                  expanding = true;
+                };
+              }
 
               # Windows, and only windows: `launchers = [ ]` is load-bearing,
-              # not a placeholder. This is where a minimized window goes, in
-              # the middle of the panel, distinct from the icon it was
-              # launched from. fill lets it take the space up to the monitors.
+              # not a placeholder. This is where a minimized window goes --
+              # mid-panel, distinct from the launcher it came from.
               #
               # To make this show ONLY minimized windows rather than every
               # window, add: behavior.showTasks.onlyMinimized = true;
               {
                 iconTasks = {
                   launchers = [ ];
-                  appearance.fill = true;
+                  appearance.fill = false;
+                };
+              }
+
+              {
+                panelSpacer = {
+                  expanding = true;
                 };
               }
 
