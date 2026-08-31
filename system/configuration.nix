@@ -578,6 +578,38 @@ in
       };
     };
 
+  # ── Screen capture and streaming ─────────────────────────────
+  # OBS. Screen capture on this machine goes through xdg-desktop-portal-kde
+  # (already present with Plasma), not X11 capture, so the "Screen Capture
+  # (PipeWire)" source is the one that works on Wayland -- the older
+  # "Screen Capture (XSHM)" source sees nothing.
+  programs.obs-studio.enable = true;
+
+  # The virtual camera, wired up by hand rather than with
+  # programs.obs-studio.enableVirtualCamera. That option hard-codes
+  # `video_nr=1` into boot.extraModprobeConfig, and the Cam Link 4K already
+  # owns /dev/video0 and /dev/video1 -- so v4l2loopback would be fighting it
+  # for a device number, with the winner decided by whether the module loads
+  # before USB enumeration finishes. Changing just that number would take
+  # mkForce on boot.extraModprobeConfig, which is a shared `lines` option
+  # that also carries the nvidia lines, NVreg_EnableResizableBar among them.
+  #
+  # So: the same three settings the option would have made, with video_nr=9,
+  # clear of anything a capture device will claim.
+  #
+  # A new out-of-tree module does not load on the switch that adds it:
+  # modprobe resolves against /run/booted-system, which is still the old
+  # closure, so systemd-modules-load logs "Failed to find module
+  # 'v4l2loopback'" and carries on. A reboot fixes it; without one,
+  #   sudo modprobe -d /run/current-system/kernel-modules v4l2loopback
+  # loads it out of the new closure. That was done here, so /dev/video9
+  # exists now and will come back on its own at every boot.
+  boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
+  boot.kernelModules = [ "v4l2loopback" ];
+  boot.extraModprobeConfig = ''
+    options v4l2loopback devices=1 video_nr=9 card_label="OBS Cam" exclusive_caps=1
+  '';
+
   programs.git = {
     enable = true;
     config = {
