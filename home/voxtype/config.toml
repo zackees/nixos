@@ -11,7 +11,14 @@ state_file = "auto"
 # removed: left in place it fired `record toggle` on the same press and
 # fought the hold.
 enabled = true
-key = "H"
+# EVTEST_35, not "H": voxtype's key-name table covers only dedicated keys -
+# SCROLLLOCK, PAUSE, CAPSLOCK, INSERT, the modifiers, F1-F24, END, SPACE and
+# the media keys. Letters are not in it, and "H" and "KEY_H" are both
+# rejected outright. 35 is KEY_H's kernel keycode from
+# <linux/input-event-codes.h>, and EVTEST_ is the prefix for that numbering
+# (WEV_/X11_/XEV_ are the XKB one, offset by 8). Verified by the daemon
+# logging: Listening for KEY_H (with modifiers: {KEY_LEFTMETA}).
+key = "EVTEST_35"
 modifiers = ["LEFTMETA"]
 mode = "push_to_talk"
 
