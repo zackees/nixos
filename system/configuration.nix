@@ -154,6 +154,10 @@ in
     voxtype             # push-to-talk voice-to-text (Meta+H)
     pciutils            # lspci; voxtype's GPU probe needs it to name the card
 
+    # ── Containers ──
+    podman-desktop      # GUI for the Docker engine; see virtualisation.docker
+    docker-compose      # the standalone name; `docker compose` needs nothing
+
     alsa-utils          # amixer/aplay/arecord
     alsa-scarlett-gui   # 48V, gain, air, pad, direct monitor for the 2i2
   ];
@@ -483,19 +487,27 @@ in
         text = ''
           RUNDIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/voxtype"
           STATE="$RUNDIR/state"
-          SAVE="$RUNDIR/ducked"
+          # Deliberately beside RUNDIR, not inside it: writing the save file
+          # into the directory this service watches makes it wake itself up
+          # on its own bookkeeping.
+          SAVE="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/voxtype-ducked"
           LEVEL="''${VOXTYPE_DUCK_LEVEL:-0.3}"
 
-          # Every playback stream except voxtype's own. voxtype holds an ALSA
-          # playback stream open for its start/stop beeps, and ducking that
-          # would quiet the very cue that says recording began.
+          # Every playback stream except voxtype's own and OBS's. voxtype
+          # holds an ALSA playback stream open for its start/stop beeps, and
+          # ducking that would quiet the very cue that says recording began.
+          # OBS only ever plays back to monitor -- into the OBS Mix sink and
+          # out to whoever is watching -- so ducking it would duck the
+          # broadcast rather than the room. \b keeps that from also matching
+          # an unrelated name that merely starts with "obs".
           streams() {
             pw-dump | jq -r '
               .[]
               | select(.info.props."media.class" == "Stream/Output/Audio")
               | select(((.info.props."node.name" // "")
                         + (.info.props."application.name" // ""))
-                       | ascii_downcase | contains("voxtype") | not)
+                       | ascii_downcase
+                       | test("voxtype|\\bobs\\b") | not)
               | .id'
           }
 
@@ -585,6 +597,53 @@ in
   # "Screen Capture (XSHM)" source sees nothing.
   programs.obs-studio.enable = true;
 
+  # Per-application audio capture. Without it OBS can only take a whole
+  # PipeWire device, so a stream picks up every notification and browser tab
+  # along with the Wave:3 and the Scarlett. This adds "Application Audio
+  # Capture (PipeWire)" sources that bind to one program at a time.
+  programs.obs-studio.plugins = [ pkgs.obs-studio-plugins.obs-pipewire-audio-capture ];
+
+  # The virtual camera carries video and nothing else. v4l2loopback has no
+  # audio side at all, and OBS's virtual camera on Windows and macOS has none
+  # either -- it is a video device by definition, which is why mixing audio
+  # into it could not be made to work there. What does work is a virtual
+  # *microphone* standing next to the virtual camera: the far end picks
+  # "OBS Cam" for video and "OBS Mic" for audio, and gets the full OBS mix.
+  #
+  # One loopback module builds both halves. Its capture side is a sink,
+  # "OBS Mix", which is what OBS is pointed at as its monitoring device; its
+  # playback side is a source, "OBS Mic", which every application sees as an
+  # ordinary microphone. Whatever OBS monitors comes out of it.
+  #
+  # Keys are quoted because PipeWire wants literal dotted names: written bare,
+  # Nix would read `node.name` as nesting and emit {"node":{"name":...}},
+  # which the config parser does not understand.
+  services.pipewire.extraConfig.pipewire."99-obs-virtual-mic" = {
+    "context.modules" = [{
+      name = "libpipewire-module-loopback";
+      args = {
+        "node.description" = "OBS Mic";
+        "capture.props" = {
+          "node.name" = "obs_mix";
+          "node.description" = "OBS Mix";
+          "media.class" = "Audio/Sink";
+          "audio.position" = [ "FL" "FR" ];
+        };
+        "playback.props" = {
+          "node.name" = "obs_mic";
+          "node.description" = "OBS Mic";
+          "media.class" = "Audio/Source";
+          "audio.position" = [ "FL" "FR" ];
+          # Never let this outrank a real microphone as the default input.
+          # voxtype records from whatever the default source is, so a virtual
+          # mic winning that election would have dictation transcribing OBS's
+          # own output instead of the Wave:3.
+          "priority.session" = 100;
+        };
+      };
+    }];
+  };
+
   # The virtual camera, wired up by hand rather than with
   # programs.obs-studio.enableVirtualCamera. That option hard-codes
   # `video_nr=1` into boot.extraModprobeConfig, and the Cam Link 4K already
@@ -609,6 +668,40 @@ in
   boot.extraModprobeConfig = ''
     options v4l2loopback devices=1 video_nr=9 card_label="OBS Cam" exclusive_caps=1
   '';
+
+  # ── Containers ─────────────────────────────────────────────
+  # Docker Desktop itself cannot be installed here, and this is the stand-in.
+  # Desktop ships only as a .deb/.rpm that unpacks into /opt with its own
+  # systemd user units and runs the engine inside a QEMU VM -- none of which
+  # survives a NixOS closure, and there is no `docker-desktop` attribute in
+  # nixpkgs to fall back on. On Linux that VM is pure overhead anyway: the
+  # kernel already has the cgroups and namespaces containers are made of, so
+  # the native engine is both the only option and the faster one.
+  #
+  # What Desktop bundles is the daemon, the CLI, compose, buildx and a
+  # dashboard. The first four are this single option: nixpkgs bakes the
+  # compose and buildx cli-plugin store paths into the `docker` binary itself,
+  # so `docker compose` and `docker buildx` work with nothing else declared
+  # (both paths are greppable inside pkgs.docker's bin/docker). The dashboard
+  # is podman-desktop, in systemPackages above -- despite the name it drives a
+  # plain Docker socket, so it is the containers/images/volumes UI without the
+  # VM.
+  virtualisation.docker = {
+    enable = true;
+
+    # Off at boot, up on first use. Socket activation is now unconditional in
+    # the NixOS module (the old virtualisation.docker.socketActivation option
+    # was removed for that reason), so /var/run/docker.sock exists from boot
+    # and any `docker` command starts dockerd transparently. That matches how
+    # Desktop behaves and keeps an idle daemon off a workstation that can go
+    # days without touching a container.
+    #
+    # The one thing it gives up: a container created with `--restart=always`
+    # does not come back after a reboot until something pokes the socket. Set
+    # this to true if a long-lived container -- a local registry, a database
+    # -- ever needs to survive on its own.
+    enableOnBoot = false;
+  };
 
   programs.git = {
     enable = true;
@@ -715,7 +808,16 @@ in
     # keyd's virtual keyboard. keyd grabs only the Compx mouse, so that
     # device carries the mouse buttons and nothing else - the SONiX never
     # passes through it. voxtype gets the key it needs and no typing at all.
-    extraGroups = [ "networkmanager" "wheel" "ydotool" "voxtype-input" ];
+    #
+    # "docker" is knowingly root-equivalent, and is the exception to the
+    # paragraph above: the daemon runs as root and will bind-mount any path
+    # into a container, so anyone who can reach its socket can read and write
+    # the whole filesystem as root without ever going through sudo. There is
+    # no narrower group -- membership *is* the API -- and rootless docker
+    # trades it for a userspace network stack and no GPU passthrough, which
+    # this machine's CUDA work wants. Accepted for a single-user workstation
+    # where that user is already in "wheel".
+    extraGroups = [ "networkmanager" "wheel" "ydotool" "voxtype-input" "docker" ];
     packages = with pkgs; [
       kdePackages.kate
     #  thunderbird
