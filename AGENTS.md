@@ -18,13 +18,18 @@ push; do not weaken its `PATTERN` to get a commit through. If you genuinely
 need a secret in the config, use `sops-nix` or `agenix` — never a plain
 `.nix` file.
 
-**Never edit `/etc/nixos` directly.** It is overwritten by
-`scripts/apply-system.sh`. Edit `system/` here; that is the source of
-truth. (`/etc/nixos` is still its own local git repo from before this one
-existed — ignore it.)
+**`/etc/nixos` is not used at all any more.** Since the flake migration
+`nixos-rebuild --flake` builds from this checkout, and nothing writes
+`/etc/nixos`. Edit `system/` here; it is the only copy. (`/etc/nixos` is
+still its own local git repo from before this one existed, now purely
+vestigial — ignore it, and do not "resync" it.)
+
+**A new `.nix` file is invisible until `git add`.** Flakes only see files
+git tracks, so an uncommitted addition fails with an error that reads as if
+the file does not exist. Modifying an already-tracked file is fine.
 
 **Never run `nixos-rebuild switch` unprompted.** It activates a new system
-generation on a live machine. Use `--build` to verify, and leave activation
+generation on a live machine. Use `nixos-rebuild build --flake` to verify, and leave activation
 to the user unless they asked for it.
 
 **Ask whether a new GUI application belongs on the dock.** Installing one
@@ -46,14 +51,14 @@ pretending; that behaviour is deliberate, not a bug to fix.
 
 Always, before committing:
 
-    sudo nixos-rebuild build -I nixos-config="$PWD/system/configuration.nix"
+    nixos-rebuild build --flake .#nixos
     echo "exit=$?"
 
 **Check that exit code, and do not pipe the command into `tail`, `head` or
 `grep` to shorten the output.** The pipeline's status is the last command's,
 so a failed build reports success. Redirect to a file and read it instead:
 
-    sudo nixos-rebuild build -I nixos-config="$PWD/system/configuration.nix" \
+    nixos-rebuild build --flake .#nixos \
       > /tmp/build.log 2>&1; echo "exit=$?"; tail -20 /tmp/build.log
 
 A successful build ends with `Done. The new configuration is /nix/store/...`
@@ -71,18 +76,6 @@ wholesale — commit or stash first.
 
 Use `scripts/capture.sh` alone if you need to review or amend before
 committing.
-
-**Apply to `/etc/nixos` before you sync.** `capture.sh` copies
-`/etc/nixos/configuration.nix` *over* `system/configuration.nix`, so the
-sync only does the right thing when `/etc/nixos` is the newer of the two. A
-rebuild run with `-I nixos-config="$PWD/system/configuration.nix"` — which
-is how the verify step above works — activates straight from the repo and
-never writes `/etc/nixos`, leaving the repo ahead. Syncing from there
-captures the older file and pushes a commit that silently reverts the change
-you just applied. Run `scripts/apply-system.sh` first; it copies `system/`
-into `/etc/nixos` and rebuilds, and is a no-op activation if you already
-switched to the same config. `capture.sh` now refuses when the two disagree,
-rather than relying on anyone remembering this.
 
 ## Traps specific to this repo
 
@@ -201,9 +194,12 @@ fix is a narrow `overridePythonAttrs` adding the one file to
 alone before rebuilding the system, because the feedback loop is far shorter.
 
 **`uv` is declared in `scripts/03-apply-home.sh`, not in
-`configuration.nix`, and that is deliberate.** The system channel's uv lags
+`configuration.nix`, and that is deliberate.** The pinned nixpkgs' uv lags
 while `clud` and `soldr` track PyPI, so the restore installs uv into the
-*user nix profile* instead. Adding `uv` to `environment.systemPackages` looks
+*user nix profile* instead, from a fully-spelled nixpkgs-unstable URL.
+Writing that as `nixpkgs#uv` would now resolve through the system flake
+registry to this repo's *locked* nixpkgs and install the very version being
+avoided — the same trap as below, sprung by a different mechanism. Adding `uv` to `environment.systemPackages` looks
 like tidying an undeclared dependency and is not: it puts uv on PATH, which
 satisfies that script's guard, so `nix profile add nixpkgs#uv` is skipped and
 a restored machine silently ends up on the older channel uv. This has been
@@ -215,6 +211,21 @@ either -- `path = [ pkgs.uv ]` pulls the derivation in by store path. That is
 also what makes the venv provision correctly at the very first login of a
 restored machine, which happens after the reboot in RESTORE.md step 4 and
 *before* `03-apply-home.sh` is run by hand in step 5.
+
+**`nixpkgs#foo` means the *pinned* nixpkgs now, not unstable.** The flake
+sets a system registry entry (`/etc/nix/registry.json`) mapping the bare
+`nixpkgs` id to the revision in `flake.lock`, and points `NIX_PATH` at it.
+That is the point — `nix shell nixpkgs#jq` and `<nixpkgs>` finally agree with
+what the system was built from, which a channel could never guarantee. But it
+silently changes what an ad-hoc `nix shell`/`nix run`/`nix profile add` gives
+you, from whatever unstable served that minute to a fixed, older set. When
+you genuinely want newer than the pin, spell the source out in full rather
+than relying on the id; `scripts/03-apply-home.sh` does this for `uv`.
+
+It also costs ~197 MiB per system generation, because the nixpkgs source has
+to be in the closure for that to work. That is not new disk use so much as
+moved: it used to sit in root's channel profile instead, outside any
+generation and impossible to roll back with one.
 
 ## sudo on this machine
 

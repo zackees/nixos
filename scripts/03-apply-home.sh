@@ -3,7 +3,7 @@
 #
 # Run as niteris, not root, on a machine whose system config is already
 # active: from 02-install.sh during a restore, where this is step 5 of
-# RESTORE.md, or from apply-system.sh on a machine already running.
+# RESTORE.md, or already running, in which case nothing needed applying.
 # Idempotent: safe to re-run.
 #
 # What NixOS/home-manager already own, and this script therefore skips:
@@ -92,14 +92,20 @@ fi
 
 say "user-level CLI tools"
 # uv itself comes from the nix profile, not configuration.nix, because the
-# system channel's uv lags behind and these tools track PyPI.
+# pinned nixpkgs lags behind and these tools track PyPI.
+#
+# nixpkgs-unstable is named in full rather than written `nixpkgs#uv`. Since
+# the flake migration the system registry maps the bare `nixpkgs` id to THIS
+# repo's locked nixpkgs, so `nixpkgs#uv` would quietly install the pinned
+# 26.05 uv -- the exact outcome this profile install exists to avoid. Naming
+# the URL depends on no registry at all.
 #
 # Test for the profile copy specifically rather than `command -v uv`: anything
 # that puts uv on PATH -- a systemPackages entry added in good faith, a stray
 # shim -- satisfies a PATH test, skips this install, and silently leaves the
 # machine on whatever older uv it found. That has happened once already.
 if [ ! -x "$HOME/.nix-profile/bin/uv" ]; then
-  nix profile add nixpkgs#uv
+  nix profile add "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz#uv"
 fi
 export PATH="$HOME/.local/bin:$PATH"
 uv tool install --force clud
