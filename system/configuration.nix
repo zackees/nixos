@@ -323,6 +323,42 @@ in
     powerManagement.enable = false;
   };
 
+  # ── Key remapping ───────────────────────────────────────────
+  # Super+H is the push-to-talk key, but voxtype's evdev listener only
+  # READS keys, it never consumes them -- there is no EVIOCGRAB in the
+  # binary. So holding the key to talk also delivered the letter to
+  # whatever had focus: roughly two hundred h's per hold, since terminal
+  # and toolkit key handling repeats. voxtype's own key table is limited
+  # to non-printing keys for exactly this reason; Super+H only works at
+  # all via the raw keycode EVTEST_35, which steps around that guard.
+  #
+  # keyd sits below the compositor, grabs the keyboard, and re-emits
+  # through a virtual device, so it CAN consume. Super+H becomes F13
+  # before anything else sees it: the gesture is unchanged, but no
+  # application ever receives a printable character.
+  #
+  # Scoped to the SONiX by id rather than "*" on purpose. A wildcard would
+  # also grab ydotoold's virtual device, which is the device voxtype types
+  # its transcriptions through -- keyd would then be remapping voxtype's
+  # own output. Leaving the Compx wireless keyboard ungrabbed is
+  # deliberate too: it stays a working keyboard if keyd ever misbehaves.
+  services.keyd = {
+    enable = true;
+    keyboards.sonix = {
+      ids = [ "0c45:8008" ];
+      settings = {
+        # [meta] is the layer while Meta is held. The output is M-f13, not
+        # a bare f13, and the M- matters: keyd clears the modifier before
+        # emitting an unprefixed key, so KWin saw Meta press then Meta
+        # release with nothing between them -- the "Meta tapped alone"
+        # gesture -- and opened the Plasma overview on every dictation.
+        # Keeping Meta down means KWin sees a real combination and cancels
+        # that gesture, the way any other Meta+key does.
+        meta = { h = "M-f13"; };
+      };
+    };
+  };
+
   # ── Dictation ────────────────────────────────────────────────
   # voxtype transcribes speech and types it at the cursor. It defaults to
   # wtype, which needs the zwp_virtual_keyboard_manager_v1 Wayland protocol

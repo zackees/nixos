@@ -11,14 +11,23 @@ state_file = "auto"
 # removed: left in place it fired `record toggle` on the same press and
 # fought the hold.
 enabled = true
-# EVTEST_35, not "H": voxtype's key-name table covers only dedicated keys -
-# SCROLLLOCK, PAUSE, CAPSLOCK, INSERT, the modifiers, F1-F24, END, SPACE and
-# the media keys. Letters are not in it, and "H" and "KEY_H" are both
-# rejected outright. 35 is KEY_H's kernel keycode from
-# <linux/input-event-codes.h>, and EVTEST_ is the prefix for that numbering
-# (WEV_/X11_/XEV_ are the XKB one, offset by 8). Verified by the daemon
-# logging: Listening for KEY_H (with modifiers: {KEY_LEFTMETA}).
-key = "EVTEST_35"
+# F13, even though the key you press is still Super+H. keyd rewrites the
+# combination to Meta+F13 below the compositor (services.keyd in
+# system/configuration.nix), so this is the key voxtype actually sees.
+#
+# The indirection exists because voxtype's listener only READS keys, never
+# consumes them, so a printable key leaks its character to whatever has
+# focus - a hold sent ~200 h's ahead of the transcription. voxtype's own
+# key table admits only non-printing keys for that reason; H was reachable
+# only as the raw keycode EVTEST_35, which stepped around the guard rather
+# than solving it. F13 prints nothing anywhere, so the leak is gone in
+# every application, not just the terminal.
+#
+# LEFTMETA stays required: keyd emits M-f13 rather than a bare f13
+# specifically so Meta remains held. See the keyd comment for why that
+# matters to KWin. Confirmed by the daemon's own line:
+# Listening for KEY_F13 (with modifiers: {KEY_LEFTMETA}).
+key = "F13"
 modifiers = ["LEFTMETA"]
 mode = "push_to_talk"
 
