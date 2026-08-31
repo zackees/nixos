@@ -77,6 +77,21 @@ wholesale — commit or stash first.
 Use `scripts/capture.sh` alone if you need to review or amend before
 committing.
 
+**"Apply" means both halves, and it ends with a clean tree.** When the user
+says apply -- "apply changes", "apply updates", "apply it" -- that is the
+prompting that lifts the `nixos-rebuild switch` rule above, *and* it asks for
+`scripts/sync.sh` afterwards. Do not stop at the switch and report success.
+Activating alone leaves the machine ahead of the repo with the edits still
+uncommitted, and that is precisely the state `scripts/sync.sh` refuses to run
+in and the next `scripts/capture.sh` would overwrite -- so the tidying gets
+harder the longer it waits, and the work can be lost outright.
+
+Confirm before the push, since that part is outward-facing and irreversible,
+but confirm having already switched and captured, with the diff on screen.
+The same goes for an agent's own working state: never end a turn with edits
+sitting loose in the tree because the sync looked like a separate task. It is
+the second half of the same one.
+
 ## Traps specific to this repo
 
 **`plasma-manager` replaces panels wholesale.** The widget list in
@@ -174,6 +189,24 @@ hardware needs `scripts/02-install.sh --regen-hardware`.
 **`docs/hardware.md` is generated** by `scripts/gen-hardware-doc.sh`. Edit
 that script, not the output. It deliberately carries no timestamp, so the
 file only changes when the hardware does.
+
+**NixOS calls the system bashrc `/etc/bashrc`, and kitty looks for
+`/etc/bash.bashrc`.** kitty injects its shell integration by starting `bash
+--posix`, which skips bash's compiled-in `SYS_BASHRC`; it then sources a
+system bashrc back by hand, but its list is Debian's `/etc/bash.bashrc` and
+Void's `/etc/bash/bashrc`. Neither exists here, so nothing matched and a kitty
+shell got *none* of NixOS's interactive setup -- no starship prompt, no
+`environment.shellAliases`, no zoxide `cd`, no direnv, no completion. Just
+`bash-5.3$`.
+
+`home/bash/bashrc` sources `/etc/bashrc` explicitly to close this, and must
+keep doing so. The symptom misreads badly in both directions: it looks like
+starship or the aliases are broken system-wide, when in fact everything in
+`configuration.nix` is correct and only kitty cannot see it. Konsole hides the
+whole thing, because it runs a *login* shell and `/etc/profile` pulls
+`/etc/bashrc` in -- so "works in Konsole, broken in kitty" is the signature.
+Test a change to either file in a *newly opened* kitty window; the shells
+already running kept whatever they started with.
 
 **`pip` belongs to `~/.venv`, and that venv must not be built on
 `pkgs.python3`.** nixpkgs' python ships PEP 668's `EXTERNALLY-MANAGED`, so
