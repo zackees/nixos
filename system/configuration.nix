@@ -398,6 +398,16 @@ in
   '';
 
   programs.starship.enable = true;   # prompt: git state, exit codes, versions
+
+  # Starship's stock `directory` shows the path relative to the enclosing git
+  # repo, truncated to three components -- so `~/dev/nixos/system` renders as
+  # `nixos/system` and `~/src/nixos/system` renders identically. The prompt is
+  # the one place the working directory is always on screen, so spell it out
+  # in full, `~`-relative, and let it be the thing you can trust.
+  programs.starship.settings.directory = {
+    truncate_to_repo = false;
+    truncation_length = 0;   # 0 = do not truncate
+  };
   programs.direnv.enable = true;     # per-project envs via .envrc / shell.nix
   programs.tmux.enable = true;       # session persistence across SSH drops
   programs.bash.completion.enable = true;

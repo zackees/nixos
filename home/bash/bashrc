@@ -1,3 +1,17 @@
+# kitty injects its shell integration by starting bash in --posix mode, which
+# skips bash's compiled-in SYS_BASHRC -- /etc/bashrc on NixOS. kitty then
+# sources a system bashrc back by hand, but only knows Debian's
+# /etc/bash.bashrc and Void's /etc/bash/bashrc; neither exists here. So a kitty
+# shell got none of NixOS's interactive setup: no starship prompt (hence no cwd
+# on screen), no environment.shellAliases, no zoxide `cd`, no direnv, no
+# completion -- a bare `bash-5.3$`. Konsole hid this because it runs a *login*
+# shell, and /etc/profile pulls in /etc/bashrc.
+#
+# /etc/bashrc guards itself with __ETC_BASHRC_SOURCED, so this is a no-op in
+# the shells that already ran it, and it will not re-source /etc/profile
+# either -- the graphical session exports __ETC_PROFILE_DONE.
+if [ -r /etc/bashrc ]; then . /etc/bashrc; fi
+
 # Run clud from PyPI via uvx rather than the uv-installed tool binary.
 alias clud='uvx clud'
 
