@@ -101,6 +101,26 @@ for 15 minutes (`timestamp_type=global`). Interactive shells alias `sudo` to
 terminal, a `sudo` call may be waiting on a dialog the user has to see rather
 than hanging. Drop the ticket with `sudo -k`.
 
+**An agent can authenticate itself — use `sudo -A` explicitly.** The alias
+only exists in interactive shells, so a tool-invoked shell gets plain `sudo`,
+which needs a tty it does not have and fails with "a password is required".
+Spelling out `-A` draws the same KDE dialog for the user to answer, and it
+works from a non-interactive shell because the environment already carries
+everything ksshaskpass needs:
+
+    SUDO_ASKPASS=.../ksshaskpass    WAYLAND_DISPLAY=wayland-0
+    DISPLAY=:0                      XDG_RUNTIME_DIR=/run/user/1000
+
+Verified with `sudo -A id` → `uid=0(root)`. Wrap it in `timeout` — if nobody
+is at the screen the dialog waits forever, and an un-timed call hangs the
+whole tool invocation rather than failing. The 15-minute global ticket then
+covers subsequent plain `sudo` calls, which is why an agent usually only
+needs to trigger one dialog per burst of work.
+
+Do not reach for this to bypass a refusal: the rules above about
+`nixos-rebuild switch` and `/etc/nixos` are about what should happen, not
+about what sudo permits.
+
 ## Commits
 
 Explain *why*, not what — the diff shows what. Note anything a future reader
