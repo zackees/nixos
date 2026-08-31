@@ -160,6 +160,26 @@ in
 
     alsa-utils          # amixer/aplay/arecord
     alsa-scarlett-gui   # 48V, gain, air, pad, direct monitor for the 2i2
+
+    # ── Video editing ──
+    # kdenlive rather than DaVinci Resolve: the free Linux Resolve ships no
+    # H.264/AAC/H.265 at all -- Blackmagic will not pay the patent licence for
+    # a build it gives away -- so it only ingests and emits DNxHR/ProRes and
+    # every ordinary mp4 needs transcoding on the way in AND out. kdenlive
+    # renders through MLT, which calls ffmpeg, so mp4 is just another format.
+    #
+    # Most of what people install alongside it is already inside the nixpkgs
+    # derivation: frei0r (wrapped as FREI0R_PATH), glaxnimate, OpenTimelineIO
+    # and ffmpeg-full are build inputs, and the app is patched to call this
+    # exact melt and glaxnimate rather than searching $PATH. The entries below
+    # are the parts that genuinely are NOT covered by that.
+    kdePackages.kdenlive
+    glaxnimate           # kdenlive embeds it, but this is the standalone app
+    ffmpeg-full          # ffmpeg/ffprobe on the CLI; nvenc/nvdec are built in
+    mediainfo            # says what is actually in a file when a clip misbehaves
+    ladspaPlugins        # swh-plugins; see LADSPA_PATH below
+    handbrake            # batch transcoder; `ghb` is the GUI, HandBrakeCLI the
+                         # binary the package calls its mainProgram
   ];
 
   # nano is already installed and enabled by default on NixOS; make it the
@@ -167,6 +187,14 @@ in
   environment.variables = {
     EDITOR = "nano";
     VISUAL = "nano";
+
+    # MLT finds its LADSPA audio filters (pitch, reverb, declip, gate, the
+    # rest of swh-plugins) through this. The nixpkgs mlt sets it, but only on
+    # the `melt` wrapper -- so without this the effects appear when kdenlive
+    # renders and are missing from its effect list while you edit. Setting it
+    # here fixes the asymmetry, and hands the same plugins to any other LADSPA
+    # host on the machine.
+    LADSPA_PATH = "${pkgs.ladspaPlugins}/lib/ladspa";
   };
 
   # fzf: the module installs pkgs.fzf and sources the bash integration,
