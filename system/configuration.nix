@@ -324,38 +324,29 @@ in
   };
 
   # ── Key remapping ───────────────────────────────────────────
-  # Super+H is the push-to-talk key, but voxtype's evdev listener only
-  # READS keys, it never consumes them -- there is no EVIOCGRAB in the
-  # binary. So holding the key to talk also delivered the letter to
-  # whatever had focus: roughly two hundred h's per hold, since terminal
-  # and toolkit key handling repeats. voxtype's own key table is limited
-  # to non-printing keys for exactly this reason; Super+H only works at
-  # all via the raw keycode EVTEST_35, which steps around that guard.
+  # Push-to-talk is a spare mouse button. Its firmware emits KEY_LEFTSHIFT
+  # (code 42) on the mouse's keyboard interface, which is unusable as a
+  # hotkey directly -- shift is a modifier needed for ordinary typing. keyd
+  # rewrites it to F14, but ONLY on 25a7:fa0a, the Compx mouse. Nobody
+  # types capitals on a mouse, so nothing is lost there, and the real
+  # keyboards never see this mapping: the Compx *keyboard* is a separate
+  # product id (25a7:fa09) and the SONiX is 0c45:8008.
   #
-  # keyd sits below the compositor, grabs the keyboard, and re-emits
-  # through a virtual device, so it CAN consume. Super+H becomes F13
-  # before anything else sees it: the gesture is unchanged, but no
-  # application ever receives a printable character.
+  # keyd rather than binding code 42 in voxtype directly, because voxtype's
+  # listener only READS keys and never consumes them. Left as shift, every
+  # dictation would also send shift to the focused window; as F14 it sends
+  # something no application acts on. The same reasoning retired the
+  # earlier Super+H mapping -- holding a letter key leaked ~200 h's into
+  # whatever had focus.
   #
-  # Scoped to the SONiX by id rather than "*" on purpose. A wildcard would
-  # also grab ydotoold's virtual device, which is the device voxtype types
-  # its transcriptions through -- keyd would then be remapping voxtype's
-  # own output. Leaving the Compx wireless keyboard ungrabbed is
-  # deliberate too: it stays a working keyboard if keyd ever misbehaves.
+  # Deliberately NOT matching "*": a wildcard would also grab ydotoold's
+  # virtual device, which is what voxtype types transcriptions through, so
+  # keyd would be remapping voxtype's own output.
   services.keyd = {
     enable = true;
-    keyboards.sonix = {
-      ids = [ "0c45:8008" ];
-      settings = {
-        # [meta] is the layer while Meta is held. The output is M-f13, not
-        # a bare f13, and the M- matters: keyd clears the modifier before
-        # emitting an unprefixed key, so KWin saw Meta press then Meta
-        # release with nothing between them -- the "Meta tapped alone"
-        # gesture -- and opened the Plasma overview on every dictation.
-        # Keeping Meta down means KWin sees a real combination and cancels
-        # that gesture, the way any other Meta+key does.
-        meta = { h = "M-f13"; };
-      };
+    keyboards.compx-mouse = {
+      ids = [ "25a7:fa0a" ];
+      settings.main = { leftshift = "f14"; };
     };
   };
 
