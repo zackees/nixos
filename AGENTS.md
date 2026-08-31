@@ -27,6 +27,16 @@ existed — ignore it.)
 generation on a live machine. Use `--build` to verify, and leave activation
 to the user unless they asked for it.
 
+**Ask whether a new GUI application belongs on the dock.** Installing one
+and pinning it are separate decisions, and both mistakes have been made here:
+kdenlive and handbrake went in and sat unpinned until someone noticed they
+were missing, while podman-desktop was pinned without anyone being asked.
+The panel is declared in
+`system/configuration.nix` and replaced wholesale, so a pin is a deliberate
+edit to that list, never a side effect of adding a package. Ask, and do not
+assume either way. If the answer is yes, the pin, the panel apply and the
+plasmashell restart all go together -- see the panel traps below.
+
 **Do not restore KDE files while Plasma is running.** `plasmashell` holds its
 own copy in memory and rewrites them on exit, so the restore silently does
 nothing. `scripts/04-apply-home.sh` detects this and skips rather than
