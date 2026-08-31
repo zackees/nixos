@@ -1,0 +1,48 @@
+# voxtype - see /nix/store/.../share/voxtype/default-config.toml for all keys.
+state_file = "auto"
+
+[hotkey]
+# Disabled: Meta+H is a KDE global shortcut calling `voxtype record toggle`.
+# KDE global shortcuts have no key-release event, so toggle rather than
+# push-to-talk is the mode that fits.
+enabled = false
+
+[osd]
+# nixpkgs ships voxtype + voxtype-osd but neither voxtype-osd-gtk4 nor
+# voxtype-osd-native, so the on-screen display cannot start. Disable it to
+# stop the daemon retrying; feedback comes from notifications + beeps below.
+enabled = false
+
+[audio]
+# You have three capture devices (Cam Link 4K, Scarlett 2i2, Elgato Wave:3).
+# "default" follows the PipeWire default source; set explicitly with a name
+# from `pactl list sources short` if it picks the wrong one.
+device = "default"
+sample_rate = 16000
+max_duration_secs = 60
+
+[whisper]
+model = "base.en"
+language = "en"
+on_demand_loading = false
+
+[output]
+# ydotool, not wtype: KWin does not implement the virtual keyboard protocol.
+mode = "type"
+# Pin the driver: the default order tries wtype first, and voxtype's own
+# check only verifies wtype is installed, not that the compositor supports
+# it. On KWin wtype always fails, so name ydotool explicitly.
+driver_order = ["ydotool", "clipboard"]
+fallback_to_clipboard = true
+
+[audio.feedback]
+# Beep when recording starts and stops - the OSD is unavailable, so this is
+# the immediate "am I recording?" signal.
+enabled = true
+theme = "default"
+volume = 0.7
+
+[output.notification]
+on_recording_start = true
+on_recording_stop = true
+on_transcription = true

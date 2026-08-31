@@ -1,0 +1,5 @@
+[General]
+EnableWebShortcuts=true
+KeywordDelimiter=:
+PreferredWebShortcuts=
+UsePreferredWebShortcutsOnly=false

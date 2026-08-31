@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Toggle Dictation
+Comment=Start or stop voxtype voice transcription
+Exec=/run/current-system/sw/bin/voxtype record toggle
+Icon=audio-input-microphone
+Terminal=false
+NoDisplay=true

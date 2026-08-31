@@ -1,0 +1,12 @@
+# Run clud from PyPI via uvx rather than the uv-installed tool binary.
+alias clud='uvx clud'
+
+# `update` upgrades uv-managed CLI tools: `update clud`, `update clud soldr`,
+# or bare `update` for everything in `uv tool list`.
+update() {
+  if [ "$#" -eq 0 ]; then
+    uv tool upgrade --all
+  else
+    uv tool upgrade "$@"
+  fi
+}

@@ -1,0 +1,11 @@
+result
+result-*
+*.bak
+*.bak-*
+*.bak.*
+__pycache__/
+*.pyc
+
+# Never commit credentials. Passwords are set interactively during install
+# (see scripts/02-install.sh); nothing in this repo should carry a hash.
+system/secrets.nix

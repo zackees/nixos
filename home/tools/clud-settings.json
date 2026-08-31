@@ -1,0 +1,33 @@
+{
+  "codex": {
+    "config_overrides": [
+      "plugins.\"github@openai-curated\".enabled=false"
+    ],
+    "config_overrides_note": "clud passes these strings as repeated `codex -c` config overrides before the Codex subcommand. Edit config_overrides to change plugin/connector behavior."
+  },
+  "daemon": {
+    "idle_timeout_secs": 900,
+    "orphan_sweep": {
+      "grace_ms": 10000,
+      "interval_ms": 60000
+    },
+    "proc_sampler": {
+      "interval_ms": 2000
+    }
+  },
+  "git": {
+    "pr_wait_fail_fast": false
+  },
+  "hook_health": {
+    "auto_fix_hooks": true
+  },
+  "launcher": {
+    "last_harness": "claude"
+  },
+  "shell": {
+    "disable_powershell": false
+  },
+  "web_term": {
+    "enabled": false
+  }
+}
