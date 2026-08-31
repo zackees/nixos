@@ -456,6 +456,128 @@ in
     };
   };
 
+  # Turn the music down while the hotkey is held, and put it back on release.
+  # Two reasons: you can hear yourself, and the mic is an open Wave:3 sitting
+  # in front of the speakers, so whatever is playing is also going into
+  # whisper.
+  #
+  # Driven off voxtype's state file rather than its pre_recording_command /
+  # post_output_command hooks. The hooks fire either side of *typing*, so any
+  # path that ends a recording without producing output -- VAD hearing no
+  # speech, an empty transcription, a cancel -- ducks without ever undoing it,
+  # and the music stays down until you dictate again. The state file always
+  # comes back to "idle", so a watcher on it cannot get stuck; it is also what
+  # `voxtype record toggle` and `voxtype status` already read.
+  systemd.user.services.voxtype-duck =
+    let
+      duck = pkgs.writeShellApplication {
+        name = "voxtype-duck";
+        runtimeInputs = with pkgs; [
+          pipewire        # pw-dump
+          wireplumber     # wpctl
+          jq
+          inotify-tools
+          gawk
+          coreutils
+        ];
+        text = ''
+          RUNDIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/voxtype"
+          STATE="$RUNDIR/state"
+          SAVE="$RUNDIR/ducked"
+          LEVEL="''${VOXTYPE_DUCK_LEVEL:-0.3}"
+
+          # Every playback stream except voxtype's own. voxtype holds an ALSA
+          # playback stream open for its start/stop beeps, and ducking that
+          # would quiet the very cue that says recording began.
+          streams() {
+            pw-dump | jq -r '
+              .[]
+              | select(.info.props."media.class" == "Stream/Output/Audio")
+              | select(((.info.props."node.name" // "")
+                        + (.info.props."application.name" // ""))
+                       | ascii_downcase | contains("voxtype") | not)
+              | .id'
+          }
+
+          # Per-stream, not the sink: touching the sink volume would make
+          # Plasma pop its volume OSD on every dictation, and would fight any
+          # volume change made while recording. Saved volumes go to a file so
+          # a restart of this service still knows what to put back.
+          duck() {
+            if [ -e "$SAVE" ]; then return 0; fi
+            local ids tmp id vol
+            ids="$(streams)" || return 0
+            tmp="$(mktemp "$SAVE.XXXXXX")"
+            for id in $ids; do
+              vol="$(wpctl get-volume "$id" | awk '{print $2}')" || continue
+              [ -n "$vol" ] || continue
+              printf '%s %s\n' "$id" "$vol" >> "$tmp"
+              # wpctl's scale is cubic, not linear: 0.5 there is 0.125 of the
+              # actual amplitude (verified against pw-dump's channelVolumes).
+              # So LEVEL scales roughly perceived loudness, and small values
+              # get very quiet very fast.
+              wpctl set-volume "$id" \
+                "$(awk -v v="$vol" -v f="$LEVEL" 'BEGIN{printf "%.2f", v*f}')" || true
+            done
+            mv "$tmp" "$SAVE"
+          }
+
+          restore() {
+            if [ ! -e "$SAVE" ]; then return 0; fi
+            local id vol
+            while read -r id vol; do
+              # A stream that ended while ducked is simply gone; ignore it.
+              wpctl set-volume "$id" "$vol" 2>/dev/null || true
+            done < "$SAVE"
+            rm -f "$SAVE"
+          }
+
+          # Anything that is not "recording" -- idle, transcribing, a state
+          # this version has never heard of -- means the music comes back, so
+          # the music returns the moment the button is released rather than
+          # waiting out the transcription.
+          apply() {
+            case "$(cat "$STATE" 2>/dev/null)" in
+              recording) duck ;;
+              *)         restore ;;
+            esac
+          }
+
+          case "''${1:-watch}" in
+            duck)    duck ;;
+            restore) restore ;;
+            apply)   apply ;;
+            watch)
+              # The daemon creates this directory, but this service may win the
+              # race to start; inotifywait exits immediately on a missing path.
+              mkdir -p "$RUNDIR"
+              apply   # in case a recording is already in flight
+              inotifywait -q -m -e modify,close_write,create,moved_to "$RUNDIR" \
+                | while read -r _; do apply; done
+              ;;
+          esac
+        '';
+      };
+    in
+    {
+      description = "Duck playback audio while voxtype is recording";
+      wantedBy = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+      after = [ "graphical-session.target" "voxtype.service" ];
+
+      # Fraction of each stream's current volume to duck to, on wpctl's cubic
+      # scale. 0.3 is well down but still audible; 0.0 would be a mute.
+      environment.VOXTYPE_DUCK_LEVEL = "0.3";
+
+      serviceConfig = {
+        ExecStart = "${duck}/bin/voxtype-duck watch";
+        # Never leave the volume down because the watcher died mid-recording.
+        ExecStopPost = "${duck}/bin/voxtype-duck restore";
+        Restart = "always";
+        RestartSec = 2;
+      };
+    };
+
   programs.git = {
     enable = true;
     config = {
