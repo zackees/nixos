@@ -62,6 +62,18 @@ wholesale — commit or stash first.
 Use `scripts/capture.sh` alone if you need to review or amend before
 committing.
 
+**Apply to `/etc/nixos` before you sync.** `capture.sh` copies
+`/etc/nixos/configuration.nix` *over* `system/configuration.nix`, so the
+sync only does the right thing when `/etc/nixos` is the newer of the two. A
+rebuild run with `-I nixos-config="$PWD/system/configuration.nix"` — which
+is how the verify step above works — activates straight from the repo and
+never writes `/etc/nixos`, leaving the repo ahead. Syncing from there
+captures the older file and pushes a commit that silently reverts the change
+you just applied. Run `scripts/03-apply-system.sh` first; it copies `system/`
+into `/etc/nixos` and rebuilds, and is a no-op activation if you already
+switched to the same config. `capture.sh` now refuses when the two disagree,
+rather than relying on anyone remembering this.
+
 ## Traps specific to this repo
 
 **`plasma-manager` replaces panels wholesale.** The widget list in
