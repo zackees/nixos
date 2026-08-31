@@ -218,6 +218,30 @@ in
     eff = "$EDITOR \"$(ff)\"";
   };
 
+  # Stock nixpkgs voxtype omits the OSD: upstream gates the on-screen
+  # indicator behind the osd-gtk4 / osd-native cargo features, and the
+  # package's buildFeatures list only ever enables the Vulkan and ONNX ones,
+  # so it ships voxtype-osd with no frontend for it to launch.
+  #
+  # NOTE: buildRustPackage converts `buildFeatures` into `cargoBuildFeatures`
+  # when the function is applied, so overrideAttrs must set the latter.
+  # Setting buildFeatures here is silently ignored and yields an identical
+  # binary.
+  nixpkgs.overlays = [
+    (final: prev: {
+      voxtype = prev.voxtype.overrideAttrs (old: {
+        cargoBuildFeatures = (old.cargoBuildFeatures or [ ]) ++ [ "osd-gtk4" ];
+        cargoCheckFeatures = (old.cargoCheckFeatures or [ ]) ++ [ "osd-gtk4" ];
+        buildInputs = (old.buildInputs or [ ]) ++ (with prev; [
+          gtk4
+          gtk4-layer-shell
+          cairo
+          glib
+        ]);
+      });
+    })
+  ];
+
   # ── Dictation ────────────────────────────────────────────────
   # voxtype transcribes speech and types it at the cursor. It defaults to
   # wtype, which needs the zwp_virtual_keyboard_manager_v1 Wayland protocol
@@ -237,8 +261,20 @@ in
     # environment.variables only reaches login shells, not systemd user
     # services, so the daemon needs ydotool on PATH and the socket path
     # given explicitly - otherwise typing silently degrades to clipboard.
-    path = [ pkgs.ydotool pkgs.wl-clipboard ];
+    # voxtype itself must be on PATH too: the daemon launches the on-screen
+    # display by spawning bare `voxtype-osd`, so a PATH without its own
+    # package yields "Failed to spawn `voxtype-osd`: No such file or
+    # directory" and dictation runs blind.
+    path = [ pkgs.voxtype pkgs.ydotool pkgs.wl-clipboard ];
     environment.YDOTOOL_SOCKET = config.environment.variables.YDOTOOL_SOCKET;
+
+    # voxtype refuses to start when another instance holds the lock in
+    # /run/user/1000/voxtype, and exits 1 every time. Without a start limit
+    # that is an unbounded 2-second respawn loop rather than a visible
+    # failure - it ran to 64 restarts before anyone noticed. These are
+    # [Unit] keys, not [Service] ones, so they cannot go in serviceConfig.
+    startLimitIntervalSec = 60;
+    startLimitBurst = 5;
 
     serviceConfig = {
       ExecStart = "${pkgs.voxtype}/bin/voxtype daemon";

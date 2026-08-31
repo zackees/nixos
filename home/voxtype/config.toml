@@ -8,10 +8,9 @@ state_file = "auto"
 enabled = false
 
 [osd]
-# nixpkgs ships voxtype + voxtype-osd but neither voxtype-osd-gtk4 nor
-# voxtype-osd-native, so the on-screen display cannot start. Disable it to
-# stop the daemon retrying; feedback comes from notifications + beeps below.
-enabled = false
+# Enabled via an overlay that builds the osd-gtk4 cargo feature, which
+# stock nixpkgs omits.
+enabled = true
 
 [audio]
 # You have three capture devices (Cam Link 4K, Scarlett 2i2, Elgato Wave:3).
@@ -36,8 +35,8 @@ driver_order = ["ydotool", "clipboard"]
 fallback_to_clipboard = true
 
 [audio.feedback]
-# Beep when recording starts and stops - the OSD is unavailable, so this is
-# the immediate "am I recording?" signal.
+# Beep when recording starts and stops - an audible cue alongside the OSD,
+# for when the overlay is off-screen or the eyes are elsewhere.
 enabled = true
 theme = "default"
 volume = 0.7
