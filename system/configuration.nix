@@ -126,15 +126,34 @@ let
   # Brave by name rather than xdg-open: the dock already pins Brave outright
   # for the same reason, that preferred:// and mimetype defaults resolve
   # unpredictably with two browsers installed.
+  # Drawn here for the same reason dockerIcon is: no icon theme on this
+  # machine carries anything for ChatGPT, and the alternatives are worse. A
+  # generic globe says nothing on a 32-key deck where every key is a glyph,
+  # and fetchurl'ing the real mark would put a remote asset and a hash in the
+  # build for a decoration. This is an approximation, not the official logo --
+  # the hexagonal lattice and the brand green, which is what actually has to
+  # be recognisable at 96px on a key and 22px in the dock.
+  chatgptIcon = pkgs.writeTextFile {
+    name = "chatgpt-web-icon";
+    destination = "/share/icons/hicolor/scalable/apps/chatgpt-web.svg";
+    text = ''
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+        <g fill="none" stroke="#10a37f" stroke-width="3.6"
+           stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 6 L37.9 14 L37.9 30 L24 38 L10.1 30 L10.1 14 Z"/>
+          <path d="M24 6 L24 22 L37.9 30"/>
+          <path d="M10.1 14 L24 22 L24 38"/>
+        </g>
+      </svg>
+    '';
+  };
+
   chatgptLauncher = pkgs.makeDesktopItem {
     name = "chatgpt-web";
     desktopName = "ChatGPT";
     comment = "chat.openai.com";
     exec = "brave https://chat.openai.com";
-    # No ChatGPT icon exists on this machine and inventing a brand mark is
-    # worse than a generic one; Boatswain can be given a custom key image in
-    # its own UI anyway.
-    icon = "internet-web-browser";
+    icon = "chatgpt-web";
     categories = [ "Network" ];
     terminal = false;
   };
@@ -307,6 +326,7 @@ in
     boatswain
     boatswainAutostart
     chatgptLauncher     # "ChatGPT" entry for the Stream Deck to launch
+    chatgptIcon         # its glyph; no icon theme ships one
 
     # ── Containers ──
     podman-desktop      # GUI for the Docker engine; see virtualisation.docker
