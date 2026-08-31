@@ -323,6 +323,25 @@ in
     powerManagement.enable = false;
   };
 
+  # Hand read access to keyd's virtual keyboard alone, in place of
+  # membership of the `input` group -- which grants every process the user
+  # runs read access to every /dev/input/event*, the real keyboard
+  # included.
+  #
+  # This is the whole reason the hotkey lives on a device keyd owns: keyd
+  # grabs only the Compx mouse, so the sole events on this node are the two
+  # mouse buttons it re-emits. Reading it reveals no typing whatsoever.
+  #
+  # A dedicated group rather than TAG+="uaccess". uaccess works through
+  # logind, which only puts ACLs on devices attached to a seat, and keyd's
+  # node is virtual (/devices/virtual/input/...) with no seat -- the tag
+  # applies and no ACL ever appears. Verified: TAGS did contain uaccess
+  # while getfacl showed nothing.
+  users.groups.voxtype-input = { };
+  services.udev.extraRules = ''
+    SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="keyd virtual keyboard", GROUP="voxtype-input", MODE="0640"
+  '';
+
   # ── Key remapping ───────────────────────────────────────────
   # Push-to-talk is a spare mouse button. Its firmware emits KEY_LEFTSHIFT
   # (code 42) on the mouse's keyboard interface, which is unusable as a
@@ -503,13 +522,17 @@ in
   users.users."niteris" = {
     isNormalUser = true;
     description = "ZachVorhies";
-    # "input" is what makes hold-to-talk possible: voxtype reads key press
-    # AND release straight off /dev/input/event* (root:input 0660), because
-    # KGlobalAccel only ever fires on press. It also unlocks voxtype's
-    # modifier-release guard, which holds typing back until Meta is actually
-    # up - otherwise text typed while the key is still down arrives at the
-    # compositor as Meta+<letter> and triggers shortcuts instead.
-    extraGroups = [ "networkmanager" "wheel" "ydotool" "input" ];
+    # Deliberately NOT in "input". That group grants read access to every
+    # /dev/input/event* (they are root:input 0660), which means every
+    # process running as this user could read every keystroke on the real
+    # keyboard - a keylogger surface covering passwords and everything
+    # else. voxtype needed it only to see its hotkey.
+    #
+    # The udev rule below replaces it with access to exactly one device:
+    # keyd's virtual keyboard. keyd grabs only the Compx mouse, so that
+    # device carries the mouse buttons and nothing else - the SONiX never
+    # passes through it. voxtype gets the key it needs and no typing at all.
+    extraGroups = [ "networkmanager" "wheel" "ydotool" "voxtype-input" ];
     packages = with pkgs; [
       kdePackages.kate
     #  thunderbird
