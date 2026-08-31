@@ -92,16 +92,25 @@ every layer worth checking, including plasmashell's own view of it:
       w.currentConfigGroup = ["General"]; print(w.readConfig("launchers"));'
 
 The failure is Qt caching negative icon lookups for the life of the process.
-plasmashell started before the package entered the profile, concluded the
-icon did not exist, and never re-checks. `kbuildsycoca6` does NOT fix this --
-that rebuilds the *service* cache, a different thing, and was tried first.
-Restart the process instead:
+`kbuildsycoca6` does NOT fix this -- that rebuilds the *service* cache, a
+different thing, and was tried first. Restart the process instead:
 
     systemctl --user restart plasma-plasmashell.service
 
+**Treat that restart as the last step of every panel apply, not as a fix for
+a broken one.** The first time this appeared it looked like a consequence of
+installing packages after plasmashell had started. It is not: it came back on
+the very next panel rebuild, one that only reordered launchers and installed
+nothing at all. Rebuilding the panel is itself what leaves the icons
+unresolved, so the script below and this restart go together every time.
+
 Recognise it by the collateral damage: already-working launchers degrade too
-(Dolphin falls back to a generic page icon), so a dock that looks half-broken
-after an install is this, not a panel that failed to apply.
+(Dolphin and System Settings fall back to a generic page icon), so a dock
+that looks half-broken is this, not a panel that failed to apply.
+
+Screenshot only once the shell is actually back. Capture too early and the
+frame is solid black, or catches the panel mid-relayout with the icons in the
+wrong place -- both look like real failures and are not.
 
 **Panel changes apply at login, not at `nixos-rebuild switch`.**
 plasma-manager only regenerates

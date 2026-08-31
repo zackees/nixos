@@ -1009,7 +1009,7 @@ in
               {
                 name = "org.kde.plasma.icontasks";
                 config.General.launchers =
-                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop,applications:org.kde.kdenlive.desktop,applications:fr.handbrake.ghb.desktop,applications:com.obsproject.Studio.desktop,applications:docker-tui.desktop,applications:podman-desktop.desktop";
+                  "applications:systemsettings.desktop,preferred://filemanager,applications:brave-browser.desktop,applications:kitty.desktop,applications:org.kde.kdenlive.desktop,applications:fr.handbrake.ghb.desktop,applications:com.obsproject.Studio.desktop,applications:docker-tui.desktop,applications:podman-desktop.desktop";
               }
               "org.kde.plasma.marginsseparator"
 
