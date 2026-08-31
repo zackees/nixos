@@ -165,6 +165,41 @@ hardware needs `scripts/02-install.sh --regen-hardware`.
 that script, not the output. It deliberately carries no timestamp, so the
 file only changes when the hardware does.
 
+**`pip` belongs to `~/.venv`, and that venv must not be built on
+`pkgs.python3`.** nixpkgs' python ships PEP 668's `EXTERNALLY-MANAGED`, so
+`pip install` refuses rather than writing to the immutable `/nix/store`. The
+answer is the user venv that `systemd.user.services.user-python-venv` builds
+and that `environment.sessionVariables.PATH` puts ahead of the system python
+-- not `--break-system-packages`, which scatters packages into
+`~/.local/lib/pythonX.Y/site-packages`, a directory on `sys.path` for *every*
+interpreter here and silently orphaned the day nixpkgs moves 3.13 to 3.14.
+
+Build it on the uv-managed CPython under `~/.local/share/uv/python`, never on
+`pkgs.python3`. A venv records its interpreter's absolute path in
+`pyvenv.cfg`; on the store python that path is a `/nix/store` entry which the
+next `nix-collect-garbage` deletes, and the venv then dies with "no such file
+or directory" for an interpreter that worked yesterday. Same reasoning sets
+`PIPX_DEFAULT_PYTHON`: pipx builds each app its own venv, and those rot the
+same way. The interpreter version is pinned once as `userPythonVersion` in
+the `let` block because it appears in all three places.
+
+**A binary wheel that installs fine can still fail to import.** numpy, pillow
+and torch link against `libstdc++` and friends, which exist at no standard
+path here; they resolve only because `programs.nix-ld.enable` is on. Without
+it `pip install` reports success and the *import* is what breaks, so nix-ld
+and the venv are one setting in two places. Test a change to either with an
+actual `import`, not with a successful install.
+
+**A package in `systemPackages` whose own test suite fails takes the whole
+rebuild down.** `pipx` 1.8.0 on the 26.05 channel fails seven assertions in
+`tests/test_package_specifier.py` -- `packaging` >= 24 normalises `black@ url`
+to `black @ url` and the tests still expect the old spelling. That is
+cosmetic and upstream, but it fails `system-path`, and the error names
+`system-path` rather than the package, which reads like a config mistake. The
+fix is a narrow `overridePythonAttrs` adding the one file to
+`disabledTestPaths`; verify such an override with `nix-build` on the package
+alone before rebuilding the system, because the feedback loop is far shorter.
+
 ## sudo on this machine
 
 One successful authentication unlocks sudo for every session, machine-wide,
