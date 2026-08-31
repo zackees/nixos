@@ -1,79 +1,27 @@
 #!/usr/bin/env bash
 # ── Pulls the machine's live state back into this repo ──
 #
-# The inverse of 03/04-apply. Run it after changing something by hand (a KDE
-# setting, the system config) so the repo stops drifting from
-# reality, then review `git diff` and commit.
+# Run after changing something by hand -- a KDE setting, a display
+# arrangement -- so the repo stops drifting from reality. Review `git diff`
+# afterwards, then commit.
+#
+# It deliberately does NOT touch system/. Since the flake migration, system/
+# is the only copy that exists: `nixos-rebuild --flake` builds straight from
+# this checkout and nothing is written to /etc/nixos, so there is no second
+# copy that could be newer and nothing to capture back. The guard that used
+# to stand here -- refusing to overwrite system/ with a stale /etc/nixos, and
+# its --from-etc escape hatch -- protected against a hazard that no longer
+# exists. See issue #3.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
-FROM_ETC=0
 case "${1:-}" in
-  --from-etc)  FROM_ETC=1 ;;
   "")          ;;
   -h|--help)   sed -n '2,6p' "$0"; exit 0 ;;
-  *)           echo "usage: $0 [--from-etc]" >&2; exit 2 ;;
+  *)           echo "usage: $0" >&2; exit 2 ;;
 esac
-
-# ── Guard: refuse to capture a stale /etc/nixos over a newer system/ ──
-# The copy below overwrites system/configuration.nix wholesale, which is only
-# safe when /etc/nixos is the NEWER of the two. It is not after
-#
-#     nixos-rebuild switch -I nixos-config="$PWD/system/configuration.nix"
-#
-# which builds and activates straight from the repo and never writes
-# /etc/nixos. The machine then runs exactly what system/ says while
-# /etc/nixos sits at whatever apply-system.sh last put there -- so
-# capturing would overwrite the repo with the older file and produce a commit
-# that silently REVERTS the change you just applied and booted. sync.sh runs
-# this script before it commits and pushes, so the revert would go straight
-# to origin looking like an ordinary sync.
-#
-# The fix is scripts/apply-system.sh: it copies system/ into /etc/nixos
-# and rebuilds, after which the two agree and this check passes. --from-etc
-# is the escape hatch for the genuine opposite case, where someone edited
-# /etc/nixos by hand and wants that pulled back into the repo.
-#
-# secrets.nix imports are stripped from the captured file further down, so a
-# local secrets import is not a real disagreement -- ignore that line here.
-etc_side() { sudo cat /etc/nixos/configuration.nix | grep -v 'secrets\.nix'; }
-repo_side() { grep -v 'secrets\.nix' system/configuration.nix; }
-
-if [ "$FROM_ETC" != 1 ] && [ -f /etc/nixos/configuration.nix ]; then
-  if ! diff -q <(etc_side) <(repo_side) >/dev/null; then
-    echo "REFUSING TO CAPTURE -- /etc/nixos/configuration.nix disagrees with system/" >&2
-    echo >&2
-    { diff -u <(etc_side) <(repo_side) || true; } \
-      | sed -n '3,$p' | head -40 | sed 's/^/  /' >&2
-    cat >&2 <<'WARN'
-
-  (- is /etc/nixos, + is this repo; truncated to 40 lines)
-
-Capturing would copy /etc/nixos over system/configuration.nix and throw the
-+ lines away. If the repo is the newer side -- the usual case, and always so
-after a rebuild run with -I nixos-config=... -- apply it first:
-
-    scripts/apply-system.sh
-
-If /etc/nixos really is the newer side, pull it in deliberately:
-
-    scripts/capture.sh --from-etc
-WARN
-    exit 1
-  fi
-fi
-
-sudo cat /etc/nixos/configuration.nix > system/configuration.nix
-sudo cat /etc/nixos/hardware-configuration.nix > system/hardware-configuration.nix
-
-# Guard: /etc/nixos may carry a local secrets.nix that this repo must not.
-# Strip the import if one has crept in, and never copy the file itself.
-if grep -q 'secrets\.nix' system/configuration.nix; then
-  sed -i '/secrets\.nix/d' system/configuration.nix
-  echo "note: dropped a ./secrets.nix import -- credentials stay out of this repo"
-fi
 
 cp ~/.bashrc home/bash/bashrc
 cp ~/.bash_profile home/bash/bash_profile

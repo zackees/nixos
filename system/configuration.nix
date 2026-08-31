@@ -2,7 +2,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, ... }:
 let
   # TMOG (https://tmog.org) is a third-party Qt 6 task manager shipped only as an
   # unsigned AppImage, so there is no nixpkgs attribute for it. wrapType2 runs it
@@ -114,27 +114,12 @@ let
   userPythonVersion = "3.13";
   userPythonHome =
     "$HOME/.local/share/uv/python/cpython-${userPythonVersion}-linux-x86_64-gnu";
-
-  # ── Declarative Plasma (home-manager + plasma-manager) ──
-  # NixOS manages SYSTEM state, but Plasma panels are USER state, which plain
-  # configuration.nix cannot reach. home-manager supplies that layer and
-  # plasma-manager declares the panel on top of it. Both pinned by hash so the
-  # desktop layout is reproducible; bump url and sha256 together to update.
-  homeManagerSrc = builtins.fetchTarball {
-    url = "https://github.com/nix-community/home-manager/archive/release-26.05.tar.gz";
-    sha256 = "1qsx6l8z2v2rzr47chfqvmr9585lcrb2wihixbklmz63nhsba6sb";
-  };
-
-  plasmaManagerSrc = builtins.fetchTarball {
-    url = "https://github.com/nix-community/plasma-manager/archive/trunk.tar.gz";
-    sha256 = "1m45385zs1bm1f6ligs2r00q4r9zaqr4rp0wggvvfwrh629mk64d";
-  };
 in
 {
+  # home-manager's NixOS module is added by flake.nix, alongside this file.
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      "${homeManagerSrc}/nixos"
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -1108,10 +1093,15 @@ in
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "hm-bak";
+  # ── Declarative Plasma (home-manager + plasma-manager) ──
+  # NixOS manages SYSTEM state, but Plasma panels are USER state, which plain
+  # configuration.nix cannot reach. home-manager supplies that layer and
+  # plasma-manager declares the panel on top of it. Both are flake inputs now,
+  # locked in flake.lock; `nix flake update` is what moves them.
   home-manager.users.niteris =
     { ... }:
     {
-      imports = [ "${plasmaManagerSrc}/modules" ];
+      imports = [ inputs.plasma-manager.homeModules.plasma-manager ];
       home.stateVersion = "26.05";
 
       programs.plasma = {

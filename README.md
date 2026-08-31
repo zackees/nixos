@@ -19,20 +19,27 @@ knowing which is which:
 
 | | Layer | Lives in | Restored by |
 |---|---|---|---|
-| 1 | **System**, declarative | `system/` | `nixos-install`, then `nixos-rebuild switch` |
+| 1 | **System**, declarative | `flake.nix`, `system/` | `nixos-install --flake`, then `nixos-rebuild switch --flake` |
 | 2 | **User state** NixOS cannot reach | `home/` | `scripts/03-apply-home.sh` |
 | 3 | **Facts about the machine** | `docs/` | read by a human; nothing executes them |
 
 Layer 1 is the real configuration: packages, fonts, services, aliases, the
-sudo policy, the dictation setup, and — via home-manager and plasma-manager
-pinned inside `configuration.nix` — the Plasma panel. Change things there by
-preference.
+sudo policy, the dictation setup, and — via home-manager and plasma-manager,
+which are flake inputs — the Plasma panel. Change things there by preference.
+
+`flake.lock` pins nixpkgs, home-manager and plasma-manager by revision, so
+two restores months apart build the same machine. Moving any of them is
+`nix flake update`, which shows up as a reviewable diff in a commit rather
+than as whatever a channel happened to serve that day.
 
 Layer 2 exists because KDE writes its own settings files at runtime and there
 is no declarative source for most of them. Those files are *captured*, not
 generated, so they can drift; `scripts/capture.sh` pulls them back in.
 
 ## Layout
+
+    flake.nix                    inputs: nixpkgs, home-manager, plasma-manager
+    flake.lock                   their exact revisions; the reproducibility
 
     system/
       configuration.nix          the machine: packages, services, desktop, sudo
@@ -52,7 +59,6 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
       03-apply-home.sh           restore per-user state, after first login
 
                                  unnumbered = any time, on a live machine
-      apply-system.sh            copy system/ to /etc/nixos and rebuild
       sync.sh                    capture + commit + push, in one command
       capture.sh                 pull live state back into this repo
       gen-hardware-doc.sh        regenerate docs/hardware.md
@@ -66,8 +72,8 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
 Change the system:
 
     $EDITOR system/configuration.nix
-    scripts/apply-system.sh --build     # evaluate without activating
-    scripts/apply-system.sh             # activate
+    nixos-rebuild build --flake .#nixos         # evaluate without activating
+    sudo nixos-rebuild switch --flake .#nixos   # activate
     git commit -am "..."
 
 Something was changed by hand — a KDE setting, a display arrangement — and
@@ -83,10 +89,14 @@ to run on a dirty tree, since capturing overwrites tracked files wholesale.
 `scripts/capture.sh` is the capture step alone, if you want to review or
 amend before committing.
 
-`scripts/apply-system.sh` copies into `/etc/nixos` rather than symlinking,
-so `/etc/nixos` stays a plain directory that works even if this checkout is
-missing. The consequence is that the two can diverge — `capture.sh` is how
-you notice.
+`nixos-rebuild --flake` builds from this checkout directly. Nothing is copied
+into `/etc/nixos`, so the repo is the only copy and there is no second one to
+drift out of step with it — which is why `capture.sh` no longer touches
+`system/` at all.
+
+The cost is that the checkout has to be present to rebuild, and that flakes
+only see files git *tracks*: a brand-new `.nix` file is invisible until it is
+`git add`ed, and the error looks like the file does not exist.
 
 ## Secrets
 

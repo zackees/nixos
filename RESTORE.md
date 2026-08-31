@@ -13,7 +13,8 @@ You need:
 - A NixOS 26.05 installer ISO on a USB stick.
   <https://nixos.org/download> → "NixOS: the Linux distribution" → Graphical
   or Minimal, both work. The ISO's own version does not have to match 26.05;
-  the installed system's does, and `02-install.sh` pins that channel itself.
+  the installed system's does, and `flake.lock` pins it by revision, so the
+  ISO cannot influence what gets installed.
 - Wired ethernet. The installer needs network, and this machine has no
   wireless configuration (see `docs/manual-state.md`).
 - A GitHub token or credentials for `zackees`, to clone this private repo.
@@ -95,8 +96,10 @@ You want `/mnt` and `/mnt/boot` mounted, root labelled `root` with UUID
 
     /root/nixos/scripts/02-install.sh
 
-This copies `system/` to `/mnt/etc/nixos`, subscribes root to the
-`nixos-26.05` channel, and runs `nixos-install`.
+This runs `nixos-install --flake /root/nixos#nixos`. Nothing is copied into
+`/mnt/etc/nixos` and no channel is subscribed: `flake.lock` names the exact
+nixpkgs revision, so this installs the machine this commit describes rather
+than whatever the `nixos-26.05` channel happens to serve today.
 
 Expect a long download. Near the end it prompts twice:
 
@@ -220,8 +223,9 @@ describes:
 - Run the installer with `02-install.sh --regen-hardware`, which scans the
   live machine and writes a fresh `hardware-configuration.nix` instead of
   using the committed one.
-- Afterwards, copy the generated `/etc/nixos/hardware-configuration.nix` back
-  into `system/` and commit it, or `scripts/capture.sh` will do it for you.
+- `--regen-hardware` writes straight into `system/hardware-configuration.nix`,
+  so commit that file afterwards. Nothing copies it back for you: the flake
+  builds from the checkout, and `capture.sh` no longer touches `system/`.
 
 The rest of the configuration is hardware-independent, with one exception:
 `boot.loader.systemd-boot` assumes UEFI. On a BIOS-only machine you would
