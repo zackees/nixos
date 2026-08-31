@@ -81,6 +81,47 @@ rather than relying on anyone remembering this.
 disappears at next login — you cannot add one widget by adding one entry
 somewhere else.
 
+**A pinned launcher whose icon will not resolve renders as blank space, not
+as an error.** Add an app, pin it, and the dock comes back with the right
+number of slots and nothing drawn in the new ones -- which reads exactly like
+"the launcher never got added". It did get added. The config is correct at
+every layer worth checking, including plasmashell's own view of it:
+
+    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+      var w = panels()[0].widgets("org.kde.plasma.icontasks")[0];
+      w.currentConfigGroup = ["General"]; print(w.readConfig("launchers"));'
+
+The failure is Qt caching negative icon lookups for the life of the process.
+plasmashell started before the package entered the profile, concluded the
+icon did not exist, and never re-checks. `kbuildsycoca6` does NOT fix this --
+that rebuilds the *service* cache, a different thing, and was tried first.
+Restart the process instead:
+
+    systemctl --user restart plasma-plasmashell.service
+
+Recognise it by the collateral damage: already-working launchers degrade too
+(Dolphin falls back to a generic page icon), so a dock that looks half-broken
+after an install is this, not a panel that failed to apply.
+
+**Panel changes apply at login, not at `nixos-rebuild switch`.**
+plasma-manager only regenerates
+`~/.local/share/plasma-manager/scripts/2_desktop_script_panels.sh` and leaves
+an autostart entry to run it. Run that script directly to apply now. It is
+gated on a hash of the generated JS kept in `last_run_desktop_script_panels`
+and no-ops when the layout is unchanged; `rm` that file to force it. It works
+on a live session because it drives plasmashell's own `evaluateScript` --
+which is the opposite of restoring KDE files underneath a running
+plasmashell, and is why that one is safe and the other is not.
+
+**Verify the dock with a screenshot, not with grep.** Three monitors at 2x
+scale, so the capture is 10240x4526 and the panel sits on HDMI-A-1:
+
+    spectacle -f -b -n -o /tmp/full.png
+    magick /tmp/full.png -crop 1250x110+5120+3660 +repage -resize 190% /tmp/dock.png
+
+`grep launchers= plasma-org.kde.plasma.desktop-appletsrc` reported all nine
+entries present while the dock was drawing four. Only the picture was right.
+
 **`plasma-manager` is pinned to `trunk`, not a release.** Its tarball
 `sha256` in the `let` block keeps builds reproducible, but bumping it can
 bring API changes. Bump `url` and `sha256` together.
