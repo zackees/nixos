@@ -1,6 +1,6 @@
 {
   "backend": {
-    "default": "claude"
+    "default": "codex"
   },
   "codex": {
     "config_overrides": [
@@ -26,6 +26,9 @@
   },
   "launch_setup": {
     "claude": {
+      "scope": "global"
+    },
+    "codex": {
       "scope": "global"
     }
   },
