@@ -104,6 +104,7 @@ let
     "com.obsproject.Studio.desktop"
     "docker-tui.desktop"
     "podman-desktop.desktop"
+    "com.feaneron.Boatswain.desktop"
   ];
 
   # ── The user's writable Python ──
@@ -114,6 +115,35 @@ let
   userPythonVersion = "3.13";
   userPythonHome =
     "$HOME/.local/share/uv/python/cpython-${userPythonVersion}-linux-x86_64-gnu";
+  # boatswain has no NixOS module, so the autostart item that
+  # programs.streamdeck-ui would have provided has to be made by hand.
+  # Without it the deck stays dark until someone launches the app.
+  # A desktop entry for ChatGPT, so the Stream Deck has an application to
+  # launch rather than a URL to shell out to. Boatswain's action for this is
+  # "launch application", which takes a .desktop entry -- giving it one keeps
+  # the button's target declared here instead of typed into the GUI.
+  #
+  # Brave by name rather than xdg-open: the dock already pins Brave outright
+  # for the same reason, that preferred:// and mimetype defaults resolve
+  # unpredictably with two browsers installed.
+  chatgptLauncher = pkgs.makeDesktopItem {
+    name = "chatgpt-web";
+    desktopName = "ChatGPT";
+    comment = "chat.openai.com";
+    exec = "brave https://chat.openai.com";
+    # No ChatGPT icon exists on this machine and inventing a brand mark is
+    # worse than a generic one; Boatswain can be given a custom key image in
+    # its own UI anyway.
+    icon = "internet-web-browser";
+    categories = [ "Network" ];
+    terminal = false;
+  };
+
+  boatswainAutostart = pkgs.makeAutostartItem {
+    name = "com.feaneron.Boatswain";
+    package = pkgs.boatswain;
+  };
+
 in
 {
   # home-manager's NixOS module is added by flake.nix, alongside this file.
@@ -246,6 +276,37 @@ in
     kdePackages.kdeplasma-addons  # supplies the quicklaunch panel widget
     voxtype             # push-to-talk voice-to-text (Meta+H)
     pciutils            # lspci; voxtype's GPU probe needs it to name the card
+
+    # ── Stream Deck ──
+    # An Elgato Stream Deck XL, 0fd9:006c, 32 keys.
+    #
+    # boatswain rather than streamdeck-ui, on three counts. It drives OBS
+    # natively over obs-websocket, where streamdeck-ui has no OBS action at
+    # all and would need a Command button shelling out to obs-cmd. It is
+    # GTK4, so it is a native Wayland client and sidesteps the fractional
+    # scaling that made the Qt app unusable on the previous Hyprland install
+    # -- this machine runs 1.5x, 1.75x and 1x across three outputs, which is
+    # exactly the case that breaks Qt. And the one advantage streamdeck-ui
+    # had, a NixOS module that wires up udev, is worth nothing here.
+    #
+    # Nothing sets up device access, deliberately: systemd already does.
+    # 70-av-production.hwdb maps usb:v0FD9p006C* to
+    # ID_AV_PRODUCTION_CONTROLLER=1, and 70-uaccess.rules tags that property
+    # on both the usb and hidraw subsystems, so the ACLs exist with no rule
+    # of ours. Verified with getfacl on /dev/bus/usb/001/009 and
+    # /dev/hidraw7: both already carried user:niteris:rw-. boatswain shipping
+    # no udev rules of its own is therefore a non-issue rather than the cost
+    # it first looked like. Upstream says the same from the other side --
+    # Stream Decks work "starting from udev v250"; this is systemd 260.
+    #
+    # No uinput access either, and that is a choice. Key emulation would need
+    # this user in the `uinput` group -- currently empty, and voxtype only
+    # reaches uinput through ydotoold's socket -- which would let every
+    # process this user runs inject keystrokes into any window. Launching
+    # applications and driving OBS need none of it.
+    boatswain
+    boatswainAutostart
+    chatgptLauncher     # "ChatGPT" entry for the Stream Deck to launch
 
     # ── Containers ──
     podman-desktop      # GUI for the Docker engine; see virtualisation.docker
