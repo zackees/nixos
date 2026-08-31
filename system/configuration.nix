@@ -174,6 +174,7 @@ in
     python3
     python3Packages.pip
     brave
+    telegram-desktop
     gh
     kitty
     imagemagick
