@@ -283,8 +283,62 @@ in
     variant = "";
   };
 
-  # Enable CUPS to print documents.
+  # ── Printing ──
+  # Brother HL-L2395DW, mono laser, on the wired LAN. No Brother driver is
+  # installed and none is wanted: the printer advertises image/urf and
+  # image/pwg-raster, so CUPS drives it through IPP Everywhere and builds the
+  # PPD itself from the device's own capabilities. That is strictly better
+  # than brlaser or Brother's proprietary blob here -- it is what the printer
+  # tells CUPS it can do, including the duplexer, and there is nothing to
+  # break when nixpkgs moves.
   services.printing.enable = true;
+
+  # The queue is addressed by mDNS name, not by 192.168.1.23. The name is
+  # derived from the MAC (BRN + 3C2AF4D11C9A) and so never changes, whereas
+  # the DHCP lease can -- and a queue pointing at a stale IP fails as "the
+  # printer is broken", a long way from its actual cause.
+  #
+  # ensure-printers is its own oneshot unit rather than part of the
+  # activation script, so if the printer is off at switch time the unit fails
+  # and the rebuild still succeeds. `systemctl start ensure-printers` once it
+  # is back.
+  hardware.printers.ensureDefaultPrinter = "Brother_HL-L2395DW";
+  hardware.printers.ensurePrinters = [
+    {
+      name = "Brother_HL-L2395DW";
+      description = "Brother HL-L2395DW series";
+      deviceUri = "ipp://BRN3C2AF4D11C9A.local/ipp/print";
+      model = "everywhere";
+      # Deliberately no ppdOptions. A cupsPrintQuality default was tried here
+      # and removed: a driverless queue carries two parallel namespaces for
+      # the same knob -- the PPD's cupsPrintQuality and the IPP
+      # print-quality-default -- and setting the PPD one leaves `lpoptions`
+      # and real jobs still reporting Normal, because clients read the IPP
+      # attribute the device advertises. Setting both is possible but its
+      # effect on output could not be confirmed, so the queue is left exactly
+      # as `everywhere` and the printer negotiate it.
+    }
+  ];
+
+  # cups-browsed auto-creates a queue for every printer it discovers over
+  # DNS-SD. Switching avahi on therefore produced a second, implicitclass://
+  # queue for this same printer, so both showed up in every print dialog with
+  # nothing to tell them apart. The declared queue above is the one that
+  # should exist; browsed has nothing left to contribute on a network with a
+  # single, explicitly configured printer.
+  services.printing.browsed.enable = false;
+
+  # Avahi is what makes that .local name resolve, and separately what lets
+  # CUPS find network printers at all -- without it `lpinfo -v` lists backend
+  # schemes and no devices, which reads as "no printer on the network".
+  # nssmdns4 wires .local into NSS so every program resolves it, not just
+  # CUPS. openFirewall opens UDP 5353; mDNS is link-local by design and does
+  # not cross the router.
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
 
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
