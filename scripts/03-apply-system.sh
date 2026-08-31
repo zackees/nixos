@@ -2,8 +2,11 @@
 # ── Applies system/ to a RUNNING NixOS machine ──
 #
 # Copies this repo's system configuration into /etc/nixos and rebuilds.
-# Use this after editing anything under system/, and as step 3 of a restore
-# once the machine boots.
+# Use this after editing anything under system/.
+#
+# This is the everyday path, not a restore step. RESTORE.md never calls it:
+# a fresh machine gets its system from 02-install.sh (step 4), which runs
+# nixos-install against system/ directly and then reboots.
 #
 # --build   evaluate and build only; do not activate (safe dry run)
 # --boot    activate on next boot rather than immediately

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # ── Restores per-user state that NixOS does not manage ──
 #
-# Run as niteris, not root, on a machine that has already had
-# 03-apply-system.sh applied. Idempotent: safe to re-run.
+# Run as niteris, not root, on a machine whose system config is already
+# active: from 02-install.sh during a restore, where this is step 5 of
+# RESTORE.md, or from 03-apply-system.sh on a machine already running.
+# Idempotent: safe to re-run.
 #
 # What NixOS/home-manager already own, and this script therefore skips:
 #   - every package, font, alias and environment variable  (configuration.nix)
