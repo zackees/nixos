@@ -83,6 +83,29 @@ let
     startupWMClass = "docker-tui";
   };
 
+  # ── The dock's launcher strip ──
+  # quicklaunch takes fully-qualified file:// URLs, NOT the `applications:`
+  # form the task manager accepts, and NOT preferred:// either. Given an
+  # `applications:` URL it still creates the entries -- it just cannot resolve
+  # any of them, so you get the right number of blank placeholder icons.
+  # Verified both ways against a live widget before this was written.
+  #
+  # That is also why preferred://filemanager had to become Dolphin by name:
+  # there is no scheme here that expands to a default application.
+  dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
+    "systemsettings.desktop"
+    "org.kde.dolphin.desktop"
+    "brave-browser.desktop"
+    "org.telegram.desktop.desktop"
+    "signal.desktop"
+    "kitty.desktop"
+    "org.kde.kdenlive.desktop"
+    "fr.handbrake.ghb.desktop"
+    "com.obsproject.Studio.desktop"
+    "docker-tui.desktop"
+    "podman-desktop.desktop"
+  ];
+
   # ── Declarative Plasma (home-manager + plasma-manager) ──
   # NixOS manages SYSTEM state, but Plasma panels are USER state, which plain
   # configuration.nix cannot reach. home-manager supplies that layer and
@@ -200,6 +223,7 @@ in
     whois
     inetutils           # telnet, ftp, hostname, ping variants
     kdePackages.ksshaskpass  # graphical password prompt for sudo -A / ssh
+    kdePackages.kdeplasma-addons  # supplies the quicklaunch panel widget
     voxtype             # push-to-talk voice-to-text (Meta+H)
     pciutils            # lspci; voxtype's GPU probe needs it to name the card
 
@@ -1008,12 +1032,33 @@ in
             widgets = [
               "org.kde.plasma.kickoff"
               "org.kde.plasma.pager"
+              # Launchers, and only launchers. An Icons-only Task Manager
+              # merges a running window INTO the launcher that started it --
+              # that is the whole point of the icons-only design -- so a
+              # minimized window has no entry of its own and appears to
+              # vanish back into its own launcher icon. Splitting the two
+              # jobs across two widgets is the only way to tell them apart.
+              # quicklaunch never shows windows at all.
               {
-                name = "org.kde.plasma.icontasks";
-                config.General.launchers =
-                  "applications:systemsettings.desktop,preferred://filemanager,applications:brave-browser.desktop,applications:org.telegram.desktop.desktop,applications:signal.desktop,applications:kitty.desktop,applications:org.kde.kdenlive.desktop,applications:fr.handbrake.ghb.desktop,applications:com.obsproject.Studio.desktop,applications:docker-tui.desktop,applications:podman-desktop.desktop";
+                name = "org.kde.plasma.quicklaunch";
+                config.General.launcherUrls = lib.concatStringsSep "," dockLaunchers;
               }
+
               "org.kde.plasma.marginsseparator"
+
+              # Windows, and only windows: `launchers = [ ]` is load-bearing,
+              # not a placeholder. This is where a minimized window goes, in
+              # the middle of the panel, distinct from the icon it was
+              # launched from. fill lets it take the space up to the monitors.
+              #
+              # To make this show ONLY minimized windows rather than every
+              # window, add: behavior.showTasks.onlyMinimized = true;
+              {
+                iconTasks = {
+                  launchers = [ ];
+                  appearance.fill = true;
+                };
+              }
 
               # The glanceable strip: all 16 cores, memory, disk fill.
               "org.kde.plasma.systemmonitor.cpucore"
