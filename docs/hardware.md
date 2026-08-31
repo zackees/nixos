@@ -7,7 +7,7 @@ replacement parts and sanity-checking a restore. Nothing reads it at runtime.
 ## System
 
     hostname        nixos
-    NixOS           26.05.8639.c5c4a43b0e80 (Yarara)
+    NixOS           26.05.20260829.c5c4a43 (Yarara)
     kernel          6.18.48
     CPU             AMD Ryzen 7 3700X 8-Core Processor (16 threads)
     memory          125Gi
