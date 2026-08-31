@@ -39,6 +39,12 @@ done
 cp ~/.config/gtk-3.0/* home/kde/gtk-3.0/ 2>/dev/null || true
 cp ~/.config/gtk-4.0/* home/kde/gtk-4.0/ 2>/dev/null || true
 
+# The Stream Deck's buttons. Boatswain names the file after the device serial
+# and rewrites it whole on save and on quit, so this is captured, never
+# generated -- same category as home/kde/. A different deck would land under a
+# different name; the glob keeps that from silently capturing nothing.
+cp ~/.local/share/CL22K1A01009.json home/streamdeck/ 2>/dev/null || true
+
 cp ~/.clud/settings.json home/tools/clud-settings.json
 cp ~/.claude/settings.json home/tools/claude-settings.json
 cp ~/.config/gh/config.yml home/tools/gh-config.yml

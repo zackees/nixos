@@ -90,6 +90,27 @@ if [ "${SKIP_KDE:-0}" != 1 ]; then
   keep "$HOME/.gtkrc-2.0"; cp "$REPO/home/kde/dot-gtkrc-2.0" "$HOME/.gtkrc-2.0"
 fi
 
+say "Stream Deck buttons"
+# Boatswain rewrites this file whole on save and on quit, so it has to be
+# stopped first -- exactly the plasmashell problem above. Note the process is
+# named .boatswain-wrap, not boatswain, because of the Nix wrapper, so
+# `pgrep -x boatswain` finds nothing. The bracket in the pattern stops pgrep
+# matching this script's own command line.
+#
+# The filename is the device serial. On a different deck this copies a profile
+# the hardware will never load; harmless, but it explains why nothing appears.
+if pgrep -f 'boatswain-wrap[p]ed' >/dev/null 2>&1; then
+  echo "  boatswain is running and would overwrite this on exit; skipping."
+  echo "  quit it and re-run, or copy home/streamdeck/*.json by hand."
+else
+  mkdir -p "$HOME/.local/share"
+  for f in "$REPO"/home/streamdeck/*.json; do
+    [ -f "$f" ] || continue
+    keep "$HOME/.local/share/$(basename "$f")"
+    cp "$f" "$HOME/.local/share/$(basename "$f")"
+  done
+fi
+
 say "user-level CLI tools"
 # uv itself comes from the nix profile, not configuration.nix, because the
 # pinned nixpkgs lags behind and these tools track PyPI.

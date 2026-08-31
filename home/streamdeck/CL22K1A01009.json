@@ -1,0 +1,69 @@
+{
+  "active-profile": "a7a5680e-417c-43d1-abb8-5a6f71a26127",
+  "profiles": [
+    {
+      "id": "a7a5680e-417c-43d1-abb8-5a6f71a26127",
+      "name": "Default",
+      "brightness": 0.5,
+      "page": {
+        "version": 1,
+        "regions": [
+          {
+            "id": "main-button-grid",
+            "region-data": {},
+            "items": [
+              {
+                "type": "action",
+                "factory": "launcher",
+                "action": "launch-action",
+                "settings": {
+                  "app": "com.obsproject.Studio.desktop",
+                  "files": []
+                }
+              },
+              {
+                "type": "action",
+                "factory": "launcher",
+                "action": "launch-action",
+                "settings": {
+                  "app": "chatgpt-web.desktop",
+                  "files": []
+                }
+              },
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
