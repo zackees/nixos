@@ -703,6 +703,50 @@ in
     enableOnBoot = false;
   };
 
+  # GPU passthrough for containers, via CDI rather than the old runtime shim.
+  # This generates a Container Device Interface spec describing the 3060 and
+  # every driver library a container needs, drops it in /var/run/cdi, and
+  # flips `features.cdi` on in the daemon (automatic for docker >= 25; we are
+  # on 29). A udev rule regenerates the spec whenever the nvidia device
+  # changes, so a driver upgrade does not leave a stale one behind.
+  #
+  # NOT `virtualisation.docker.enableNvidia`. That option is deprecated, and
+  # what it actually does is register a wrapper runtime so `--runtime=nvidia`
+  # works -- the pre-CDI mechanism. CDI is the replacement and needs no
+  # runtime wrapper at all.
+  #
+  # The invocation this gives you, and the ONLY one that works here:
+  #
+  #   docker run --rm --device=nvidia.com/gpu=all <image> nvidia-smi
+  #
+  # and in compose, a plain `devices:` entry -- NOT a deploy.resources block:
+  #
+  #   services:
+  #     train:
+  #       devices: [ "nvidia.com/gpu=all" ]
+  #
+  # `--gpus all` does NOT work, and cannot be made to. Moby 29 dropped the
+  # legacy nvidia device-driver shim outright -- the string
+  # "nvidia-container-runtime-hook" does not appear anywhere in its dockerd
+  # binary -- so there is nothing left for `--gpus` to dispatch nvidia to. It
+  # now resolves purely through CDI, and on this machine it fails with the
+  # thoroughly unhelpful `Error response from daemon: AMD CDI spec not found`,
+  # which is about the last vendor it tried and nothing to do with the actual
+  # problem. Compose's older
+  # `deploy.resources.reservations.devices[].driver = "nvidia"` form goes
+  # through the same removed path and fails with `could not select device
+  # driver "nvidia" with capabilities: [[gpu]]`. Both are worth recognising,
+  # because every tutorial online still uses them.
+  #
+  # `docker info` is the way to confirm the wiring: it lists the discovered
+  # devices as `cdi: nvidia.com/gpu=0` and `cdi: nvidia.com/gpu=all`.
+  #
+  # One caveat inherent to the approach: the host's driver libraries are
+  # bind-mounted into the container from their store paths, so the CUDA
+  # userspace in an image has to be compatible with THIS host's driver
+  # version. It is the host driver that matters, never the image's.
+  hardware.nvidia-container-toolkit.enable = true;
+
   programs.git = {
     enable = true;
     config = {
@@ -887,7 +931,7 @@ in
               {
                 name = "org.kde.plasma.icontasks";
                 config.General.launchers =
-                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop,applications:com.obsproject.Studio.desktop";
+                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop,applications:com.obsproject.Studio.desktop,applications:podman-desktop.desktop";
               }
               "org.kde.plasma.marginsseparator"
 
