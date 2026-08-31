@@ -321,6 +321,35 @@ in
     # Desktop, not a laptop: no hybrid graphics to suspend, and the runtime
     # power management is a known source of wake-up hangs on desktops.
     powerManagement.enable = false;
+
+    # Grow BAR1 past its 256 MiB default. BAR1 is the aperture through which
+    # the CPU reaches VRAM; every Wayland surface needing a CPU-visible
+    # mapping consumes VA space in it. At 256 MiB a burst -- Chromium
+    # spawning a renderer asks for ~25 mappings at once -- fragments the
+    # free list and the allocator fails *with 200 MiB nominally free*:
+    #
+    #   NVRM: dmaAllocMapping_GM107: can't alloc VA space for mapping.
+    #   NVRM: NV_ERR_NO_MEMORY ... reusemappingdbMap(&pBar1VaInfo->reuseDb, ...)
+    #   [drm:__nv_drm_gem_nvkms_map] *ERROR* Failed to map NvKmsKapiMemory
+    #
+    # nvidia-drm then returns -ENOMEM, Chromium's media code CHECKs, and the
+    # CHECK compiles to ud2 -- which is why a Brave tab dies with SIGILL and
+    # not a segfault. NVIDIA has reproduced this (bug 5762513); it is
+    # Wayland-only and unfixed across 580 through 610, so there is no driver
+    # version to upgrade to. See issue #1.
+    #
+    # This param makes the driver call pci_resize_resource() itself, so it
+    # does NOT need Re-Size BAR support in firmware -- only somewhere to put
+    # a bigger window. That is why it was pointless until Above 4G Decoding
+    # was enabled in BIOS: every BAR sat below 4 GiB in a 288 MiB hole with
+    # zero slack. With Above 4G on, the GPU's BARs moved to 0x7fe0000000 and
+    # there is room to grow.
+    #
+    # Bonus: the fragmentation is self-inflicted at exactly 256 MiB.
+    # kern_bus.c:505 only relaxes 64 KB mapping granularity when
+    # `bar1SizeMB > 256`, and 256 is not > 256 -- so every tiny cursor and UI
+    # surface burns a full 64 KB slot. Any size above 256 MiB clears that too.
+    moduleParams.nvidia.NVreg_EnableResizableBar = 1;
   };
 
   # Hand read access to keyd's virtual keyboard alone, in place of
