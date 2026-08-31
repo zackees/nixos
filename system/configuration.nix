@@ -232,14 +232,66 @@ in
   nixpkgs.overlays = [
     (final: prev: {
       voxtype = prev.voxtype.overrideAttrs (old: {
-        cargoBuildFeatures = (old.cargoBuildFeatures or [ ]) ++ [ "osd-gtk4" ];
+        # gpu-cuda maps to whisper-rs/cuda, which builds ggml's CUDA backend.
+        # Viable only since the card moved to the proprietary driver: nouveau
+        # exposes no CUDA at all.
+        cargoBuildFeatures =
+          (old.cargoBuildFeatures or [ ]) ++ [ "osd-gtk4" "gpu-cuda" ];
+        # Checks stay off the GPU feature: cargo test would need a working
+        # CUDA device inside the build sandbox, which it does not have.
         cargoCheckFeatures = (old.cargoCheckFeatures or [ ]) ++ [ "osd-gtk4" ];
+
+        # nvcc is a NATIVE input - it runs on the builder - and CUDA_PATH is
+        # what lets whisper.cpp's cmake find_package(CUDAToolkit) succeed,
+        # since whisper-rs drives cmake from its own build.rs and never sees
+        # this derivation's cmakeFlags.
+        nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [
+          prev.cudaPackages.cuda_nvcc
+          prev.addDriverRunpath
+        ];
+        CUDA_PATH = "${prev.cudaPackages.cudatoolkit}";
+
+        # The version-check hook runs `voxtype --version` in the sandbox,
+        # where there is no NVIDIA driver and so no real libcuda.so.1 -- the
+        # binary cannot even start. Nothing is wrong with it; a CUDA build is
+        # simply not runnable where no GPU driver exists, so the check has to
+        # go rather than be satisfied.
+        doInstallCheck = false;
+
+        # -lcuda is the DRIVER library, and it is deliberately not in the
+        # toolkit: it ships with the installed driver and must match it. The
+        # toolkit provides a stub to link against, so point the linker at
+        # that. postFixup below is the other half -- without it the stub
+        # would also be the thing loaded at runtime, and every CUDA call
+        # would fail against a library that implements nothing.
+        NIX_LDFLAGS = "-L${prev.cudaPackages.cuda_cudart}/lib/stubs";
+        # sm_86 is the GA106. Naming it avoids compiling the fat binary for
+        # every architecture ggml supports, which dominates the build.
+        CMAKE_CUDA_ARCHITECTURES = "86";
+
         buildInputs = (old.buildInputs or [ ]) ++ (with prev; [
           gtk4
           gtk4-layer-shell
           cairo
           glib
+          cudaPackages.cuda_cudart
+          cudaPackages.libcublas
         ]);
+
+        # Strip the stub directory back out of RPATH and add the driver's
+        # own path instead. cc-wrapper turns every store -L into an RPATH
+        # entry, so without this the stub libcuda.so.1 sits ahead of the
+        # real one at /run/opengl-driver/lib and wins the lookup.
+        postFixup = (old.postFixup or "") + ''
+          for f in "$out"/bin/.voxtype-wrapped "$out"/bin/voxtype-osd \
+                   "$out"/bin/voxtype-osd-gtk4; do
+            [ -e "$f" ] || continue
+            rp=$(patchelf --print-rpath "$f" \
+                   | tr ':' '\n' | grep -v '/lib/stubs$' | paste -sd:)
+            patchelf --set-rpath "$rp" "$f"
+            addDriverRunpath "$f"
+          done
+        '';
       });
     })
   ];
