@@ -163,6 +163,72 @@ let
     package = pkgs.boatswain;
   };
 
+  # ── Shared libraries for foreign (non-Nix) binaries ──
+  #
+  # NixOS has no /usr/lib, so a prebuilt ELF that was linked on Ubuntu finds
+  # none of its DT_NEEDED libraries. `programs.nix-ld` below answers that: it
+  # installs a shim at the FHS loader path every such binary names in its
+  # PT_INTERP, and that shim searches this list. Anything NOT in this list is
+  # invisible to every downloaded toolchain, pip wheel, npm postinstall,
+  # AppImage and vendor SDK on the machine.
+  #
+  # The nix-ld module ships a default list, but assigning `libraries` REPLACES
+  # it rather than extending it, so the module's own entries are restated here
+  # (first group) instead of being silently dropped. The rest is the set a
+  # "normal" distro would have had installed anyway, grouped by what tends to
+  # need it. Adding to this list costs closure size and nothing else -- it
+  # puts libraries on a search path, it does not put them on PATH or make them
+  # available to the compiler at build time.
+  #
+  # A missing entry does not look like a missing library. It surfaces as
+  # `error while loading shared libraries` from a program that worked
+  # yesterday on another machine, or -- worse, for Python -- as a wheel that
+  # installs perfectly and only fails at `import`.
+  legacySonameShims = pkgs.runCommand "legacy-soname-shims" { } ''
+    mkdir -p $out/lib
+    # libxml2 bumped its soname from .so.2 to .so.16 in 2.15, and nixpkgs is
+    # past that bump. Prebuilt LLVM binaries are still linked against .so.2 --
+    # the clang-tool-chain ld.lld that FastLED builds with refuses to start
+    # without it. lld calls into libxml2 only to merge Windows COFF manifests
+    # and never touches it on an ELF link, so aliasing the current library
+    # under the old name is safe for that use. If something ever needs the
+    # real 2.9-era ABI, pin an older libxml2 rather than widening this shim.
+    ln -s ${pkgs.libxml2.out}/lib/libxml2.so $out/lib/libxml2.so.2
+  '';
+
+  foreignBinaryLibraries = with pkgs; [
+    # The nix-ld module's own defaults, restated (see above).
+    zlib zstd stdenv.cc.cc curl openssl attr libssh bzip2 libxml2 acl
+    libsodium util-linux xz systemd
+
+    # C/C++ runtime and the bits a compiler-adjacent tool links against.
+    stdenv.cc.cc.lib libffi libxcrypt elfutils libunwind
+
+    # Console and scripting libraries. Prebuilt Python/Node builds and any
+    # vendored interpreter want these.
+    ncurses readline sqlite expat pcre2 icu
+
+    # Compression beyond the defaults; used by toolchains that bundle their
+    # own archivers.
+    lz4 brotli snappy
+
+    # Graphics/desktop. Electron apps, Playwright/Puppeteer browsers and
+    # anything Qt- or GTK-based shipped as a tarball need the whole cluster,
+    # and each missing one fails the same opaque way.
+    glib gtk3 cairo pango atk gdk-pixbuf at-spi2-atk at-spi2-core
+    nss nspr dbus fontconfig freetype
+    libGL libdrm libxkbcommon mesa vulkan-loader
+    xorg.libX11 xorg.libXcomposite xorg.libXdamage xorg.libXext
+    xorg.libXfixes xorg.libXrandr xorg.libXrender xorg.libXi xorg.libXtst
+    xorg.libXScrnSaver xorg.libxcb xorg.libXcursor xorg.libxshmfence
+
+    # Audio and printing, for the same class of bundled desktop app.
+    alsa-lib libpulseaudio cups
+
+    # Sonames nixpkgs no longer ships under the name foreign binaries ask for.
+    legacySonameShims
+  ];
+
 in
 {
   # home-manager's NixOS module is added by flake.nix, alongside this file.
@@ -1008,6 +1074,10 @@ in
   # nix-ld provides /lib64/ld-linux-x86-64.so.2 so non-Nix ELF binaries
   # (e.g. the `clud` entrypoint installed by uv) can find their loader.
   programs.nix-ld.enable = true;
+
+  # ...and this is what that loader is allowed to find. Declared in the
+  # let-block above, where the reasoning and the per-group notes live.
+  programs.nix-ld.libraries = foreignBinaryLibraries;
 
   # Put uv tool shims (~/.local/bin) and the user venv (~/.venv/bin) on PATH
   # for every session, not just interactive bash via ~/.bashrc. NixOS puts
