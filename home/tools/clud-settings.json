@@ -1,4 +1,7 @@
 {
+  "backend": {
+    "default": "claude"
+  },
   "codex": {
     "config_overrides": [
       "plugins.\"github@openai-curated\".enabled=false"
@@ -20,6 +23,11 @@
   },
   "hook_health": {
     "auto_fix_hooks": true
+  },
+  "launch_setup": {
+    "claude": {
+      "scope": "global"
+    }
   },
   "launcher": {
     "last_harness": "claude"
