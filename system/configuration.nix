@@ -1268,6 +1268,36 @@ in
       programs.plasma = {
         enable = true;
 
+        # ── Idle behaviour ──
+        # Stock Plasma dims at 5 minutes, blanks at 10 and locks at 5, which
+        # is far too eager for a desktop that sits in one room. Nothing now
+        # touches the screen for half an hour, and the session stays unlocked
+        # for four.
+        #
+        # Note what that combination means: from 30 minutes the screen is
+        # dark but the session is still open, and any keypress before the
+        # four-hour mark lands straight on the desktop with no password. That
+        # is the ask, and it is the right trade for a machine at home; it
+        # would not be on a laptop that leaves the house.
+        kscreenlocker = {
+          autoLock = true;
+          timeout = 240;    # minutes -- 4 hours, and KDE's own ceiling
+        };
+
+        powerdevil.AC = {
+          # seconds here, minutes above: powerdevil and kscreenlocker
+          # genuinely disagree about units, so 1800 and 240 are 30 minutes
+          # and 4 hours respectively, not a typo in either direction.
+          turnOffDisplay.idleTimeout = 1800;
+
+          # Dimming is off rather than merely postponed. Left enabled it
+          # keeps its own 5-minute default and the screen still fades on you
+          # at 5 minutes, which is the behaviour being complained about --
+          # moving only the blank timeout would look like the change had not
+          # worked.
+          dimDisplay.enable = false;
+        };
+
         panels = [
           {
             location = "bottom";
