@@ -91,7 +91,12 @@ fi
 say "user-level CLI tools"
 # uv itself comes from the nix profile, not configuration.nix, because the
 # system channel's uv lags behind and these tools track PyPI.
-if ! command -v uv >/dev/null 2>&1; then
+#
+# Test for the profile copy specifically rather than `command -v uv`: anything
+# that puts uv on PATH -- a systemPackages entry added in good faith, a stray
+# shim -- satisfies a PATH test, skips this install, and silently leaves the
+# machine on whatever older uv it found. That has happened once already.
+if [ ! -x "$HOME/.nix-profile/bin/uv" ]; then
   nix profile add nixpkgs#uv
 fi
 export PATH="$HOME/.local/bin:$PATH"

@@ -200,6 +200,22 @@ fix is a narrow `overridePythonAttrs` adding the one file to
 `disabledTestPaths`; verify such an override with `nix-build` on the package
 alone before rebuilding the system, because the feedback loop is far shorter.
 
+**`uv` is declared in `scripts/04-apply-home.sh`, not in
+`configuration.nix`, and that is deliberate.** The system channel's uv lags
+while `clud` and `soldr` track PyPI, so the restore installs uv into the
+*user nix profile* instead. Adding `uv` to `environment.systemPackages` looks
+like tidying an undeclared dependency and is not: it puts uv on PATH, which
+satisfies that script's guard, so `nix profile add nixpkgs#uv` is skipped and
+a restored machine silently ends up on the older channel uv. This has been
+done once already. The guard now tests `~/.nix-profile/bin/uv` rather than
+`command -v uv` so that a future PATH entry cannot defeat it again.
+
+`systemd.user.services.user-python-venv` needs no `systemPackages` entry
+either -- `path = [ pkgs.uv ]` pulls the derivation in by store path. That is
+also what makes the venv provision correctly at the very first login of a
+restored machine, which happens after the reboot in RESTORE.md step 4 and
+*before* `04-apply-home.sh` is run by hand in step 5.
+
 ## sudo on this machine
 
 One successful authentication unlocks sudo for every session, machine-wide,

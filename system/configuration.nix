@@ -207,7 +207,16 @@ in
     # NOT python3Packages.pip: it is a separate derivation from python3, so
     # `python3 -m pip` reports "No module named pip" while the `pip` binary it
     # does install can only ever fail PEP 668. Real pip lives in ~/.venv.
-    uv                  # also builds and owns that venv; see below
+    #
+    # NOT uv either, however tempting. scripts/04-apply-home.sh installs it
+    # into the user's nix profile on purpose, because the system channel's uv
+    # lags and clud/soldr track PyPI. An entry here would put uv on PATH,
+    # satisfy that script's guard, skip the profile install, and leave a
+    # restored machine on the older channel uv -- which is precisely what the
+    # guard exists to prevent. The venv unit below does not need it here
+    # either: its `path = [ pkgs.uv ]` pulls the derivation in by store path,
+    # which is also what lets the venv provision at the very first login,
+    # before 04-apply-home.sh has ever run.
 
     # pipx 1.8.0's own test suite fails against packaging >= 24, which
     # normalises the requirement spelling `black@ url` to `black @ url` while
