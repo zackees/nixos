@@ -25,13 +25,13 @@ esac
 #
 # which builds and activates straight from the repo and never writes
 # /etc/nixos. The machine then runs exactly what system/ says while
-# /etc/nixos sits at whatever 03-apply-system.sh last put there -- so
+# /etc/nixos sits at whatever apply-system.sh last put there -- so
 # capturing would overwrite the repo with the older file and produce a commit
 # that silently REVERTS the change you just applied and booted. sync.sh runs
 # this script before it commits and pushes, so the revert would go straight
 # to origin looking like an ordinary sync.
 #
-# The fix is scripts/03-apply-system.sh: it copies system/ into /etc/nixos
+# The fix is scripts/apply-system.sh: it copies system/ into /etc/nixos
 # and rebuilds, after which the two agree and this check passes. --from-etc
 # is the escape hatch for the genuine opposite case, where someone edited
 # /etc/nixos by hand and wants that pulled back into the repo.
@@ -55,7 +55,7 @@ Capturing would copy /etc/nixos over system/configuration.nix and throw the
 + lines away. If the repo is the newer side -- the usual case, and always so
 after a rebuild run with -I nixos-config=... -- apply it first:
 
-    scripts/03-apply-system.sh
+    scripts/apply-system.sh
 
 If /etc/nixos really is the newer side, pull it in deliberately:
 

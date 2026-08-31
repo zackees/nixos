@@ -36,7 +36,7 @@ enabled = true
 
 [vad]
 # Voice activity detection, so silence is never handed to whisper. Needs
-# ggml-silero-vad.bin in ~/.local/share/voxtype/models (scripts/04-apply-home.sh
+# ggml-silero-vad.bin in ~/.local/share/voxtype/models (scripts/03-apply-home.sh
 # fetches it). backend = "whisper" uses that model; "energy" is the
 # model-free fallback and is markedly less accurate with background noise.
 enabled = true

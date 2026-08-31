@@ -19,7 +19,7 @@ need a secret in the config, use `sops-nix` or `agenix` — never a plain
 `.nix` file.
 
 **Never edit `/etc/nixos` directly.** It is overwritten by
-`scripts/03-apply-system.sh`. Edit `system/` here; that is the source of
+`scripts/apply-system.sh`. Edit `system/` here; that is the source of
 truth. (`/etc/nixos` is still its own local git repo from before this one
 existed — ignore it.)
 
@@ -39,7 +39,7 @@ plasmashell restart all go together -- see the panel traps below.
 
 **Do not restore KDE files while Plasma is running.** `plasmashell` holds its
 own copy in memory and rewrites them on exit, so the restore silently does
-nothing. `scripts/04-apply-home.sh` detects this and skips rather than
+nothing. `scripts/03-apply-home.sh` detects this and skips rather than
 pretending; that behaviour is deliberate, not a bug to fix.
 
 ## Verifying a change to `system/`
@@ -79,7 +79,7 @@ rebuild run with `-I nixos-config="$PWD/system/configuration.nix"` — which
 is how the verify step above works — activates straight from the repo and
 never writes `/etc/nixos`, leaving the repo ahead. Syncing from there
 captures the older file and pushes a commit that silently reverts the change
-you just applied. Run `scripts/03-apply-system.sh` first; it copies `system/`
+you just applied. Run `scripts/apply-system.sh` first; it copies `system/`
 into `/etc/nixos` and rebuilds, and is a no-op activation if you already
 switched to the same config. `capture.sh` now refuses when the two disagree,
 rather than relying on anyone remembering this.
@@ -200,7 +200,7 @@ fix is a narrow `overridePythonAttrs` adding the one file to
 `disabledTestPaths`; verify such an override with `nix-build` on the package
 alone before rebuilding the system, because the feedback loop is far shorter.
 
-**`uv` is declared in `scripts/04-apply-home.sh`, not in
+**`uv` is declared in `scripts/03-apply-home.sh`, not in
 `configuration.nix`, and that is deliberate.** The system channel's uv lags
 while `clud` and `soldr` track PyPI, so the restore installs uv into the
 *user nix profile* instead. Adding `uv` to `environment.systemPackages` looks
@@ -214,7 +214,7 @@ done once already. The guard now tests `~/.nix-profile/bin/uv` rather than
 either -- `path = [ pkgs.uv ]` pulls the derivation in by store path. That is
 also what makes the venv provision correctly at the very first login of a
 restored machine, which happens after the reboot in RESTORE.md step 4 and
-*before* `04-apply-home.sh` is run by hand in step 5.
+*before* `03-apply-home.sh` is run by hand in step 5.
 
 ## sudo on this machine
 

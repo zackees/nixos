@@ -3,7 +3,7 @@
 #
 # Run as niteris, not root, on a machine whose system config is already
 # active: from 02-install.sh during a restore, where this is step 5 of
-# RESTORE.md, or from 03-apply-system.sh on a machine already running.
+# RESTORE.md, or from apply-system.sh on a machine already running.
 # Idempotent: safe to re-run.
 #
 # What NixOS/home-manager already own, and this script therefore skips:

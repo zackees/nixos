@@ -52,6 +52,6 @@ cat <<'DONE'
 System installed. Now:
   1. reboot into the new system
   2. log in as niteris with the password you just set
-  3. clone this repo and run scripts/04-apply-home.sh
+  3. clone this repo and run scripts/03-apply-home.sh
 
 DONE

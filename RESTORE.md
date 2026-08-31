@@ -132,11 +132,11 @@ KDE settings must be restored with Plasma stopped, or plasmashell overwrites
 them on the way out. The clean way:
 
 1. `ctrl+alt+F3` to a text console, log in as `niteris`
-2. run `~/dev/nixos/scripts/04-apply-home.sh`
+2. run `~/dev/nixos/scripts/03-apply-home.sh`
 3. `ctrl+alt+F1` back, and log out and in again
 
 If you would rather do it from inside the desktop, run it as
-`KDE_FORCE=1 ~/dev/nixos/scripts/04-apply-home.sh` and log out
+`KDE_FORCE=1 ~/dev/nixos/scripts/03-apply-home.sh` and log out
 *immediately* afterwards. Without `KDE_FORCE=1` the script detects Plasma and
 skips the KDE portion rather than doing something that will not stick.
 

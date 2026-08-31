@@ -20,7 +20,7 @@ knowing which is which:
 | | Layer | Lives in | Restored by |
 |---|---|---|---|
 | 1 | **System**, declarative | `system/` | `nixos-install`, then `nixos-rebuild switch` |
-| 2 | **User state** NixOS cannot reach | `home/` | `scripts/04-apply-home.sh` |
+| 2 | **User state** NixOS cannot reach | `home/` | `scripts/03-apply-home.sh` |
 | 3 | **Facts about the machine** | `docs/` | read by a human; nothing executes them |
 
 Layer 1 is the real configuration: packages, fonts, services, aliases, the
@@ -46,11 +46,13 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
       applications/              the .desktop entry Meta+H launches
       tools/                     claude, clud and gh non-secret settings
 
-    scripts/
+    scripts/                     numbered = the restore, run in order, once
       01-partition.sh            DESTRUCTIVE; recreates the disk layout
-      02-install.sh              nixos-install onto /mnt
-      03-apply-system.sh         copy system/ to /etc/nixos and rebuild
-      04-apply-home.sh           restore per-user state
+      02-install.sh              nixos-install onto /mnt, then reboot
+      03-apply-home.sh           restore per-user state, after first login
+
+                                 unnumbered = any time, on a live machine
+      apply-system.sh            copy system/ to /etc/nixos and rebuild
       sync.sh                    capture + commit + push, in one command
       capture.sh                 pull live state back into this repo
       gen-hardware-doc.sh        regenerate docs/hardware.md
@@ -64,8 +66,8 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
 Change the system:
 
     $EDITOR system/configuration.nix
-    scripts/03-apply-system.sh --build     # evaluate without activating
-    scripts/03-apply-system.sh             # activate
+    scripts/apply-system.sh --build     # evaluate without activating
+    scripts/apply-system.sh             # activate
     git commit -am "..."
 
 Something was changed by hand — a KDE setting, a display arrangement — and
@@ -81,7 +83,7 @@ to run on a dirty tree, since capturing overwrites tracked files wholesale.
 `scripts/capture.sh` is the capture step alone, if you want to review or
 amend before committing.
 
-`scripts/03-apply-system.sh` copies into `/etc/nixos` rather than symlinking,
+`scripts/apply-system.sh` copies into `/etc/nixos` rather than symlinking,
 so `/etc/nixos` stays a plain directory that works even if this checkout is
 missing. The consequence is that the two can diverge — `capture.sh` is how
 you notice.
