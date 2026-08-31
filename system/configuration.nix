@@ -36,6 +36,53 @@ let
     '';
   };
 
+  # ── A "Docker" launcher for the dock ──
+  # Docker ships no GUI of its own -- the engine is a daemon, and the window
+  # people call "Docker" is Docker Desktop, which does not exist here. So the
+  # dock icon has to be built. It fronts lazydocker, a TUI covering the same
+  # ground Desktop's dashboard does: containers, images, volumes, logs, stats.
+  #
+  # podman-desktop is still installed and is the richer GUI, but it is filed
+  # under a name that gives no hint it drives Docker, which is exactly the
+  # confusion this entry exists to fix.
+  dockerIcon = pkgs.writeTextFile {
+    name = "docker-tui-icon";
+    destination = "/share/icons/hicolor/scalable/apps/docker-tui.svg";
+    # Drawn here rather than pulled from a theme: no icon set on this machine
+    # carries a docker or even a generic container glyph (checked breeze,
+    # breeze-dark and hicolor), and utilities-terminal would defeat the whole
+    # point of making it recognisable at a glance. Deliberately chunky --
+    # it renders at 22px in the panel, where thin detail turns to mud.
+    text = ''
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+        <g fill="#2496ed">
+          <rect x="14" y="19" width="6" height="6" rx="1"/>
+          <rect x="21" y="19" width="6" height="6" rx="1"/>
+          <rect x="28" y="19" width="6" height="6" rx="1"/>
+          <rect x="14" y="12" width="6" height="6" rx="1"/>
+          <rect x="21" y="12" width="6" height="6" rx="1"/>
+          <rect x="21" y="5" width="6" height="6" rx="1"/>
+          <path d="M3 27h37c0 7-5 12-13 12H15C8 39 3 34 3 28z"/>
+          <path d="M40 22c2-2 5-2 6 1-1 3-4 4-6 2z"/>
+        </g>
+      </svg>
+    '';
+  };
+
+  dockerTui = pkgs.makeDesktopItem {
+    name = "docker-tui";
+    desktopName = "Docker";
+    genericName = "Container manager";
+    comment = "Containers, images, volumes and logs";
+    # --class is what makes the running window group under this launcher
+    # instead of appearing as a second, unrelated kitty task.
+    exec = "kitty --class docker-tui -e lazydocker";
+    icon = "docker-tui";
+    categories = [ "Development" "System" ];
+    terminal = false;
+    startupWMClass = "docker-tui";
+  };
+
   # ── Declarative Plasma (home-manager + plasma-manager) ──
   # NixOS manages SYSTEM state, but Plasma panels are USER state, which plain
   # configuration.nix cannot reach. home-manager supplies that layer and
@@ -156,6 +203,9 @@ in
 
     # ── Containers ──
     podman-desktop      # GUI for the Docker engine; see virtualisation.docker
+    lazydocker          # TUI dashboard; what the "Docker" dock icon launches
+    dockerIcon          # the whale glyph, no icon theme ships one
+    dockerTui           # the "Docker" desktop entry itself
     docker-compose      # the standalone name; `docker compose` needs nothing
 
     alsa-utils          # amixer/aplay/arecord
@@ -959,7 +1009,7 @@ in
               {
                 name = "org.kde.plasma.icontasks";
                 config.General.launchers =
-                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop,applications:com.obsproject.Studio.desktop,applications:podman-desktop.desktop";
+                  "applications:systemsettings.desktop,preferred://filemanager,preferred://browser,applications:kitty.desktop,applications:org.kde.kdenlive.desktop,applications:fr.handbrake.ghb.desktop,applications:com.obsproject.Studio.desktop,applications:docker-tui.desktop,applications:podman-desktop.desktop";
               }
               "org.kde.plasma.marginsseparator"
 
