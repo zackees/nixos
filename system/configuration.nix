@@ -378,7 +378,13 @@ in
   users.users."niteris" = {
     isNormalUser = true;
     description = "ZachVorhies";
-    extraGroups = [ "networkmanager" "wheel" "ydotool" ];
+    # "input" is what makes hold-to-talk possible: voxtype reads key press
+    # AND release straight off /dev/input/event* (root:input 0660), because
+    # KGlobalAccel only ever fires on press. It also unlocks voxtype's
+    # modifier-release guard, which holds typing back until Meta is actually
+    # up - otherwise text typed while the key is still down arrives at the
+    # compositor as Meta+<letter> and triggers shortcuts instead.
+    extraGroups = [ "networkmanager" "wheel" "ydotool" "input" ];
     packages = with pkgs; [
       kdePackages.kate
     #  thunderbird

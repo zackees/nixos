@@ -2,10 +2,18 @@
 state_file = "auto"
 
 [hotkey]
-# Disabled: Meta+H is a KDE global shortcut calling `voxtype record toggle`.
-# KDE global shortcuts have no key-release event, so toggle rather than
-# push-to-talk is the mode that fits.
-enabled = false
+# Hold-to-talk, via voxtype's own evdev reader rather than a KDE global
+# shortcut. KGlobalAccel delivers press only - it has no key-release event -
+# so a KDE binding can never do more than toggle. evdev sees both edges.
+#
+# Needs the `input` group (set in system/configuration.nix); without it the
+# hotkey silently does nothing. The matching KDE shortcut on Meta+H was
+# removed: left in place it fired `record toggle` on the same press and
+# fought the hold.
+enabled = true
+key = "H"
+modifiers = ["LEFTMETA"]
+mode = "push_to_talk"
 
 [osd]
 # Enabled via an overlay that builds the osd-gtk4 cargo feature, which
