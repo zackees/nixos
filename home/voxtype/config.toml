@@ -53,7 +53,22 @@ max_duration_secs = 60
 [whisper]
 model = "base.en"
 language = "en"
-on_demand_loading = false
+# Load the model when recording starts, release it after transcription,
+# rather than holding it for the life of the daemon. Upstream defaults this
+# off to protect response time, but on a push-to-talk workload the load hides
+# entirely inside the recording: measured, it fires 46ms after the hotkey and
+# finishes 0.34s later -- 3.7s before a 4s dictation ends. It is threaded, and
+# audio keeps being captured throughout (VAD found speech at 0.13s, mid-load),
+# so nothing is clipped off the front of a phrase.
+#
+# Buys back 142 MiB of VRAM: 250 -> 108 MiB at idle. Costs nothing in RSS,
+# which does not move across the cycle -- the model never enters voxtype's
+# heap, it streams from page cache straight to VRAM. The 141 MB file stays
+# 100% page-cached, which is reclaimable, so it is not really "held" at all.
+#
+# The one case this loses: a recording shorter than ~0.35s waits on the join
+# at recording stop. Dictations here are 2-10s, so it never bites.
+on_demand_loading = true
 # Transcription used to cost a flat ~10.2s whether the clip was 0.9s or 1.5s,
 # because whisper.cpp pads every recording out to its full 30s context window.
 # This shrinks the window for clips under 22.5s, which is every dictation.
