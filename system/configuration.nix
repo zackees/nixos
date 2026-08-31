@@ -106,6 +106,15 @@ let
     "podman-desktop.desktop"
   ];
 
+  # ── The user's writable Python ──
+  # Pinned here because this version number has to appear in three places
+  # that must never drift apart: the uv download, the venv built from it,
+  # and pipx's default interpreter. See the sessionVariables and the
+  # user-python-venv unit further down for what it is all for.
+  userPythonVersion = "3.13";
+  userPythonHome =
+    "$HOME/.local/share/uv/python/cpython-${userPythonVersion}-linux-x86_64-gnu";
+
   # ── Declarative Plasma (home-manager + plasma-manager) ──
   # NixOS manages SYSTEM state, but Plasma panels are USER state, which plain
   # configuration.nix cannot reach. home-manager supplies that layer and
@@ -195,7 +204,24 @@ in
   environment.systemPackages = with pkgs; [
     tmog                # tmog.org AppImage; see let-block above
     python3
-    python3Packages.pip
+    # NOT python3Packages.pip: it is a separate derivation from python3, so
+    # `python3 -m pip` reports "No module named pip" while the `pip` binary it
+    # does install can only ever fail PEP 668. Real pip lives in ~/.venv.
+    uv                  # also builds and owns that venv; see below
+
+    # pipx 1.8.0's own test suite fails against packaging >= 24, which
+    # normalises the requirement spelling `black@ url` to `black @ url` while
+    # tests/test_package_specifier.py still asserts the old form. Seven
+    # cosmetic assertions then fail the build, and because pipx is in
+    # systemPackages that failure takes system-path -- and so the entire
+    # rebuild -- down with it. Nothing about installing or running apps is
+    # affected, so the file is skipped rather than the package dropped.
+    # Remove this override once nixpkgs ships pipx >= 1.9.
+    (pipx.overridePythonAttrs (old: {
+      disabledTestPaths = (old.disabledTestPaths or [ ]) ++ [
+        "tests/test_package_specifier.py"
+      ];
+    }))
     brave
     telegram-desktop
     signal-desktop
@@ -898,9 +924,65 @@ in
   # (e.g. the `clud` entrypoint installed by uv) can find their loader.
   programs.nix-ld.enable = true;
 
-  # Put uv tool shims (~/.local/bin) on PATH for every session, not just
-  # interactive bash via ~/.bashrc. Merged with the default PATH entries.
-  environment.sessionVariables.PATH = [ "$HOME/.local/bin" ];
+  # Put uv tool shims (~/.local/bin) and the user venv (~/.venv/bin) on PATH
+  # for every session, not just interactive bash via ~/.bashrc. NixOS puts
+  # these ahead of the default entries, which is the point: ~/.venv/bin has to
+  # beat /run/current-system/sw/bin so that `python3`, `python` and `pip` all
+  # mean the writable venv rather than the immutable store interpreter.
+  #
+  # Shadowing the system python is safe here specifically because every Nix
+  # application has an absolute /nix/store shebang and never consults PATH.
+  # The blast radius is interactive shells and scripts run by hand -- which is
+  # exactly the set of things that were previously forced through `uv`.
+  environment.sessionVariables.PATH = [ "$HOME/.venv/bin" "$HOME/.local/bin" ];
+
+  # pipx builds each app its own venv, and needs a base interpreter to build
+  # them from. Point it at the same uv-managed CPython the user venv uses, not
+  # at pkgs.python3: an app venv on the store python names a /nix/store path
+  # in its shebang, and dies at the next nix-collect-garbage.
+  environment.sessionVariables.PIPX_DEFAULT_PYTHON = "${userPythonHome}/bin/python3";
+
+  # Build ~/.venv on first login, and rebuild it if it is ever deleted.
+  #
+  # Why a venv at all: nixpkgs' python3 ships PEP 668's EXTERNALLY-MANAGED, so
+  # `pip install` refuses rather than trying to write to the immutable
+  # /nix/store. That refusal is correct and must not be papered over with
+  # --break-system-packages, which would scatter packages into
+  # ~/.local/lib/pythonX.Y/site-packages -- a directory that is on sys.path
+  # for EVERY interpreter on the box, so one bad wheel breaks unrelated tools,
+  # and which is silently orphaned the day nixpkgs moves 3.13 to 3.14.
+  #
+  # Why a uv-managed CPython rather than pkgs.python3: a venv records its
+  # interpreter's absolute path in pyvenv.cfg. Built on the store python, that
+  # path is a /nix/store entry which the next `nix-collect-garbage` removes,
+  # and the venv dies with "no such file or directory" for an interpreter that
+  # worked yesterday. The uv interpreter lives under ~/.local/share and is
+  # invisible to the garbage collector.
+  #
+  # Binary wheels (numpy, pillow, torch) then work because programs.nix-ld
+  # above supplies libstdc++ and friends. Without nix-ld the pip install still
+  # SUCCEEDS and only the later import fails, which is a confusing way to find
+  # out -- so the two settings belong together.
+  systemd.user.services.user-python-venv = {
+    description = "Provision the user's writable Python venv at ~/.venv";
+    wantedBy = [ "default.target" ];
+    path = [ pkgs.uv ];
+    environment.SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    # Both steps are idempotent, so every login after the first costs a stat.
+    # There is no network-online.target for user units; if the first login
+    # races the network this fails and the next login provisions it.
+    script = ''
+      set -eu
+      uv python install ${userPythonVersion}
+      if [ ! -x "$HOME/.venv/bin/pip" ]; then
+        uv venv --seed --python ${userPythonVersion} "$HOME/.venv"
+      fi
+    '';
+  };
 
   fonts = {
     packages = with pkgs; [
