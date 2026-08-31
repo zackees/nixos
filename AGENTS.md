@@ -134,6 +134,23 @@ scale, so the capture is 10240x4526 and the panel sits on HDMI-A-1:
 `grep launchers= plasma-org.kde.plasma.desktop-appletsrc` reported all nine
 entries present while the dock was drawing four. Only the picture was right.
 
+**Boatswain's buttons are a JSON file, not a GUI-only setting.** The Stream
+Deck's whole configuration is `~/.local/share/<serial>.json`, editable by hand.
+Boatswain rewrites it on save and on quit, so it must be stopped first --
+the same trap as plasmashell and `appletsrc`. Do not try to automate its GTK
+UI with `ydotool`; that was attempted and is a dead end on this multi-monitor
+fractional-scaling setup.
+
+Stopping it is fiddlier than it looks: `pkill -x boatswain` matches nothing
+(the wrapper makes the process name `.boatswain-wrap`), `pkill -f
+boatswain-wrapped` kills your own shell, and a second launch of a
+single-instance GApplication silently hands off and exits.
+
+The file format, the desktop-id rules that make a button bind or silently not,
+and the upstream sources that define them are in
+[`.claude/skills/streamdeck/SKILL.md`](.claude/skills/streamdeck/SKILL.md).
+Add to that skill whenever you learn something there worth not rediscovering.
+
 **`plasma-manager` is pinned to `trunk`, not a release.** Its tarball
 `sha256` in the `let` block keeps builds reproducible, but bumping it can
 bring API changes. Bump `url` and `sha256` together.
