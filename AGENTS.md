@@ -1,0 +1,108 @@
+# Working in this repo
+
+This repo *is* the machine `nixos` — an AMD Ryzen 7 3700X workstation running
+NixOS 26.05 with KDE Plasma 6 on Wayland. Changing a file here and applying it
+changes a real computer someone uses. There is no staging environment.
+
+Read [`README.md`](README.md) for the layout and [`RESTORE.md`](RESTORE.md) if
+you are rebuilding the machine from nothing.
+
+## Rules
+
+**Never commit a credential.** No password hashes, no tokens, no keys, no
+Wi-Fi PSKs. This is not a style preference: an earlier version of this repo
+committed `/etc/shadow` hashes, and removing them required deleting the
+GitHub repository outright, because a force-push leaves the objects
+retrievable by SHA. `scripts/sync.sh` scans for credentials and aborts the
+push; do not weaken its `PATTERN` to get a commit through. If you genuinely
+need a secret in the config, use `sops-nix` or `agenix` — never a plain
+`.nix` file.
+
+**Never edit `/etc/nixos` directly.** It is overwritten by
+`scripts/03-apply-system.sh`. Edit `system/` here; that is the source of
+truth. (`/etc/nixos` is still its own local git repo from before this one
+existed — ignore it.)
+
+**Never run `nixos-rebuild switch` unprompted.** It activates a new system
+generation on a live machine. Use `--build` to verify, and leave activation
+to the user unless they asked for it.
+
+**Do not restore KDE files while Plasma is running.** `plasmashell` holds its
+own copy in memory and rewrites them on exit, so the restore silently does
+nothing. `scripts/04-apply-home.sh` detects this and skips rather than
+pretending; that behaviour is deliberate, not a bug to fix.
+
+## Verifying a change to `system/`
+
+Always, before committing:
+
+    sudo nixos-rebuild build -I nixos-config="$PWD/system/configuration.nix"
+    echo "exit=$?"
+
+**Check that exit code, and do not pipe the command into `tail`, `head` or
+`grep` to shorten the output.** The pipeline's status is the last command's,
+so a failed build reports success. Redirect to a file and read it instead:
+
+    sudo nixos-rebuild build -I nixos-config="$PWD/system/configuration.nix" \
+      > /tmp/build.log 2>&1; echo "exit=$?"; tail -20 /tmp/build.log
+
+A successful build ends with `Done. The new configuration is /nix/store/...`
+and writes a `./result` symlink (gitignored). Building does not activate
+anything, so it is safe to run at any time.
+
+## Making a change stick
+
+    scripts/sync.sh -m "short description"
+
+Captures live state into the repo, scans for credentials, shows the diff,
+commits and pushes. `--dry-run` stops after the diff; `-y` skips the prompt.
+It refuses to run on a dirty tree, because capture overwrites tracked files
+wholesale — commit or stash first.
+
+Use `scripts/capture.sh` alone if you need to review or amend before
+committing.
+
+## Traps specific to this repo
+
+**`plasma-manager` replaces panels wholesale.** The widget list in
+`system/configuration.nix` is the *entire* Plasma panel. Anything you omit
+disappears at next login — you cannot add one widget by adding one entry
+somewhere else.
+
+**`plasma-manager` is pinned to `trunk`, not a release.** Its tarball
+`sha256` in the `let` block keeps builds reproducible, but bumping it can
+bring API changes. Bump `url` and `sha256` together.
+
+**`home/kde/` is captured, not generated.** Those files have no declarative
+source; KDE rewrites them at runtime. They go stale whenever a setting
+changes in System Settings. `scripts/capture.sh` is the only thing that
+refreshes them.
+
+**`scripts/capture.sh` contains a heredoc.** If you edit it by piping a
+heredoc from your shell, pick a delimiter it does not already use. A
+collision terminates your heredoc early and leaks the rest into the shell,
+where redirects like `> system/configuration.nix` still execute and truncate
+real files. This has happened; it cost a restore from the last commit.
+
+**`hardware-configuration.nix` is committed with real UUIDs**, and
+`scripts/01-partition.sh` recreates those UUIDs, so the two match without
+regeneration. Do not regenerate it on a whim. Installing onto different
+hardware needs `scripts/02-install.sh --regen-hardware`.
+
+**`docs/hardware.md` is generated** by `scripts/gen-hardware-doc.sh`. Edit
+that script, not the output. It deliberately carries no timestamp, so the
+file only changes when the hardware does.
+
+## sudo on this machine
+
+One successful authentication unlocks sudo for every session, machine-wide,
+for 15 minutes (`timestamp_type=global`). Interactive shells alias `sudo` to
+`sudo -A`, which draws a graphical KDE dialog — so in a session with no
+terminal, a `sudo` call may be waiting on a dialog the user has to see rather
+than hanging. Drop the ticket with `sudo -k`.
+
+## Commits
+
+Explain *why*, not what — the diff shows what. Note anything a future reader
+would otherwise have to rediscover: a workaround, a pinned hash, a
+counter-intuitive constraint. Existing history is the style reference.
