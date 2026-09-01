@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">
+  <rect width="144" height="144" rx="18" fill="#121824"/>
+  <circle cx="72" cy="64" r="52" fill="#273447"/>
+  <path d="M72 18c19 0 35 10 44 25-14-3-28 2-37 14-5-13-6-26-7-39zM118 47c10 16 9 36-1 52-3-14-13-25-27-29 13-5 22-14 28-23zM108 104c-13 14-32 20-50 15 11-9 16-23 13-37 12 8 25 12 37 22zM51 119c-18-6-31-21-34-39 12 8 26 9 39 1-4 13-1 27-5 38zM15 73c0-19 10-36 26-45-4 14 1 28 13 37-14 4-26 12-39 8z" fill="#fff"/>
+  <text x="72" y="132" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="18" font-weight="700">OBS</text>
+</svg>
