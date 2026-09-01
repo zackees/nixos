@@ -78,6 +78,11 @@ Three separate traps, all hit for real:
 - It is a single-instance GApplication. If one is already running, a second
   invocation hands off and exits, which looks exactly like a launch that did
   nothing.
+- On this NixOS desktop, the autostarted instance is managed as
+  `app-com.feaneron.Boatswain@autostart.service`. Use `systemctl --user stop`
+  and `systemctl --user start` on that exact unit when editing the profile;
+  this was verified with Boatswain 5.0. It avoids relying on the wrapper's
+  process name and guarantees the restarted app rereads the JSON.
 
 Outside a Flatpak sandbox it also logs
 
