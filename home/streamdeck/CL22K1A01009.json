@@ -36,6 +36,11 @@
                 "action" : "launcher-open-url-action",
                 "settings" : {
                   "url" : "https://app.notion.com/p/Tasks-fc6cf8594898439ea734a44e4c982ad5"
+                },
+                "custom-icon" : {
+                  "background-color" : "rgba(0,0,0,0)",
+                  "text" : null,
+                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/notion-tasks.svg"
                 }
               },
               {              },
