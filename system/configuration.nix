@@ -1353,6 +1353,16 @@ in
         };
 
         panels = [
+          # A compact, fit-to-content panel keeps the clock at the top centre
+          # of the primary screen without turning it into a second full-width
+          # bar.  Leaving `screen` unset follows Plasma's primary-screen
+          # default, like the existing dock below.
+          {
+            location = "top";
+            alignment = "center";
+            lengthMode = "fit";
+            widgets = [ "org.kde.plasma.digitalclock" ];
+          }
           {
             location = "bottom";
             widgets = [
