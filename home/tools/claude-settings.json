@@ -1,7 +1,7 @@
 {
-  "model": "opus[1m]",
+  "model": "clud-claude-codex-luna",
+  "advisorModel": "fable",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
-  "advisorModel": "fable"
+  "theme": "dark"
 }
