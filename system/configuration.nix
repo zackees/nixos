@@ -277,6 +277,22 @@ in
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 
+  # ── Default web browser ──
+  # With Brave and Firefox both installed, nothing used to claim the web
+  # mimetypes, so the "default" browser was whatever desktop-file cache order
+  # served that day and flipped between rebuilds (the same instability the
+  # dock and Stream Deck comments note where they invoke Brave by name).
+  # This is the distro-level default; ~/.config/mimeapps.list (captured in
+  # home/kde/) carries the same entries at the user level.
+  xdg.mime.defaultApplications = {
+    "text/html" = "brave-browser.desktop";
+    "application/xhtml+xml" = "brave-browser.desktop";
+    "x-scheme-handler/http" = "brave-browser.desktop";
+    "x-scheme-handler/https" = "brave-browser.desktop";
+    "x-scheme-handler/about" = "brave-browser.desktop";
+    "x-scheme-handler/unknown" = "brave-browser.desktop";
+  };
+
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
