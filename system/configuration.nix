@@ -408,6 +408,7 @@ in
 
     # ── System administration ──
     inxi                # one-shot hardware/system report
+    perf                # CPU hardware-counter profiling
     socat               # socket plumbing
     whois
     inetutils           # telnet, ftp, hostname, ping variants
@@ -1128,6 +1129,13 @@ in
   # nix-ld provides /lib64/ld-linux-x86-64.so.2 so non-Nix ELF binaries
   # (e.g. the `clud` entrypoint installed by uv) can find their loader.
   programs.nix-ld.enable = true;
+
+  # This is a development workstation where profiling ordinary processes is
+  # expected. -1 removes perf_event's access restrictions, so unprivileged
+  # local processes may use CPU counters rather than needing CAP_PERFMON.
+  # It also permits kernel, raw, and system-wide events: those can expose
+  # system-wide activity, so keep this setting specific to this trusted box.
+  boot.kernel.sysctl."kernel.perf_event_paranoid" = -1;
 
   # ...and this is what that loader is allowed to find. Declared in the
   # let-block above, where the reasoning and the per-group notes live.
