@@ -456,6 +456,30 @@ in
     gdb
     lldb
 
+    # mold, the fast linker. Nothing links with it until something asks:
+    # `-fuse-ld=mold` on either compiler. Verified -- the resulting binary's
+    # .comment section reads "mold 2.41.0 (compatible with GNU ld)" rather
+    # than GNU ld's. gcc and clang find `ld.mold` on PATH, which is why this
+    # entry is enough and no -B flag is needed; run either compiler with a
+    # PATH that lacks /run/current-system/sw/bin and the flag fails with
+    # "cannot find 'ld'" (gcc) or "invalid linker name" (clang), neither of
+    # which reads like a PATH problem.
+    #
+    # `mold --run <build command>`, the other documented way in, does NOT work
+    # here. pkgs.mold is a bintools *wrapper*, and the wrapper parses argv as
+    # linker flags, so it rejects --run as an unknown option -- even though
+    # the mold it wraps supports it and lists it in --help. (It is `--run` in
+    # mold 2.x; the single-dash `-run` in older docs is gone.) Use
+    # -fuse-ld=mold, or reach for the unwrapped binary knowing it bypasses the
+    # wrapper's store-path handling.
+    #
+    # Deliberately NOT wired in as the system default linker. That would mean
+    # overriding the cc-wrapper for the whole system, changing how every
+    # derivation links and buying nothing -- nixpkgs builds arrive from the
+    # binary cache already linked. The win is on code built by hand, which is
+    # exactly where passing a flag is easy.
+    mold
+
     # ── System administration ──
     inxi                # one-shot hardware/system report
     perf                # CPU hardware-counter profiling
