@@ -92,22 +92,25 @@ fi
 
 say "Stream Deck buttons"
 # Boatswain rewrites this file whole on save and on quit, so it has to be
-# stopped first -- exactly the plasmashell problem above. Note the process is
-# named .boatswain-wrap, not boatswain, because of the Nix wrapper, so
-# `pgrep -x boatswain` finds nothing. The bracket in the pattern stops pgrep
-# matching this script's own command line.
+# stopped first -- exactly the plasmashell problem above. On this machine the
+# autostarted GApplication is managed by this user service; process-name
+# matching is unreliable across Nix wrapper revisions.
 #
 # The filename is the device serial. On a different deck this copies a profile
 # the hardware will never load; harmless, but it explains why nothing appears.
-if pgrep -f 'boatswain-wrap[p]ed' >/dev/null 2>&1; then
+if systemctl --user is-active --quiet app-com.feaneron.Boatswain@autostart.service; then
   echo "  boatswain is running and would overwrite this on exit; skipping."
   echo "  quit it and re-run, or copy home/streamdeck/*.json by hand."
 else
-  mkdir -p "$HOME/.local/share"
+  mkdir -p "$HOME/.local/share/streamdeck-icons"
   for f in "$REPO"/home/streamdeck/*.json; do
     [ -f "$f" ] || continue
     keep "$HOME/.local/share/$(basename "$f")"
     cp "$f" "$HOME/.local/share/$(basename "$f")"
+  done
+  for f in "$REPO"/home/streamdeck/icons/*; do
+    [ -f "$f" ] || continue
+    cp "$f" "$HOME/.local/share/streamdeck-icons/$(basename "$f")"
   done
 fi
 

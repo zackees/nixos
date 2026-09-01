@@ -44,6 +44,8 @@ cp ~/.config/gtk-4.0/* home/kde/gtk-4.0/ 2>/dev/null || true
 # generated -- same category as home/kde/. A different deck would land under a
 # different name; the glob keeps that from silently capturing nothing.
 cp ~/.local/share/CL22K1A01009.json home/streamdeck/ 2>/dev/null || true
+mkdir -p home/streamdeck/icons
+cp ~/.local/share/streamdeck-icons/* home/streamdeck/icons/ 2>/dev/null || true
 
 cp ~/.clud/settings.json home/tools/clud-settings.json
 cp ~/.claude/settings.json home/tools/claude-settings.json
