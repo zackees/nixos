@@ -422,6 +422,40 @@ in
     gum                 # shell-script UI widgets
     neovim              # installed, but nano stays $EDITOR (see below)
 
+    # ── Native toolchains ──
+    #
+    # Both compilers, on purpose: gcc is what a Linux build system assumes,
+    # clang is what several projects here are actually built with (the FastLED
+    # note by the nix-ld list above is one).
+    #
+    # gcc wins `cc`, `c++` and `cpp`. The two wrappers both ship those names,
+    # and `system-path` is built with ignoreCollisions, so a collision is NOT
+    # an error -- it silently keeps whichever package came first in this list,
+    # which would make the identity of `cc` an accident of line order. The
+    # lowPrio makes gcc the deterministic winner; `clang` and `clang++` are
+    # unique names and are unaffected.
+    #
+    # These compile self-contained code and nothing else. There is no
+    # /usr/include on NixOS, so anything that wants zlib, openssl or any other
+    # library's headers still needs a `shell.nix` / `nix develop` (direnv is
+    # enabled below) -- the nix-ld library list above puts shared objects on a
+    # *runtime* search path and deliberately does not reach the compiler.
+    # pkg-config is here for the same reason and with the same caveat: it
+    # finds nothing until a dev shell populates PKG_CONFIG_PATH.
+    gcc
+    (lib.lowPrio clang)
+    clang-tools         # clangd, clang-format, clang-tidy; not in `clang`
+    binutils            # ld, as, ar, nm, objdump, readelf, strings
+    gnumake
+    cmake
+    ninja
+    pkg-config
+    autoconf
+    automake
+    libtool
+    gdb
+    lldb
+
     # ── System administration ──
     inxi                # one-shot hardware/system report
     perf                # CPU hardware-counter profiling
