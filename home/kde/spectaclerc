@@ -7,3 +7,7 @@ translatedScreenshotsFolder=Screenshots
 
 [VideoSave]
 translatedScreencastsFolder=Screencasts
+
+[ViewerWindow]
+3 screens: Height=849
+3 screens: Width=1631
