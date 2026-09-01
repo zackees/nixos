@@ -1,6 +1,6 @@
 {
   "backend": {
-    "default": "codex"
+    "default": "claude"
   },
   "codex": {
     "config_overrides": [
