@@ -1,5 +1,5 @@
 {
-  "model": "clud-claude-codex-luna",
+  "model": "clud-claude-codex-sol",
   "advisorModel": "fable",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,

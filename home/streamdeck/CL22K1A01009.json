@@ -19,20 +19,25 @@
                 "settings" : {
                   "app" : "com.obsproject.Studio.desktop",
                   "files" : []
+                },
+                "custom-icon" : {
+                  "background-color" : "rgba(0,0,0,0)",
+                  "text" : null,
+                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/obs.svg"
                 }
               },
               {
                 "type" : "action",
                 "factory" : "launcher",
                 "action" : "launch-action",
-                "settings" : {
-                  "app" : "chatgpt-web.desktop",
-                  "files" : []
-                },
                 "custom-icon" : {
                   "background-color" : "rgba(0,0,0,0)",
                   "text" : null,
                   "file" : "file:///home/niteris/.local/share/streamdeck-icons/chatgpt.svg"
+                },
+                "settings" : {
+                  "app" : "chatgpt-web.desktop",
+                  "files" : []
                 }
               },
               {
@@ -55,9 +60,27 @@
                 "settings" : {
                   "app" : "org.telegram.desktop.desktop",
                   "files" : []
+                },
+                "custom-icon" : {
+                  "background-color" : "rgba(0,0,0,0)",
+                  "text" : null,
+                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/telegram.svg"
                 }
               },
-              {              },
+              {
+                "type" : "action",
+                "factory" : "launcher",
+                "action" : "launch-action",
+                "settings" : {
+                  "app" : "signal.desktop",
+                  "files" : []
+                },
+                "custom-icon" : {
+                  "background-color" : "rgba(0,0,0,0)",
+                  "text" : null,
+                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/signal.svg"
+                }
+              },
               {              },
               {              },
               {              },
