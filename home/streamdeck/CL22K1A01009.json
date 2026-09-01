@@ -1,65 +1,72 @@
 {
-  "active-profile": "a7a5680e-417c-43d1-abb8-5a6f71a26127",
-  "profiles": [
+  "active-profile" : "a7a5680e-417c-43d1-abb8-5a6f71a26127",
+  "profiles" : [
     {
-      "id": "a7a5680e-417c-43d1-abb8-5a6f71a26127",
-      "name": "Default",
-      "brightness": 0.5,
-      "page": {
-        "version": 1,
-        "regions": [
+      "id" : "a7a5680e-417c-43d1-abb8-5a6f71a26127",
+      "name" : "Default",
+      "brightness" : 0.5,
+      "page" : {
+        "version" : 1,
+        "regions" : [
           {
-            "id": "main-button-grid",
-            "region-data": {},
-            "items": [
+            "id" : "main-button-grid",
+            "region-data" : {            },
+            "items" : [
               {
-                "type": "action",
-                "factory": "launcher",
-                "action": "launch-action",
-                "settings": {
-                  "app": "com.obsproject.Studio.desktop",
-                  "files": []
+                "type" : "action",
+                "factory" : "launcher",
+                "action" : "launch-action",
+                "settings" : {
+                  "app" : "com.obsproject.Studio.desktop",
+                  "files" : []
                 }
               },
               {
-                "type": "action",
-                "factory": "launcher",
-                "action": "launch-action",
-                "settings": {
-                  "app": "chatgpt-web.desktop",
-                  "files": []
+                "type" : "action",
+                "factory" : "launcher",
+                "action" : "launch-action",
+                "settings" : {
+                  "app" : "chatgpt-web.desktop",
+                  "files" : []
                 }
               },
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {},
-              {}
+              {
+                "type" : "action",
+                "factory" : "launcher",
+                "action" : "launcher-open-url-action",
+                "settings" : {
+                  "url" : "https://app.notion.com/p/Tasks-fc6cf8594898439ea734a44e4c982ad5"
+                }
+              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              },
+              {              }
             ]
           }
         ]
