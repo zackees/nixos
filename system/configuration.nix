@@ -1356,7 +1356,14 @@ in
     # trades it for a userspace network stack and no GPU passthrough, which
     # this machine's CUDA work wants. Accepted for a single-user workstation
     # where that user is already in "wheel".
-    extraGroups = [ "networkmanager" "wheel" "ydotool" "voxtype-input" "docker" ];
+    # "dialout" owns the USB CDC/UART character devices that MCU boards enumerate
+    # as -- /dev/ttyACM* for the ESP32-C6's built-in USB JTAG/serial, /dev/ttyUSB*
+    # for CP210x and FTDI bridges. They are crw-rw---- root:dialout, so without
+    # this every flash and every serial-monitor attach fails with EACCES, which
+    # esptool reports as "the port is busy or doesn't exist" -- a message that
+    # sends you looking for a stuck process rather than at group membership.
+    # FastLED's `bash autoresearch <board>` needs it to deploy to hardware.
+    extraGroups = [ "networkmanager" "wheel" "ydotool" "voxtype-input" "docker" "dialout" ];
     packages = with pkgs; [
       kdePackages.kate
     #  thunderbird
