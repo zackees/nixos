@@ -497,6 +497,20 @@ in
     # they are the readers for what valgrind's tools emit and are useless
     # separately, so the one entry covers all four names.
     valgrind
+
+    # gcc_multi carries the 32-bit runtime and headers alongside the 64-bit
+    # ones, which plain gcc on this channel does not: without it `-m32` fails at
+    # link with "incompatible with elf64-x86-64" because there is no i686 glibc
+    # or crt in the store at all.
+    #
+    # Wanted for profiling FastLED's fixed-point MP3 decoder. That decoder ships
+    # to 32-bit targets, and x86-64 has been an actively misleading proxy for
+    # them -- a change that cut the ESP32-C6 by 9.7% measured as a 3.2%
+    # *regression* on the 64-bit host, because its whole benefit was avoiding
+    # register spills that x86-64 has the registers to avoid anyway. A 32-bit
+    # host build should reproduce that pressure and make the cheap, deterministic
+    # host profile predictive again.
+    gcc_multi
     # llvm-nm, llvm-size, llvm-objdump, llvm-symbolizer, llvm-profdata,
     # llvm-cov and the rest. Not redundant with binutils above: these read
     # LLVM bitcode and LLVM's own profile format, which GNU nm and size
@@ -618,6 +632,19 @@ in
   environment.variables = {
     EDITOR = "nano";
     VISUAL = "nano";
+
+    # Python's ssl module compiles in an OpenSSL default cert path that does not
+    # exist on NixOS, so a venv interpreter has an empty verify path and every
+    # HTTPS fetch fails with CERTIFICATE_VERIFY_FAILED. NixOS exports
+    # NIX_SSL_CERT_FILE, which nixpkgs' own wrappers read; a plain venv python
+    # does not know that name. SSL_CERT_FILE is the one OpenSSL itself honours,
+    # and REQUESTS_CA_BUNDLE covers requests/urllib3, which ignore both.
+    #
+    # Without these, FastLED's clang-tool-chain cannot fetch its manifest and
+    # re-downloads the whole toolchain on every clean build. This was the last
+    # thing keeping a hand-rolled compatibility shim on PATH.
+    SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+    REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
 
     # MLT finds its LADSPA audio filters (pitch, reverb, declip, gate, the
     # rest of swh-plugins) through this. The nixpkgs mlt sets it, but only on
