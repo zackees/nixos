@@ -1832,13 +1832,56 @@ in
           # plasma-plasmashell to its own restartServices, which is the same
           # restart the icon-cache trap below needs anyway.
 
-          # A compact, fit-to-content panel keeps the clock at the top centre
-          # without turning it into a second full-width bar.
+          # The clock strip along the top centre.
+          #
+          # `hiding` is the load-bearing key here, and `lengthMode = "fit"` is
+          # NOT what keeps this out of the way -- that was the original
+          # assumption and it was wrong. A panel with the default
+          # `hiding = "none"` reserves a strut the FULL width of the screen
+          # edge it sits on, however short the panel itself is, so a short
+          # centred clock still walled off a 44px band across the whole top of
+          # the monitor and maximized windows stopped below it. The symptom
+          # reads as "a top bar I never asked for" when the visible panel is
+          # plainly only a clock.
+          #
+          # `windowsgobelow` drops the strut entirely and keeps the clock
+          # painted over whatever is beneath it -- an overlay rather than a
+          # bar. The cost is that it now sits on top of the centre of a
+          # maximized window's title bar; if that grates, `dodgewindows` is the
+          # other Plasma 6 mode, which hides the clock whenever a window would
+          # overlap it (visible on the desktop, gone under a window).
+          #
+          # plasma-manager passes this string through to plasmashell's own
+          # `panel.hiding` verbatim, and an unrecognised value there is a
+          # silent no-op that leaves the strut in place -- so the spelling
+          # matters. plasmashell 6.6.6 accepts exactly four, confirmed against
+          # the binary's UTF-16 literals:
+          #
+          #   strings -e l -n 4 $(readlink -f $(command -v plasmashell))-wrapped
+          #
+          # -> none, autohide, dodgewindows, windowsgobelow. The other names
+          # plasma-manager's enum offers (`normalpanel`, `windowscover`,
+          # `windowsbelow`) are not among them.
+          #
+          # Height 36 rather than the module default of 44: 26 was the first
+          # try and read as too small. At 36 the clock stacks time over date,
+          # which is the wanted look; the one-line form needs roughly 26.
+          #
+          # There is deliberately NO `opacity` here even though plasma-manager
+          # offers the option. See the panel-opacity startup script below:
+          # plasmashell 6.6.6 ignores the scripting setter it emits, so the
+          # option is a silent no-op and writing it here would only mislead.
+          #
+          # Note that KWin maximizing a window dragged to the top screen edge
+          # is a separate, pre-existing thing (`ElectricBorderMaximize`), not
+          # this panel -- removing the strut does not turn that off.
           {
             location = "top";
             screen = 0;
             alignment = "center";
             lengthMode = "fit";
+            height = 36;
+            hiding = "windowsgobelow";
             widgets = [ "org.kde.plasma.digitalclock" ];
           }
           {
@@ -1912,6 +1955,69 @@ in
             ];
           }
         ];
+
+        # ── Panel opacity, the long way round ──
+        # This exists because plasma-manager's `opacity` panel option does
+        # nothing on plasmashell 6.6.6. The option emits
+        # `panel.opacity = "translucent"` into the panel script, and that
+        # setter is a no-op here: the getter keeps reporting `adaptive`, no
+        # `panelOpacity` key is written at panel creation, and even setting it
+        # by hand on a live panel (`panels()[0].opacity = "opaque"`) changes
+        # nothing on disk. `panel.hiding` in the same script works, so this is
+        # specific to opacity, not to the scripting bridge.
+        #
+        # The setting itself is real, it just has to be written to the config:
+        #
+        #   [PlasmaViews][Panel <id>] panelOpacity=2    (0 adaptive, 1 opaque,
+        #                                                2 translucent)
+        #
+        # in `~/.config/plasmashellrc`. That cannot go in `configFile` because
+        # <id> is the panel's containment id, which plasma-manager regenerates
+        # on EVERY panel rebuild (498 -> 529 on one such run here). So the id
+        # has to be looked up at apply time, which is what this does -- asking
+        # plasmashell rather than parsing appletsrc, because the file is not
+        # necessarily flushed yet when this runs.
+        #
+        # Priority 3 puts it after 2_desktop_script_panels.sh, so the panels it
+        # asks about are the newly built ones. `runAlways` is required rather
+        # than tidy: a run-once script is gated on a hash of its own text,
+        # which does not change when the panel ids do, so it would skip exactly
+        # the rebuild that invalidated the id it wrote last time. It is a
+        # no-op when the value is already right.
+        #
+        # `restartServices` is ignored for runAlways scripts (plasma-manager
+        # only emits it in the run-once branch), hence the explicit append to
+        # services_to_restart -- run_all.sh restarts whatever is listed there
+        # after all the scripts have run. Appending only on an actual change
+        # keeps logins from restarting plasmashell for nothing.
+        #
+        # Why translucent at all: `adaptive` (the default) turns opaque the
+        # moment a window is under the panel, and with `hiding =
+        # "windowsgobelow"` above there is nearly always one, so adaptive reads
+        # as permanently solid. Measured against the wallpaper, translucent
+        # lands around 80-85% opaque -- close to the 70% that was asked for but
+        # not it. Plasma has no alpha slider; an exact figure needs the Panel
+        # Colorizer widget (`luisbocanegra.panel.colorizer`).
+        startup.startupScript.panel-opacity = {
+          priority = 3;
+          runAlways = true;
+          text = ''
+            id=$(qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+              var p = panels();
+              for (var i = 0; i < p.length; i++) if (p[i].location == "top") print(p[i].id);
+            ' 2>/dev/null | tr -dc "0-9")
+            [ -n "$id" ] || exit 0
+
+            cur=$(kreadconfig6 --file plasmashellrc \
+                    --group PlasmaViews --group "Panel $id" --key panelOpacity)
+            if [ "$cur" != "2" ]; then
+              kwriteconfig6 --file plasmashellrc \
+                --group PlasmaViews --group "Panel $id" --key panelOpacity 2
+              echo plasma-plasmashell \
+                >> "$HOME/.local/share/plasma-manager/services_to_restart"
+            fi
+          '';
+        };
       };
     };
 
