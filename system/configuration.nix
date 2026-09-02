@@ -1204,6 +1204,24 @@ in
   # (e.g. the `clud` entrypoint installed by uv) can find their loader.
   programs.nix-ld.enable = true;
 
+  # The same problem one level up: a script or test fixture that hard-codes
+  # `/bin/true`, `/bin/sleep`, `/bin/echo` or `#!/usr/bin/python3` fails on
+  # stock NixOS, where /bin holds only `sh` and /usr/bin only `env`. envfs
+  # mounts a FUSE filesystem over both directories that resolves any name
+  # present on PATH, so those paths work without a hand-maintained list of
+  # symlinks that goes stale.
+  #
+  # Found via soldr's test suite, where four tests fail on this machine and
+  # nowhere else: two spawn `/bin/true`, one spawns `/bin/echo`, and a cargo-doc
+  # fixture needs `/bin/sleep`, `dirname` and `mkdir` from a stripped PATH.
+  # They pass on every CI runner, so the failures read as real defects until
+  # someone notices the host is the variable.
+  #
+  # Only names that exist on PATH resolve; envfs invents nothing. It replaces
+  # NixOS's own /bin/sh and /usr/bin/env with its own equivalents, which is why
+  # this is one switch rather than an `environment.etc` pile.
+  services.envfs.enable = true;
+
   # This is a development workstation where profiling ordinary processes is
   # expected. -1 removes perf_event's access restrictions, so unprivileged
   # local processes may use CPU counters rather than needing CAP_PERFMON.
