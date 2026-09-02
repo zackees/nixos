@@ -279,41 +279,92 @@ in
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # go/ links, Google-style: `go/hermes` in a browser's address bar lands on
-  # the hermes kanban board and STAYS at go/hermes. Two halves. The hostname
-  # `go` resolves to loopback via /etc/hosts (browsers treat a bare word with
-  # a slash after it as a URL, not a search, so no scheme is needed), and
-  # nginx on 127.0.0.1:80 answers for that name.
+  # go/ links, Google-style: `go/hermes` in a browser's address bar shows the
+  # hermes kanban board and the bar STAYS at go/hermes. The hostname `go`
+  # resolves to loopback via /etc/hosts (browsers treat a bare word with a
+  # slash after it as a URL, not a search, so no scheme is needed), and nginx
+  # answers for that name on loopback only, so nothing on the LAN can see it
+  # and the firewall needs no hole.
   #
-  # It proxies rather than redirects, because a redirect would swap the
-  # address bar to 127.0.0.1:9120/kanban and the point is the short name.
-  # The catch is that hermes is a single-page app whose assets and API calls
-  # are root-absolute (/assets/..., /api/..., websockets), so the catch-all
-  # `/` on this host also has to proxy to the hermes origin or the page loads
-  # as bare HTML. That means one host can carry one proxied app; a second
-  # app would need its own hostname (`go2`, or `<name>.go`) rather than a
-  # second entry here. Bound to loopback only, so nothing on the LAN can see
-  # it and the firewall needs no hole.
+  # Keeping the name took three attempts, and the shape below is the one
+  # that works:
+  #  - a redirect swaps the bar to 127.0.0.1:9120/kanban, which defeats the
+  #    short name;
+  #  - a plain proxy of /hermes -> /kanban serves the right HTML, but hermes
+  #    is a single-page app whose router owns the pathname: it sees /hermes,
+  #    knows no such route, and rewrites the bar to go/sessions itself.
+  #    Verified with a screenshot, not guessed;
+  #  - so /hermes is a tiny page of this host's own that frames /kanban
+  #    full-window. The router runs inside the frame, the bar never moves.
+  # The frame is same-origin because the catch-all `/` proxies to the hermes
+  # origin -- which is needed anyway, since the app's assets and API paths
+  # are root-absolute. That means one hostname carries one proxied app; a
+  # second app would need its own name (`<name>.go`) rather than a second
+  # entry here. hermes also rejects any Host header but its own, and that
+  # header has to be set in each location because proxyWebsockets emits
+  # location-level proxy_set_header lines and nginx then drops every
+  # inherited one.
+  #
+  # HTTPS is a self-signed certificate for `go`, generated once at
+  # activation into /var/lib/go-links by the oneshot below -- never in the
+  # store and never in this repo (a private key is a credential). Trust in
+  # Brave is per-user NSS state, which scripts/03-apply-home.sh imports and
+  # which the cert step here cannot reach. http://go/... 301s to https, so
+  # the Stream Deck's http URL keeps working.
   networking.extraHosts = "127.0.0.1 go";
+  systemd.services.go-links-cert = {
+    description = "self-signed TLS certificate for the go/ links host";
+    wantedBy = [ "nginx.service" ];
+    before = [ "nginx.service" ];
+    path = [ pkgs.openssl ];
+    serviceConfig = {
+      Type = "oneshot";
+      StateDirectory = "go-links";
+      StateDirectoryMode = "0755";  # cert.pem is public; the key stays 640 root:nginx
+      Group = "nginx";
+    };
+    # Idempotent on purpose: regenerating on every boot would invalidate the
+    # browser trust that 03-apply-home.sh set up. Delete the directory to
+    # rotate.
+    script = ''
+      d=/var/lib/go-links
+      [ -s $d/key.pem ] && [ -s $d/cert.pem ] && exit 0
+      openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+        -nodes -days 3650 -subj /CN=go -addext subjectAltName=DNS:go \
+        -keyout $d/key.pem -out $d/cert.pem
+      chgrp nginx $d/key.pem $d/cert.pem
+      chmod 640 $d/key.pem; chmod 644 $d/cert.pem
+    '';
+  };
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
+    recommendedTlsSettings = true;
     virtualHosts."go" = {
-      listen = [ { addr = "127.0.0.1"; port = 80; } ];
+      listen = [
+        { addr = "127.0.0.1"; port = 80; }
+        { addr = "127.0.0.1"; port = 443; ssl = true; }
+      ];
+      forceSSL = true;
+      sslCertificate = "/var/lib/go-links/cert.pem";
+      sslCertificateKey = "/var/lib/go-links/key.pem";
       locations =
         let
-          # hermes answers "invalid Host header" to anything but its own
-          # address, so the proxied Host must be the upstream's, not `go`.
-          # It has to sit in each location: proxyWebsockets emits
-          # location-level proxy_set_header lines, and nginx then drops every
-          # inherited one, so a server-level Host would silently vanish.
           hermes = path: {
             proxyPass = "http://127.0.0.1:9120${path}";
             proxyWebsockets = true;
             extraConfig = "proxy_set_header Host 127.0.0.1:9120;";
           };
+          frame = pkgs.writeTextDir "hermes" ''
+            <!doctype html><title>go/hermes</title>
+            <style>html,body,iframe{margin:0;height:100%;width:100%;border:0;background:#0f1a17}</style>
+            <iframe src="/kanban"></iframe>
+          '';
         in {
-          "= /hermes" = hermes "/kanban";
+          "= /hermes" = {
+            root = frame;
+            extraConfig = "default_type text/html;";
+          };
           "/" = hermes "";
         };
     };
@@ -633,6 +684,7 @@ in
     # applications and driving OBS need none of it.
     boatswain
     boatswainAutostart
+    nssTools            # certutil: trust the go/ links cert in Brave's NSS db
     chatgptLauncher     # "ChatGPT" entry for the Stream Deck to launch
     chatgptIcon         # its glyph; no icon theme ships one
 

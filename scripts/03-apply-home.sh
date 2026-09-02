@@ -114,6 +114,23 @@ else
   done
 fi
 
+say "go/ links certificate trust"
+# nginx serves https://go/ with a self-signed cert that system activation
+# generates into /var/lib/go-links (see go-links-cert in configuration.nix).
+# Brave trusts certificates from the per-user NSS database, not from the
+# system store, so the import is user-level state and lives here. Safe to
+# re-run: an existing nickname is replaced.
+if [ -r /var/lib/go-links/cert.pem ] && command -v certutil >/dev/null; then
+  # certutil -N does not create the directory, and fails with "bad database"
+  # rather than saying so.
+  mkdir -p "$HOME/.pki/nssdb"
+  [ -f "$HOME/.pki/nssdb/cert9.db" ] || certutil -d "sql:$HOME/.pki/nssdb" -N --empty-password
+  certutil -d "sql:$HOME/.pki/nssdb" -D -n go-links 2>/dev/null || true
+  certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n go-links -i /var/lib/go-links/cert.pem
+else
+  echo "  /var/lib/go-links/cert.pem not readable yet; rebuild first, then re-run."
+fi
+
 say "user-level CLI tools"
 # uv itself comes from the nix profile, not configuration.nix, because the
 # pinned nixpkgs lags behind and these tools track PyPI.
