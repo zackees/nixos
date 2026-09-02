@@ -19,7 +19,7 @@
     }
   },
   "git": {
-    "pr_wait_fail_fast": false
+    "pr_wait_fail_fast": true
   },
   "hook_health": {
     "auto_fix_hooks": true
