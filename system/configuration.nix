@@ -279,6 +279,40 @@ in
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # go/ links, Google-style: `go/hermes` in a browser's address bar lands on
+  # the hermes kanban board. Two halves. The hostname `go` resolves to
+  # loopback via /etc/hosts (browsers treat a bare word with a slash after it
+  # as a URL, not a search, so no scheme is needed), and nginx on 127.0.0.1:80
+  # answers for that name with a redirect per short link. Add a link by adding
+  # an entry to `goLinks` below; anything unlisted gets a plain-text index of
+  # what exists, which beats a bare 404 when you have forgotten the name.
+  # Bound to loopback only, so nothing on the LAN can see it and the firewall
+  # needs no hole.
+  networking.extraHosts = "127.0.0.1 go";
+  services.nginx = {
+    enable = true;
+    recommendedProxySettings = false;
+    virtualHosts."go" = {
+      listen = [ { addr = "127.0.0.1"; port = 80; } ];
+      locations =
+        let
+          goLinks = {
+            hermes = "http://127.0.0.1:9120/kanban";
+          };
+          index = lib.concatStringsSep "\\n"
+            (lib.mapAttrsToList (n: t: "go/${n} -> ${t}") goLinks);
+        in
+        lib.mapAttrs' (name: target:
+          lib.nameValuePair "= /${name}" { return = "302 ${target}"; }) goLinks
+        // {
+          "/".extraConfig = ''
+            default_type text/plain;
+            return 404 "${index}\n";
+          '';
+        };
+    };
+  };
+
   # Set your time zone.
   time.timeZone = "America/Los_Angeles";
 
