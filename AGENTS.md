@@ -141,13 +141,30 @@ which is the opposite of restoring KDE files underneath a running
 plasmashell, and is why that one is safe and the other is not.
 
 **Verify the dock with a screenshot, not with grep.** Three monitors at 2x
-scale, so the capture is 10240x4526 and the panel sits on HDMI-A-1:
+scale, so the capture is 10240x4526 and the panel sits on HDMI-A-1. Widen the
+crop as launchers are added -- it is currently thirteen:
 
     spectacle -f -b -n -o /tmp/full.png
-    magick /tmp/full.png -crop 1250x110+5120+3660 +repage -resize 190% /tmp/dock.png
+    magick /tmp/full.png -crop 1450x120+5120+3630 +repage -resize 175% /tmp/dock.png
 
 `grep launchers= plasma-org.kde.plasma.desktop-appletsrc` reported all nine
 entries present while the dock was drawing four. Only the picture was right.
+
+**A panel with no `screen` set moves house on its own.** Both panels in
+`system/configuration.nix` now carry `screen = 0`, and that is load-bearing:
+an unset screen is an unspecified one, not "the primary". plasma-manager
+emits no `lastScreen` and plasmashell places the panel wherever it likes, so
+every panel rebuild re-rolls it. Adding one launcher to the dock was enough
+to move BOTH panels off the primary 4K onto the small top-left monitor.
+
+The index is Plasma's own numbering, not a connector name, so System Settings
+rearranging the monitors can renumber it. Read the current mapping back with:
+
+    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+      for (var i = 0; i < screenCount; i++) {
+        var g = screenGeometry(i); print(i + ": " + g.x + "," + g.y); }
+      var p = panels();
+      for (var j = 0; j < p.length; j++) print(j + " -> " + p[j].screen);'
 
 **Boatswain's buttons are a JSON file, not a GUI-only setting.** The Stream
 Deck's whole configuration is `~/.local/share/<serial>.json`, editable by hand.
