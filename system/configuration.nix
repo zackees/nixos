@@ -280,35 +280,41 @@ in
   networking.networkmanager.enable = true;
 
   # go/ links, Google-style: `go/hermes` in a browser's address bar lands on
-  # the hermes kanban board. Two halves. The hostname `go` resolves to
-  # loopback via /etc/hosts (browsers treat a bare word with a slash after it
-  # as a URL, not a search, so no scheme is needed), and nginx on 127.0.0.1:80
-  # answers for that name with a redirect per short link. Add a link by adding
-  # an entry to `goLinks` below; anything unlisted gets a plain-text index of
-  # what exists, which beats a bare 404 when you have forgotten the name.
-  # Bound to loopback only, so nothing on the LAN can see it and the firewall
-  # needs no hole.
+  # the hermes kanban board and STAYS at go/hermes. Two halves. The hostname
+  # `go` resolves to loopback via /etc/hosts (browsers treat a bare word with
+  # a slash after it as a URL, not a search, so no scheme is needed), and
+  # nginx on 127.0.0.1:80 answers for that name.
+  #
+  # It proxies rather than redirects, because a redirect would swap the
+  # address bar to 127.0.0.1:9120/kanban and the point is the short name.
+  # The catch is that hermes is a single-page app whose assets and API calls
+  # are root-absolute (/assets/..., /api/..., websockets), so the catch-all
+  # `/` on this host also has to proxy to the hermes origin or the page loads
+  # as bare HTML. That means one host can carry one proxied app; a second
+  # app would need its own hostname (`go2`, or `<name>.go`) rather than a
+  # second entry here. Bound to loopback only, so nothing on the LAN can see
+  # it and the firewall needs no hole.
   networking.extraHosts = "127.0.0.1 go";
   services.nginx = {
     enable = true;
-    recommendedProxySettings = false;
+    recommendedProxySettings = true;
     virtualHosts."go" = {
       listen = [ { addr = "127.0.0.1"; port = 80; } ];
       locations =
         let
-          goLinks = {
-            hermes = "http://127.0.0.1:9120/kanban";
+          # hermes answers "invalid Host header" to anything but its own
+          # address, so the proxied Host must be the upstream's, not `go`.
+          # It has to sit in each location: proxyWebsockets emits
+          # location-level proxy_set_header lines, and nginx then drops every
+          # inherited one, so a server-level Host would silently vanish.
+          hermes = path: {
+            proxyPass = "http://127.0.0.1:9120${path}";
+            proxyWebsockets = true;
+            extraConfig = "proxy_set_header Host 127.0.0.1:9120;";
           };
-          index = lib.concatStringsSep "\\n"
-            (lib.mapAttrsToList (n: t: "go/${n} -> ${t}") goLinks);
-        in
-        lib.mapAttrs' (name: target:
-          lib.nameValuePair "= /${name}" { return = "302 ${target}"; }) goLinks
-        // {
-          "/".extraConfig = ''
-            default_type text/plain;
-            return 404 "${index}\n";
-          '';
+        in {
+          "= /hermes" = hermes "/kanban";
+          "/" = hermes "";
         };
     };
   };
