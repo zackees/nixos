@@ -150,6 +150,28 @@ crop as launchers are added -- it is currently thirteen:
 `grep launchers= plasma-org.kde.plasma.desktop-appletsrc` reported all nine
 entries present while the dock was drawing four. Only the picture was right.
 
+**A panel rebuild wipes the DESKTOP too.** The generated
+`2_desktop_script_panels.sh` opens by deleting
+`plasma-org.kde.plasma.desktop-appletsrc` outright (upstream's guard against
+that file growing without bound), and that file holds the desktop
+containments as well as the panels. So anything placed on the desktop by hand
+-- a launcher icon, a widget -- disappears at the next panel apply, with no
+backup and nothing in the output to say so. It has already cost one icon here.
+Declare desktop widgets in `programs.plasma.desktop.widgets` instead; that
+list is wholesale like `panels` is, and it re-adds them after every rebuild.
+
+Files in `~/Desktop` are unaffected -- this only eats *widgets*.
+
+**plasma-manager's panel `opacity` option does nothing on Plasma 6.6.6.** It
+emits `panel.opacity = "..."` and plasmashell ignores it: the getter keeps
+saying `adaptive`, no `panelOpacity` is written, and setting it by hand on a
+live panel changes nothing either -- while `panel.hiding` in the same script
+works, so the bridge itself is fine. The setting is real
+(`[PlasmaViews][Panel <id>] panelOpacity` in `plasmashellrc`, 0 adaptive /
+1 opaque / 2 translucent), it just has to be written directly, and the id is
+regenerated on every panel rebuild -- see the `panel-opacity` startup script
+in `system/configuration.nix` for the shape that survives that.
+
 **A panel with no `screen` set moves house on its own.** Both panels in
 `system/configuration.nix` now carry `screen = 0`, and that is load-bearing:
 an unset screen is an unspecified one, not "the primary". plasma-manager

@@ -1882,7 +1882,44 @@ in
             lengthMode = "fit";
             height = 36;
             hiding = "windowsgobelow";
-            widgets = [ "org.kde.plasma.digitalclock" ];
+            widgets = [
+              # Panel Colorizer, present ONLY for its numeric alpha. Plasma's
+              # own panel background has three modes and no slider, and the
+              # most transparent of them (translucent) measured ~80-85% opaque
+              # against the wallpaper -- more solid than wanted. This widget
+              # multiplies the stock background's opacity by a real number, so
+              # the panel opacity below is the actual figure.
+              #
+              # `hideWidget` is what keeps it from drawing anything of its own:
+              # it is a background effect here, not a launcher, and without it
+              # the panel grows a colorizer icon next to the clock. Its own
+              # painting (panel.normal.enabled) stays off -- the default -- so
+              # nothing but `nativePanel.background.opacity` is in play.
+              #
+              # The JSON is merged over the widget's defaults at load
+              # (`mergeConfigs(defaultConfig, globalSettings)` in its main.qml),
+              # which is why three keys are enough and a full settings blob --
+              # what its own export produces -- is not needed. That blob is
+              # version-shaped; these three keys are not.
+              #
+              # plasma-manager pulls `plasma-panel-colorizer` into home.packages
+              # by itself when it sees this widget name, so there is no
+              # systemPackages entry to keep in sync.
+              {
+                name = "luisbocanegra.panel.colorizer";
+                config.General = {
+                  hideWidget = true;
+                  globalSettings = builtins.toJSON {
+                    nativePanel.background = {
+                      enabled = true;
+                      opacity = 0.7;
+                      shadow = true;
+                    };
+                  };
+                };
+              }
+              "org.kde.plasma.digitalclock"
+            ];
           }
           {
             location = "bottom";
@@ -1956,6 +1993,41 @@ in
           }
         ];
 
+        # ── Desktop icons ──
+        # The hermes launcher on the desktop, restored declaratively after the
+        # panel work above destroyed it. That is not a guess about how it went
+        # missing: plasma-manager's panel script starts by deleting
+        # `plasma-org.kde.plasma.desktop-appletsrc` outright (upstream does it
+        # to stop the file growing without bound), and that file holds the
+        # DESKTOP containments as well as the panels. So every panel rebuild
+        # silently takes any hand-placed desktop widget with it, and there is
+        # no backup -- the icon has to be declared here to survive the next
+        # one. Anything else placed on the desktop by hand will go the same
+        # way, and this list is wholesale like `panels` is: what is here is
+        # what the desktop gets.
+        #
+        # The .desktop file is the one pyweb-view generates in the user's own
+        # applications directory, not something this repo installs, so on a
+        # restored machine the icon draws blank until pyweb-view has run once.
+        # (A launcher whose icon will not resolve renders as empty space
+        # rather than an error -- see the panel note about that.)
+        desktop.widgets = [
+          {
+            name = "org.kde.plasma.icon";
+            screen = 0;
+            position = {
+              horizontal = 30;
+              vertical = 30;
+            };
+            size = {
+              width = 140;
+              height = 140;
+            };
+            config.General.url =
+              "file:///home/niteris/.local/share/applications/pyweb-view.hermes.desktop";
+          }
+        ];
+
         # ── Panel opacity, the long way round ──
         # This exists because plasma-manager's `opacity` panel option does
         # nothing on plasmashell 6.6.6. The option emits
@@ -1968,7 +2040,7 @@ in
         #
         # The setting itself is real, it just has to be written to the config:
         #
-        #   [PlasmaViews][Panel <id>] panelOpacity=2    (0 adaptive, 1 opaque,
+        #   [PlasmaViews][Panel <id>] panelOpacity=1    (0 adaptive, 1 opaque,
         #                                                2 translucent)
         #
         # in `~/.config/plasmashellrc`. That cannot go in `configFile` because
@@ -1991,13 +2063,18 @@ in
         # after all the scripts have run. Appending only on an actual change
         # keeps logins from restarting plasmashell for nothing.
         #
-        # Why translucent at all: `adaptive` (the default) turns opaque the
-        # moment a window is under the panel, and with `hiding =
-        # "windowsgobelow"` above there is nearly always one, so adaptive reads
-        # as permanently solid. Measured against the wallpaper, translucent
-        # lands around 80-85% opaque -- close to the 70% that was asked for but
-        # not it. Plasma has no alpha slider; an exact figure needs the Panel
-        # Colorizer widget (`luisbocanegra.panel.colorizer`).
+        # Why `opaque` (1) and not `translucent` (2), when the panel is meant
+        # to be see-through: the transparency comes from the Panel Colorizer
+        # widget above, which MULTIPLIES this background's opacity. Stacking
+        # the two would make the real figure the product of a theme-defined
+        # alpha and 0.7, which nobody can read off the config. A solid base
+        # makes 0.7 mean 70%. (Translucent alone measured ~80-85% opaque
+        # against the wallpaper, which is what sent this down the widget road.)
+        #
+        # `adaptive` -- the default, and what you get if this script does not
+        # run -- is worse than either: it turns solid the moment a window is
+        # under the panel, and with `hiding = "windowsgobelow"` there nearly
+        # always is one, so the alpha would flicker with what is on screen.
         startup.startupScript.panel-opacity = {
           priority = 3;
           runAlways = true;
@@ -2010,9 +2087,9 @@ in
 
             cur=$(kreadconfig6 --file plasmashellrc \
                     --group PlasmaViews --group "Panel $id" --key panelOpacity)
-            if [ "$cur" != "2" ]; then
+            if [ "$cur" != "1" ]; then
               kwriteconfig6 --file plasmashellrc \
-                --group PlasmaViews --group "Panel $id" --key panelOpacity 2
+                --group PlasmaViews --group "Panel $id" --key panelOpacity 1
               echo plasma-plasmashell \
                 >> "$HOME/.local/share/plasma-manager/services_to_restart"
             fi
