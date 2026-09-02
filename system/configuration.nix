@@ -1429,6 +1429,68 @@ in
       programs.plasma = {
         enable = true;
 
+        # ── Key repeat ──
+        # KWin's own defaults are 600ms then 25 repeats a second, slow enough
+        # that holding an arrow key across a line of code is barely quicker
+        # than tapping it. 250ms/50Hz halves the wait and doubles the rate.
+        # plasma-manager caps repeatRate at 100.0 and repeatDelay at 5000, so
+        # there is headroom if 50 still feels slow.
+        #
+        # What was actually asked for was an ACCELERATING repeat -- gentle at
+        # first, very fast past ~3 seconds -- and that is worth recording as
+        # unavailable rather than as untried. Nothing in this stack ramps:
+        # KDE Wayland has exactly one delay and one rate (these two keys),
+        # and keyd only repeats `macro()` bindings, at its own fixed
+        # macro_repeat_timeout -- for an ordinary key it just forwards the
+        # hold and KWin generates every repeat. A ramp therefore needs a
+        # daemon that EVIOCGRABs the real keyboards and re-emits its own tap
+        # pairs through uinput, putting custom code in the path of the only
+        # keyboard on a machine with no staging. That was offered and turned
+        # down in favour of the flat rate; it remains the only way to get a
+        # ramp if the flat rate disappoints.
+        #
+        # KeyRepeat is pinned even though "repeat" is already KWin's default,
+        # because it is the one key in this group that can turn repeat off
+        # outright ("nothing"), and kcminputrc is now written wholesale from
+        # here -- so the mode is worth stating rather than inheriting.
+        #
+        # DO NOT VERIFY THIS WITH `wl_keyboard.repeat_info`. That is the
+        # obvious check and it reads as a failure when the change worked:
+        #
+        #   WAYLAND_DEBUG=1 timeout 8 kwrite /tmp/x 2>&1 | grep -m1 repeat_info
+        #
+        # reports rate 0 both before and after (only the delay moves, 600 ->
+        # 250). The zero is deliberate and permanent: KWin 6.6 repeats keys
+        # SERVER-side for any client new enough to bind wl_keyboard with
+        # `key_state_repeated`, and zeroes the advertised rate so the client
+        # does not also repeat on its own. Its own timer still runs at the
+        # rate below -- the number is simply not visible in that event.
+        #
+        # XWayland binds an older wl_keyboard and so still receives the real
+        # rate, which makes the X server the honest read-out:
+        #
+        #   xset q | grep -A1 "auto repeat delay"   -> delay 250, rate 50
+        #
+        # Applying without a re-login takes a trick. plasma-manager writes
+        # this ini in python rather than through `kwriteconfig6 --notify`, so
+        # no KConfig change signal is emitted, KWin's KConfigWatcher never
+        # fires, and nixos-rebuild switch leaves the running session on the
+        # old values. `kwriteconfig6 --notify` does fire it -- but only when
+        # it actually CHANGES a value, and by then the file already holds
+        # what you want, so re-writing the same number is a silent no-op.
+        # Nudge through a different value and back:
+        #
+        #   kwriteconfig6 --notify --file kcminputrc \
+        #       --group Keyboard --key RepeatDelay 251     # then again with 250
+        #
+        # One such change re-runs KWin's whole reconfigure(), which re-reads
+        # all three keys, so nudging any one of them is enough.
+        input.keyboard = {
+          repeatDelay = 250;   # ms before the first repeat
+          repeatRate = 50.0;   # repeats per second thereafter
+        };
+        configFile.kcminputrc.Keyboard.KeyRepeat = "repeat";
+
         # ── Idle behaviour ──
         # Stock Plasma dims at 5 minutes, blanks at 10 and locks at 5, which
         # is far too eager for a desktop that sits in one room. Nothing now
