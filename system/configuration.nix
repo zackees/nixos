@@ -1400,6 +1400,16 @@ in
   # this is one switch rather than an `environment.etc` pile.
   services.envfs.enable = true;
 
+  # Proton Mail Bridge: exposes the Proton account as local IMAP/SMTP so an
+  # IMAP client (himalaya) can reach it without the web UI. The module runs the
+  # bridge headless (`--noninteractive`) as a user systemd service AND adds the
+  # package to systemPackages. The account itself is logged in ONCE by hand via
+  # `protonmail-bridge --cli`, which stores the session in the user's own
+  # config (never this repo). Defaults: IMAP on 127.0.0.1:1143, SMTP on
+  # 127.0.0.1:1025. The bridge-generated IMAP password is a credential and
+  # lives in the bridge's own store plus ~/.config/himalaya, never here.
+  services.protonmail-bridge.enable = true;
+
   # This is a development workstation where profiling ordinary processes is
   # expected. -1 removes perf_event's access restrictions, so unprivileged
   # local processes may use CPU counters rather than needing CAP_PERFMON.
