@@ -1,16 +1,16 @@
-[PlasmaViews][Panel 560]
+[PlasmaViews][Panel 591]
 floating=0
 panelLengthMode=1
-panelOpacity=2
+panelOpacity=1
 panelVisibility=3
 
-[PlasmaViews][Panel 560][Defaults]
+[PlasmaViews][Panel 591][Defaults]
 thickness=36
 
-[PlasmaViews][Panel 562]
+[PlasmaViews][Panel 594]
 floating=0
 
-[PlasmaViews][Panel 562][Defaults]
+[PlasmaViews][Panel 594][Defaults]
 thickness=44
 
 [Updates]
