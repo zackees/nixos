@@ -1,5 +1,6 @@
 [Annotations]
-annotationToolType=3
+annotationToolType=4
+highlighterStrokeColor=255,0,0
 
 [ImageSave]
 lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-nixos/64c0d83c-630f-4cad-99d4-0a5ddb7353bb/scratchpad/after.png

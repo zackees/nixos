@@ -1,113 +1,125 @@
 {
-  "active-profile" : "a7a5680e-417c-43d1-abb8-5a6f71a26127",
-  "profiles" : [
+  "active-profile": "a7a5680e-417c-43d1-abb8-5a6f71a26127",
+  "profiles": [
     {
-      "id" : "a7a5680e-417c-43d1-abb8-5a6f71a26127",
-      "name" : "Default",
-      "brightness" : 0.5,
-      "page" : {
-        "version" : 1,
-        "regions" : [
+      "id": "a7a5680e-417c-43d1-abb8-5a6f71a26127",
+      "name": "Default",
+      "brightness": 0.5,
+      "page": {
+        "version": 1,
+        "regions": [
           {
-            "id" : "main-button-grid",
-            "region-data" : {            },
-            "items" : [
+            "id": "main-button-grid",
+            "region-data": {},
+            "items": [
               {
-                "type" : "action",
-                "factory" : "launcher",
-                "action" : "launch-action",
-                "custom-icon" : {
-                  "background-color" : "rgba(0,0,0,0)",
-                  "text" : null,
-                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/obs.png"
+                "type": "action",
+                "factory": "launcher",
+                "action": "launch-action",
+                "custom-icon": {
+                  "background-color": "rgba(0,0,0,0)",
+                  "text": null,
+                  "file": "file:///home/niteris/.local/share/streamdeck-icons/obs.png"
                 },
-                "settings" : {
-                  "app" : "com.obsproject.Studio.desktop",
-                  "files" : []
+                "settings": {
+                  "app": "com.obsproject.Studio.desktop",
+                  "files": []
                 }
               },
               {
-                "type" : "action",
-                "factory" : "launcher",
-                "action" : "launch-action",
-                "custom-icon" : {
-                  "background-color" : "rgba(0,0,0,0)",
-                  "text" : null,
-                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/chatgpt.png"
+                "type": "action",
+                "factory": "launcher",
+                "action": "launch-action",
+                "custom-icon": {
+                  "background-color": "rgba(0,0,0,0)",
+                  "text": null,
+                  "file": "file:///home/niteris/.local/share/streamdeck-icons/chatgpt.png"
                 },
-                "settings" : {
-                  "app" : "chatgpt-web.desktop",
-                  "files" : []
+                "settings": {
+                  "app": "chatgpt-web.desktop",
+                  "files": []
                 }
               },
               {
-                "type" : "action",
-                "factory" : "launcher",
-                "action" : "launcher-open-url-action",
-                "custom-icon" : {
-                  "background-color" : "rgba(0,0,0,0)",
-                  "text" : null,
-                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/notion-tasks.svg"
+                "type": "action",
+                "factory": "launcher",
+                "action": "launcher-open-url-action",
+                "custom-icon": {
+                  "background-color": "rgba(0,0,0,0)",
+                  "text": null,
+                  "file": "file:///home/niteris/.local/share/streamdeck-icons/notion-tasks.svg"
                 },
-                "settings" : {
-                  "url" : "https://app.notion.com/p/Tasks-fc6cf8594898439ea734a44e4c982ad5"
+                "settings": {
+                  "url": "https://app.notion.com/p/Tasks-fc6cf8594898439ea734a44e4c982ad5"
                 }
               },
               {
-                "type" : "action",
-                "factory" : "launcher",
-                "action" : "launch-action",
-                "custom-icon" : {
-                  "background-color" : "rgba(0,0,0,0)",
-                  "text" : null,
-                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/telegram.png"
+                "type": "action",
+                "factory": "launcher",
+                "action": "launch-action",
+                "custom-icon": {
+                  "background-color": "rgba(0,0,0,0)",
+                  "text": null,
+                  "file": "file:///home/niteris/.local/share/streamdeck-icons/telegram.png"
                 },
-                "settings" : {
-                  "app" : "org.telegram.desktop.desktop",
-                  "files" : []
+                "settings": {
+                  "app": "org.telegram.desktop.desktop",
+                  "files": []
                 }
               },
               {
-                "type" : "action",
-                "factory" : "launcher",
-                "action" : "launch-action",
-                "custom-icon" : {
-                  "background-color" : "rgba(0,0,0,0)",
-                  "text" : null,
-                  "file" : "file:///home/niteris/.local/share/streamdeck-icons/signal.png"
+                "type": "action",
+                "factory": "launcher",
+                "action": "launch-action",
+                "custom-icon": {
+                  "background-color": "rgba(0,0,0,0)",
+                  "text": null,
+                  "file": "file:///home/niteris/.local/share/streamdeck-icons/signal.png"
                 },
-                "settings" : {
-                  "app" : "signal.desktop",
-                  "files" : []
+                "settings": {
+                  "app": "signal.desktop",
+                  "files": []
                 }
               },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              },
-              {              }
+              {
+                "type": "action",
+                "factory": "launcher",
+                "action": "launcher-open-url-action",
+                "custom-icon": {
+                  "background-color": "rgba(0,0,0,0)",
+                  "text": null,
+                  "file": "file:///home/niteris/.local/share/streamdeck-icons/go-hermes.svg"
+                },
+                "settings": {
+                  "url": "http://go/hermes"
+                }
+              },
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
             ]
           }
         ]
