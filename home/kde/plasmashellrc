@@ -1,14 +1,14 @@
-[PlasmaViews][Panel 403]
+[PlasmaViews][Panel 467]
 floating=0
 panelLengthMode=1
 
-[PlasmaViews][Panel 403][Defaults]
+[PlasmaViews][Panel 467][Defaults]
 thickness=44
 
-[PlasmaViews][Panel 405]
+[PlasmaViews][Panel 469]
 floating=0
 
-[PlasmaViews][Panel 405][Defaults]
+[PlasmaViews][Panel 469][Defaults]
 thickness=44
 
 [Updates]
