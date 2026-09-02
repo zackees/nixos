@@ -185,6 +185,23 @@ let
   # `error while loading shared libraries` from a program that worked
   # yesterday on another machine, or -- worse, for Python -- as a wheel that
   # installs perfectly and only fails at `import`.
+  #
+  # DO NOT DIAGNOSE THIS WITH `ldd`. It reports every soname on this list as
+  # "not found" for a foreign binary that in fact runs perfectly, because ldd
+  # invokes the loader directly and so never goes through the PT_INTERP shim
+  # that does the resolving. An audit built on ldd output will report a
+  # working toolchain as broken -- ~/.clang-tool-chain's ld.lld reads as
+  # missing both libxml2.so.2 and libz.so.1 and still links. Run the binary
+  # and read its exit status, or use `patchelf --print-needed` to see what it
+  # wants and check those names against the shim directory:
+  #
+  #   ls /run/current-system/sw/share/nix-ld/lib
+  #
+  # The one real artefact of the libxml2 shim below is a warning, not a
+  # failure: "no version information available", printed twice per ld.lld
+  # invocation because the aliased 2.15 library carries different symbol
+  # version tags than a real 2.9. It is noise in a build log and nothing
+  # more; the link succeeds.
   legacySonameShims = pkgs.runCommand "legacy-soname-shims" { } ''
     mkdir -p $out/lib
     # libxml2 bumped its soname from .so.2 to .so.16 in 2.15, and nixpkgs is
@@ -204,6 +221,16 @@ let
 
     # C/C++ runtime and the bits a compiler-adjacent tool links against.
     stdenv.cc.cc.lib libffi libxcrypt elfutils libunwind
+
+    # libxcrypt-legacy as WELL as libxcrypt, because they ship different
+    # sonames rather than different versions of one: current libxcrypt is
+    # libcrypt.so.2, and everything built against glibc's old crypt still
+    # asks for libcrypt.so.1. uv's prebuilt CPython 3.10 and 3.11 do, so
+    # `import crypt` on those interpreters died with "libcrypt.so.1: cannot
+    # open shared object file" -- the exact install-fine/import-fails shape
+    # described above, and invisible until something reaches for it.
+    # Harmless on 3.13, which dropped the crypt module entirely.
+    libxcrypt-legacy
 
     # Console and scripting libraries. Prebuilt Python/Node builds and any
     # vendored interpreter want these.
