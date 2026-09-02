@@ -488,6 +488,33 @@ in
     gdb
     lldb
 
+    # Profiling and the LLVM binutils. These were all "in the store but not
+    # on PATH" -- present as build inputs of something else, so a `nix
+    # why-depends` finds them and `command -v` does not, which is a
+    # confusing pair of answers to get about the same tool.
+    #
+    # valgrind carries callgrind_annotate, cg_annotate and ms_print with it;
+    # they are the readers for what valgrind's tools emit and are useless
+    # separately, so the one entry covers all four names.
+    valgrind
+    # llvm-nm, llvm-size, llvm-objdump, llvm-symbolizer, llvm-profdata,
+    # llvm-cov and the rest. Not redundant with binutils above: these read
+    # LLVM bitcode and LLVM's own profile format, which GNU nm and size
+    # cannot. Pinned to llvmPackages rather than a bare `llvm` so the version
+    # tracks the clang above -- both are 21.1.8 today, and a profdata format
+    # mismatch between clang and llvm-profdata is a silent wrong answer
+    # rather than an error.
+    llvmPackages.llvm
+    # ld.lld, the LLVM linker, which was missing outright. Companion to mold
+    # below rather than a replacement: mold is faster, lld is what a project
+    # that hard-codes -fuse-ld=lld expects to find.
+    lld
+    # patchelf reads and rewrites DT_NEEDED and RPATH. On a machine where
+    # foreign binaries find their libraries through nix-ld, it is the tool
+    # that answers "what does this actually want?", and its absence sends
+    # you to `ldd`, which lies here -- see the nix-ld note above.
+    patchelf
+
     # mold, the fast linker. Nothing links with it until something asks:
     # `-fuse-ld=mold` on either compiler. Verified -- the resulting binary's
     # .comment section reads "mold 2.41.0 (compatible with GNU ld)" rather
