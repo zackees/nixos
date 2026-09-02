@@ -53,6 +53,23 @@ including `.desktop`. The key's icon comes from that entry, which is why a
 custom launcher (see `chatgptLauncher` in `system/configuration.nix`) is worth
 declaring: it carries its own glyph with no per-key image to set by hand.
 
+A button that opens a URL (verified with Boatswain 5.0, used for the
+`go/hermes` key -- the URL resolves through the `go` hosts entry and nginx
+redirect in `system/configuration.nix`):
+
+```json
+{ "type": "action", "factory": "launcher", "action": "launcher-open-url-action",
+  "custom-icon": { "background-color": "rgba(0,0,0,0)", "text": null,
+                   "file": "file:///home/niteris/.local/share/streamdeck-icons/go-hermes.svg" },
+  "settings": { "url": "http://go/hermes" } }
+```
+
+Note the action name is `launcher-open-url-action`, with the plugin prefix,
+unlike `launch-action`. A URL button has no desktop entry to take an icon
+from, so `custom-icon.file` is what draws the key; SVG works. Boatswain
+reformats the whole file on its next start, so a hand edit shows up in the
+next capture as a large whitespace-only diff -- that is expected.
+
 Two things that make a correct-looking `app` bind to nothing:
 
 - Loading **skips any app failing `g_app_info_should_show`**, so an entry marked
