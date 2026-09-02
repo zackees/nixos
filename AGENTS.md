@@ -166,6 +166,39 @@ rearranging the monitors can renumber it. Read the current mapping back with:
       var p = panels();
       for (var j = 0; j < p.length; j++) print(j + " -> " + p[j].screen);'
 
+**"GPU Recovery Action: Reboot" does not mean you have to reboot.** A CUDA
+fault can wedge the driver so that every new process gets `failed to
+initialize CUDA: unknown error` while `nvidia-smi` keeps working perfectly --
+nvidia-smi uses NVML, not CUDA, so it is not the test. The kernel log names
+the real event:
+
+    NVRM: Xid 31 ... MMU Fault: ENGINE CE2_PBDMA0 ...
+    NVRM: nvGpuOpsReportFatalError: uvm encountered global fatal error 0x60,
+          requiring os reboot to recover.
+    NVRM: Xid 154, GPU recovery action changed from None to Node Reboot Required
+
+Both the driver message and `nvidia-smi -q | grep "GPU Recovery Action"` ask
+for a reboot. On this machine they were wrong: the fatal state lived in
+`nvidia_uvm`'s software state, and reloading that one module cleared it with
+no reboot and without disturbing the display --
+
+    sudo modprobe -r nvidia_uvm && sudo modprobe nvidia_uvm
+
+`nvidia_uvm` can come out while `nvidia_drm` and `nvidia_modeset` stay
+loaded, because nothing but CUDA holds it: check `lsmod | grep nvidia_uvm`
+shows refcount 0 first. Verified end to end -- voxtype went from CPU
+fallback back to `whisper_backend_init_gpu: using CUDA0 backend` and a 0.19s
+transcription. Note that `nvidia-smi` STILL reported "Reboot" afterwards
+with CUDA demonstrably working, so that flag is sticky and is not evidence
+either way. Try the module reload before taking the machine down.
+
+What put the GPU in that state is worth knowing too: an idle S3 suspend and
+immediate resume, the same round trip the powerdevil block in
+`system/configuration.nix` now exists to prevent. The GL context loss it
+causes is the *visible* half (blank kitty, plasmashell respawn); this UVM
+fault is the quieter half, and it only shows up the next time something asks
+for CUDA. If both appear on the same evening, suspect one cause.
+
 **Boatswain's buttons are a JSON file, not a GUI-only setting.** The Stream
 Deck's whole configuration is `~/.local/share/<serial>.json`, editable by hand.
 Boatswain rewrites it on save and on quit, so it must be stopped first --
