@@ -1547,18 +1547,50 @@ in
         };
 
         panels = [
+          # ── Which monitor the panels live on ──
+          # `screen = 0` on BOTH, and it is load-bearing. Leaving it unset
+          # does NOT mean "the primary screen", which is what the comment
+          # here used to claim: plasma-manager then emits no lastScreen at
+          # all and the panels land wherever plasmashell felt like putting
+          # them. On the run that added Sublime to the dock, both panels
+          # jumped from the primary 4K to DP-1, the small top-left monitor,
+          # having sat on the right one for months -- nothing about screens
+          # had changed, only the launcher list. So an unset screen is not a
+          # stable default, it is an unspecified one, and every panel rebuild
+          # re-rolls it.
+          #
+          # The index is Plasma's own screen numbering, not the connector
+          # name, and 0 is the primary. Read the mapping back with:
+          #
+          #   qdbus org.kde.plasmashell /PlasmaShell \
+          #     org.kde.PlasmaShell.evaluateScript '
+          #       for (var i = 0; i < screenCount; i++) {
+          #         var g = screenGeometry(i);
+          #         print(i + ": " + g.x + "," + g.y);
+          #       }
+          #       var p = panels();
+          #       for (var j = 0; j < p.length; j++) print(j + " -> " + p[j].screen);'
+          #
+          # Today 0 is HDMI-A-1 at 2560,443. Rearranging the monitors in
+          # System Settings can renumber that, and plasma-manager accepts
+          # only integers here, so there is no connector name to pin instead.
+          #
+          # Setting screen at all also makes plasma-manager add
+          # plasma-plasmashell to its own restartServices, which is the same
+          # restart the icon-cache trap below needs anyway.
+
           # A compact, fit-to-content panel keeps the clock at the top centre
-          # of the primary screen without turning it into a second full-width
-          # bar.  Leaving `screen` unset follows Plasma's primary-screen
-          # default, like the existing dock below.
+          # without turning it into a second full-width bar.
           {
             location = "top";
+            screen = 0;
             alignment = "center";
             lengthMode = "fit";
             widgets = [ "org.kde.plasma.digitalclock" ];
           }
           {
             location = "bottom";
+            screen = 0;
             widgets = [
               "org.kde.plasma.kickoff"
               "org.kde.plasma.pager"
