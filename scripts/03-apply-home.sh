@@ -144,6 +144,16 @@ cp "$REPO/home/tools/clud-settings.json" "$HOME/.clud/settings.json"
 keep "$HOME/.config/gh/config.yml"
 cp "$REPO/home/tools/gh-config.yml" "$HOME/.config/gh/config.yml"
 
+say "sublime text"
+# mkdir -p because on a freshly restored machine Sublime has never run, and
+# it is Sublime that creates Packages/User at first launch. Seeding the file
+# before that first launch is the whole point -- it is what stops the window
+# coming up with a light menu bar once.
+mkdir -p "$HOME/.config/sublime-text/Packages/User"
+keep "$HOME/.config/sublime-text/Packages/User/Preferences.sublime-settings"
+cp "$REPO/home/sublime/Preferences.sublime-settings" \
+   "$HOME/.config/sublime-text/Packages/User/Preferences.sublime-settings"
+
 [ -d "$BACKUP" ] && echo && echo "replaced files backed up under $BACKUP"
 
 cat <<'DONE'

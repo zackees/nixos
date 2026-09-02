@@ -51,6 +51,13 @@ cp ~/.clud/settings.json home/tools/clud-settings.json
 cp ~/.claude/settings.json home/tools/claude-settings.json
 cp ~/.config/gh/config.yml home/tools/gh-config.yml
 
+# Sublime rewrites this whole file on any Preferences change, so it is
+# captured rather than generated -- same category as home/kde/. Guarded
+# because a rebuilt machine may not have launched Sublime yet, and the file
+# only exists once it has.
+cp ~/.config/sublime-text/Packages/User/Preferences.sublime-settings \
+   home/sublime/ 2>/dev/null || true
+
 # hardware inventory, regenerated so docs/hardware.md never goes stale
 "$REPO/scripts/gen-hardware-doc.sh" > docs/hardware.md
 

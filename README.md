@@ -52,6 +52,7 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
       voxtype/                   dictation daemon config
       applications/              the .desktop entry Meta+H launches
       tools/                     claude, clud and gh non-secret settings
+      sublime/                   Sublime Text preferences (captured)
 
     scripts/                     numbered = the restore, run in order, once
       01-partition.sh            DESTRUCTIVE; recreates the disk layout

@@ -1,0 +1,37 @@
+// Sublime Text user preferences.
+//
+// Captured, not generated -- Sublime rewrites this file whole every time a
+// setting changes under the Preferences menu, so it lives here as a real
+// file that scripts/03-apply-home.sh copies into place and
+// scripts/capture.sh copies back. A home-manager symlink into /nix/store
+// would make Sublime's own settings UI fail to save.
+{
+    // Sublime ships "theme": "auto", which picks between light_theme and
+    // dark_theme from the operating system's appearance -- and gets it
+    // wrong here. This desktop advertises dark through both channels an
+    // application would ask:
+    //
+    //   qdbus org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop \
+    //     org.freedesktop.portal.Settings.ReadOne \
+    //     org.freedesktop.appearance color-scheme        -> 1 (prefer dark)
+    //   ~/.config/gtk-3.0/settings.ini
+    //     gtk-application-prefer-dark-theme=true
+    //
+    // and Sublime 4200 still resolved "auto" to the light theme. The
+    // giveaway is that it looks half-broken rather than plainly light: the
+    // editor pane is already dark because "color_scheme" defaults to
+    // Mariana outright, so only the chrome -- menu bar, tab strip, status
+    // bar -- comes back pale. That reads as a rendering bug, not a theme
+    // setting.
+    //
+    // "Default Dark" rather than "Adaptive": Adaptive additionally turns on
+    // themed_title_bar, replacing the KWin title bar with its own, which is
+    // a second change nobody asked for.
+    "theme": "Default Dark.sublime-theme",
+
+    // Already the default, pinned so the pair is stated in one place. Do
+    // not touch the light_theme/dark_theme or light_color_scheme/
+    // dark_color_scheme pairs -- they are only consulted by "auto", which
+    // the line above deliberately stops using.
+    "color_scheme": "Mariana.sublime-color-scheme",
+}
