@@ -1625,6 +1625,51 @@ in
           # moving only the blank timeout would look like the change had not
           # worked.
           dimDisplay.enable = false;
+
+          # No idle suspend, ever. PowerDevil's default AC action is to sleep,
+          # and on 2026-09-01 it fired while the machine sat unattended:
+          # powerdevil's wakeupsourcehelper started, logind announced "The
+          # system will suspend now!", the box entered S3 -- and woke again
+          # inside the same second. (Wake source undetermined; the "root hub
+          # lost power or was reset" lines are logged on every resume and
+          # prove nothing.) That round trip resets the GPU, and every OpenGL
+          # client loses its context and its VRAM at once:
+          #
+          #   kwin_wayland: A graphics reset attributable to the current GL
+          #                 context occurred.
+          #   plasmashell:  KCrash ... handleContextCreationFailure
+          #
+          # Chromium apps notice GL_GUILTY_CONTEXT_RESET and restart their GPU
+          # process; plasmashell crashes and respawns. kitty does neither -- it
+          # keeps drawing against the dead context, so frames and backgrounds
+          # still paint while the glyph atlas comes back empty. The symptom is
+          # terminals full of nothing, which reads as "kitty broke" when the
+          # shells underneath are untouched. Recover them without closing them
+          # by reloading kitty's config, which rebuilds the atlas in place:
+          #
+          #   pkill -USR1 -x .kitty-wrapped
+          #
+          # That name is not a typo and `pkill -x kitty` matches NOTHING --
+          # same wrapper trap as boatswain above; kitty's comm is
+          # `.kitty-wrapped`.
+          #
+          # logind is not a second trigger: its IdleAction is `ignore`
+          # (busctl get-property org.freedesktop.login1 /org/freedesktop/login1
+          # org.freedesktop.login1.Manager IdleAction), so PowerDevil was the
+          # only thing that could have started this, and this one setting is
+          # the whole fix. A desktop with no battery gains nothing from
+          # suspending anyway; explicit sleep from the menu still works, only
+          # the idle trigger goes away.
+          #
+          # Two gotchas when changing this. plasma-manager asserts idleTimeout
+          # must stay unset for action "nothing", so do not add one. And its
+          # powerdevil module registers no restartServices, so a switch writes
+          # ~/.config/powerdevilrc and leaves the running daemon on the old
+          # value until next login -- kick it by hand:
+          #
+          #   qdbus org.kde.Solid.PowerManagement \
+          #     /org/kde/Solid/PowerManagement refreshStatus
+          autoSuspend.action = "nothing";
         };
 
         panels = [
