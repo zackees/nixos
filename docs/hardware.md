@@ -34,7 +34,7 @@ nvme0n1       1.8T
 
     HDMI-A-1   TCL 0 0 22 2020 0        3840x2160@60Hz  scale 1.5
     DP-1       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1.75
-    DP-3       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1
+    DP-3       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1.75
 
 ## Audio capture devices
 

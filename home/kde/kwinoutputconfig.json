@@ -100,7 +100,7 @@
                 ],
                 "autoRotation": "InTabletMode",
                 "automaticBrightness": false,
-                "brightness": 0.95,
+                "brightness": 1,
                 "colorPowerTradeoff": "PreferEfficiency",
                 "colorProfileSource": "sRGB",
                 "connectorName": "DP-3",
@@ -121,7 +121,7 @@
                 },
                 "overscan": 0,
                 "rgbRange": "Automatic",
-                "scale": 1,
+                "scale": 1.75,
                 "sdrBrightness": 200,
                 "sdrGamutWideness": 0,
                 "sharpness": 0,
@@ -142,8 +142,8 @@
                         "enabled": true,
                         "outputIndex": 0,
                         "position": {
-                            "x": 2560,
-                            "y": 443
+                            "x": 1463,
+                            "y": 0
                         },
                         "priority": 1,
                         "replicationSource": ""
@@ -152,7 +152,7 @@
                         "enabled": true,
                         "outputIndex": 1,
                         "position": {
-                            "x": 1097,
+                            "x": 0,
                             "y": 0
                         },
                         "priority": 2,
