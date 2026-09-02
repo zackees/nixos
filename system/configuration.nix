@@ -99,6 +99,7 @@ let
     "org.telegram.desktop.desktop"
     "signal.desktop"
     "kitty.desktop"
+    "sublime_text.desktop"
     "org.kde.kdenlive.desktop"
     "fr.handbrake.ghb.desktop"
     "com.obsproject.Studio.desktop"
@@ -407,6 +408,10 @@ in
     gh
     kitty
     imagemagick
+
+    # Sublime Text. Needs the permittedInsecurePackages entry further down --
+    # see the note there before removing either half.
+    sublime4
 
     # ── CLI toolkit (modelled on Omarchy's base package set) ──
     ripgrep             # rg: fast recursive search
@@ -1375,6 +1380,26 @@ in
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+
+  # Sublime Text is a vendored binary that nixpkgs patchelfs, and its rpath
+  # names openssl_1_1 unconditionally (pkgs/applications/editors/sublime/4,
+  # `neededLibraries`) -- the dev build 4205 included, so there is no newer
+  # Sublime to move to. 1.1.1 went EOL in September 2023, so nixpkgs marks it
+  # insecure and refuses to evaluate the package at all without this list.
+  # Without it the failure names openssl, not sublime, which reads like an
+  # unrelated dependency problem.
+  #
+  # Read this as a global permit, not a per-package one: it unblocks
+  # openssl-1.1.1w for ANYTHING in this configuration that asks for it, which
+  # is why it is worth re-checking rather than leaving forever. Today the only
+  # taker is Sublime, and only for TLS it does on its own behalf -- license
+  # checks and Package Control. Nothing on this machine routes traffic through
+  # it. `nix why-depends` against a future system generation is how to confirm
+  # that is still true:
+  #
+  #   nix why-depends /run/current-system \
+  #     $(nix eval --raw .#nixosConfigurations.nixos.pkgs.openssl_1_1)
+  nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # List packages installed in system profile.
