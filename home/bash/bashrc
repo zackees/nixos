@@ -24,3 +24,4 @@ update() {
     uv tool upgrade "$@"
   fi
 }
+. "$HOME/.cargo/env"

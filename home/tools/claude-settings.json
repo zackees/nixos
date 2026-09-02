@@ -1,5 +1,13 @@
 {
   "model": "opus[1m]",
+  "modelSettings": {
+    "claude-fable-5-1": {
+      "effortLevel": "low"
+    },
+    "deepseek-v4-pro": {
+      "effortLevel": "medium"
+    }
+  },
   "advisorModel": "fable",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
