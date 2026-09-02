@@ -1551,6 +1551,31 @@ in
   # Install firefox.
   programs.firefox.enable = true;
 
+  # ── 1Password ──
+  # Desktop app + CLI (`op`) for the password/credential store. Two modules,
+  # one decision: the GUI is what signs in and drives the browser extension,
+  # the CLI is what automation (agent workflows, `op run`, `op item get`)
+  # reads and writes through. Both are unfree binaries and ride the
+  # `allowUnfree` below.
+  #
+  # Each module installs a setgid wrapper (NOT setuid) so the app's helper
+  # runs under a dedicated group rather than root:
+  #   - programs._1password-gui -> /run/wrappers/bin/1Password-BrowserSupport
+  #     (the native-messaging host the browser extension talks to)
+  #   - programs._1password     -> /run/wrappers/bin/op
+  # The wrappers only exist after `nixos-rebuild switch`; a build alone drops
+  # the package in the store without putting `op` on PATH, which reads like a
+  # failed install when it is only an unactivated one.
+  #
+  # polkitPolicyOwners lets the app + `op` unlock through the system
+  # authentication stack (lock-screen password, fingerprint) rather than only
+  # the 1Password master password. The name must match users.users."niteris"
+  # above -- a mismatch yields no polkit file at all, and the biometric/unlock
+  # option silently never appears.
+  programs._1password.enable = true;
+  programs._1password-gui.enable = true;
+  programs._1password-gui.polkitPolicyOwners = [ "niteris" ];
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
