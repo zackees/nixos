@@ -41,7 +41,6 @@ RULES = [
     (r'^close_window_with_confirmation', 'Close pane'),
     (r'^close_window', 'Close pane'),
     (r'^close_other_windows_in_tab', 'Close all other panes'),
-    (r'^toggle_window_title_bars', 'Show/hide the per-pane title bars'),
     (r'^detach_window new-tab', 'Tear pane out to its own tab'),
     (r'^detach_window new', 'Tear pane out to its own window'),
     (r'^detach_window', 'Tear pane out (asks where)'),
