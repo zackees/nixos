@@ -26,6 +26,7 @@ esac
 cp ~/.bashrc home/bash/bashrc
 cp ~/.bash_profile home/bash/bash_profile
 cp ~/dotfiles/kitty/kitty.conf ~/dotfiles/kitty/tab_bar.py \
+   ~/dotfiles/kitty/window_title_bar.py \
    ~/dotfiles/kitty/keys.py ~/dotfiles/kitty/paste.py home/kitty/
 cp ~/.config/voxtype/config.toml home/voxtype/config.toml
 cp ~/.local/share/applications/voxtype-toggle.desktop home/applications/

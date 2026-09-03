@@ -37,7 +37,7 @@ say "dotfiles checkout + kitty symlinks"
 # there and ~/.config/kitty holds symlinks -- matching the original setup.
 mkdir -p "$HOME/dotfiles/kitty" "$HOME/.config/kitty"
 cp "$REPO"/home/kitty/* "$HOME/dotfiles/kitty/"
-for f in kitty.conf tab_bar.py keys.py paste.py; do
+for f in kitty.conf tab_bar.py window_title_bar.py keys.py paste.py; do
   ln -sfn "$HOME/dotfiles/kitty/$f" "$HOME/.config/kitty/$f"
 done
 
