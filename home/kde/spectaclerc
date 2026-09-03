@@ -1,14 +1,13 @@
 [Annotations]
-annotationToolType=3
 highlighterStrokeColor=255,0,0
 
 [ImageSave]
-lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-nixos/2e8ea3b4-b976-43bc-a7f0-af6777fee562/scratchpad/desk.png
+lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-nixos/4404ba5c-f942-4a7e-aa2d-ee5c256a8db4/scratchpad/real.png
 translatedScreenshotsFolder=Screenshots
 
 [VideoSave]
 translatedScreencastsFolder=Screencasts
 
 [ViewerWindow]
-3 screens: Height=849
-3 screens: Width=1631
+3 screens: Height=795
+3 screens: Width=1463
