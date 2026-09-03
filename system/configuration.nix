@@ -83,6 +83,40 @@ let
     startupWMClass = "docker-tui";
   };
 
+  # kitty, but every window in ONE process.
+  #
+  # A pane can only be dragged between OS windows of the SAME kitty process.
+  # The drag payload's mime type is
+  # application/net.kovidgoyal.kitty-window-<pid> and the receiving side looks
+  # up a key built from its OWN pid, so across processes the type simply never
+  # matches and the drop falls through to kitty's generic handler -- it lands
+  # as a text/file drop into the terminal, which looks exactly like the drop
+  # being ignored. Six dock-launched kitties were six sealed universes; this
+  # makes every launch join the running one instead. It is not only about
+  # dragging: `detach_window ask` builds its list from all_tabs, also
+  # process-scoped, so nothing at all could move a pane between them.
+  #
+  # The tradeoff was taken deliberately: one process now holds every terminal,
+  # so a kitty crash takes all of them rather than one window.
+  #
+  # Derived from the packaged entry with sed rather than written out fresh, so
+  # it keeps whatever kitty's own file says -- the icon, and the X-TerminalArg*
+  # keys KDE reads to launch things in a terminal -- instead of freezing a copy
+  # that silently goes stale at the next kitty bump. The grep is the guard that
+  # makes that safe: if upstream ever stops spelling it `Exec=kitty` the sed
+  # would quietly do nothing and this build fails instead.
+  #
+  # This deliberately collides with pkgs.kitty's own kitty.desktop; lib.hiPrio
+  # where it is installed is what settles that. It has to win, because
+  # dockLaunchers below pins the absolute path in the system profile.
+  kittySingleInstance = pkgs.runCommand "kitty-single-instance-desktop" { } ''
+    mkdir -p $out/share/applications
+    sed 's/^Exec=kitty$/Exec=kitty --single-instance/' \
+      ${pkgs.kitty}/share/applications/kitty.desktop \
+      > $out/share/applications/kitty.desktop
+    grep -q -- '--single-instance' $out/share/applications/kitty.desktop
+  '';
+
   # ── The dock's launcher strip ──
   # quicklaunch takes fully-qualified file:// URLs, NOT the `applications:`
   # form the task manager accepts, and NOT preferred:// either. Given an
@@ -525,6 +559,8 @@ in
     signal-desktop
     gh
     kitty
+    # Must outrank kitty's own kitty.desktop -- see the let block above.
+    (lib.hiPrio kittySingleInstance)
     imagemagick
 
     # Sublime Text. Needs the permittedInsecurePackages entry further down --
