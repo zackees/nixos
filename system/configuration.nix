@@ -1453,6 +1453,32 @@ in
   # system-wide activity, so keep this setting specific to this trusted box.
   boot.kernel.sysctl."kernel.perf_event_paranoid" = -1;
 
+  # Age out /tmp after a day instead of ten.
+  #
+  # systemd ships `q /tmp 1777 root root 10d` in its own tmpfiles.d/tmp.conf.
+  # Ten days is a sane default for a machine that fills its disk in months.
+  # This one fills it in days: four days after the filesystem was created it
+  # held 1.07 TiB, of which 291 GB was /tmp -- 241 GB of that a single
+  # project's `reld-*` benchmark output, 219 directories, none older than
+  # three days. systemd-tmpfiles-clean.timer was armed and healthy the whole
+  # time and correctly deleted nothing, because nothing was ten days old yet.
+  # A retention window longer than the time it takes to exhaust the disk is
+  # not a policy, it is an off switch.
+  #
+  # `q` matches upstream's line type so this is a drop-in replacement rather
+  # than a second rule for the same path. The override works on filename
+  # order: tmpfiles applies the entry from the lexicographically first config
+  # when two name the same path, and NixOS writes `systemd.tmpfiles.rules`
+  # into 00-nixos.conf, which sorts ahead of tmp.conf.
+  #
+  # The cost, stated plainly: a file in /tmp that nothing has touched for 24h
+  # is deleted even if a live process still holds it open. Long builds that
+  # park an artifact in /tmp and come back for it a day later will lose it.
+  # That is the intended trade -- anything meant to survive belongs under
+  # $HOME or an explicit build directory, not the OS temp dir. /var/tmp keeps
+  # systemd's 30d, which is what it exists for and is 1.2 GB here.
+  systemd.tmpfiles.rules = [ "q /tmp 1777 root root 1d" ];
+
   # ...and this is what that loader is allowed to find. Declared in the
   # let-block above, where the reasoning and the per-group notes live.
   programs.nix-ld.libraries = foreignBinaryLibraries;
