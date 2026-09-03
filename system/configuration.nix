@@ -140,6 +140,13 @@ let
     "docker-tui.desktop"
     "podman-desktop.desktop"
     "com.feaneron.Boatswain.desktop"
+  ] ++ [
+    # Hermes is a pyweb-view app whose .desktop lives in the user's own
+    # applications dir, not the system one, so it cannot share the prefix
+    # above. It used to be pinned by hand onto the window strip, and the
+    # panel rebuild for the previews change ate it -- the same way it once
+    # ate the desktop icon (see programs.plasma.desktop.widgets below).
+    "file:///home/niteris/.local/share/applications/pyweb-view.hermes.desktop"
   ];
 
   # ── The user's writable Python ──
