@@ -2028,10 +2028,20 @@ in
               #
               # To make this show ONLY minimized windows rather than every
               # window, add: behavior.showTasks.onlyMinimized = true;
+              #
+              # Clicking a grouped task (every kitty window is ONE task, since
+              # kitty runs single-instance) defaults to "cycle through them",
+              # which is useless once there are more than two. Open the
+              # tooltip instead: Windows-10 style, every window as a live
+              # thumbnail, click the one you want. Hovering already does
+              # this after a delay; clicking just skips the wait.
               {
                 iconTasks = {
                   launchers = [ ];
                   appearance.fill = false;
+                  appearance.showTooltips = true;
+                  appearance.highlightWindows = true;
+                  behavior.grouping.clickAction = "showTooltips";
                 };
               }
 
