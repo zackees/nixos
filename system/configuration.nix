@@ -1453,7 +1453,7 @@ in
   # system-wide activity, so keep this setting specific to this trusted box.
   boot.kernel.sysctl."kernel.perf_event_paranoid" = -1;
 
-  # Age out /tmp after a day instead of ten.
+  # Age out /tmp after three days instead of ten.
   #
   # systemd ships `q /tmp 1777 root root 10d` in its own tmpfiles.d/tmp.conf.
   # Ten days is a sane default for a machine that fills its disk in months.
@@ -1465,19 +1465,29 @@ in
   # A retention window longer than the time it takes to exhaust the disk is
   # not a policy, it is an off switch.
   #
+  # 72h and not 24h, because the number is the weekend rather than a round
+  # figure: someone who stops Friday evening and returns Monday morning has
+  # been away about 63 hours, and at 24h everything they left in /tmp is gone
+  # before they sit back down. Three days clears that with margin. The same
+  # value is now the floor for every temp sweep clud runs (zackees/clud#1149),
+  # so a file does not survive one reclaimer only to be caught by the next.
+  #
   # `q` matches upstream's line type so this is a drop-in replacement rather
   # than a second rule for the same path. The override works on filename
   # order: tmpfiles applies the entry from the lexicographically first config
   # when two name the same path, and NixOS writes `systemd.tmpfiles.rules`
   # into 00-nixos.conf, which sorts ahead of tmp.conf.
   #
-  # The cost, stated plainly: a file in /tmp that nothing has touched for 24h
-  # is deleted even if a live process still holds it open. Long builds that
-  # park an artifact in /tmp and come back for it a day later will lose it.
-  # That is the intended trade -- anything meant to survive belongs under
-  # $HOME or an explicit build directory, not the OS temp dir. /var/tmp keeps
-  # systemd's 30d, which is what it exists for and is 1.2 GB here.
-  systemd.tmpfiles.rules = [ "q /tmp 1777 root root 1d" ];
+  # The cost, stated plainly: a file in /tmp untouched for 72h is deleted even
+  # if a live process still holds it open -- an open fd is invisible to the
+  # aging algorithm. A process that needs to keep a /tmp subtree can take a
+  # BSD lock on it (`flock(2)`, shared or exclusive) and tmpfiles will skip
+  # that directory and everything below it until the process exits; that is
+  # the documented exclusion API, and issue #9 has the details. Note also that
+  # this fs is `relatime`, so reads bump atime at most daily and mtime is what
+  # actually tracks work. /var/tmp keeps systemd's 30d, which is what it
+  # exists for and is 1.2 GB here.
+  systemd.tmpfiles.rules = [ "q /tmp 1777 root root 3d" ];
 
   # ...and this is what that loader is allowed to find. Declared in the
   # let-block above, where the reasoning and the per-group notes live.
