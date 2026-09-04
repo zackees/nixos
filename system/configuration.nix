@@ -2110,8 +2110,22 @@ in
               # Per-screen: this pager belongs to the dock's screen and shows
               # that screen's current desktop, not a global one. See the
               # virtual desktops block above.
+              # displayedText is what makes the Dev1/Dev2/Misc names from
+              # kwin.virtualDesktops visible here; the default draws each
+              # desktop as an unlabelled box, which is what "the desktops
+              # have no names" looks like. Spelled as the raw config rather
+              # than plasma-manager's `pager.general.displayedText =
+              # "desktopName"`: that writes the enum's *name* ("Name") and
+              # the applet reads it back as 0, which is Number -- so the
+              # dock showed 1 2 3. The applet's kcfg is Number=0, Name=1,
+              # None=2 (verified on Plasma 6.7.4 by writing each value to
+              # the live widget).
               {
-                pager.general.showOnlyCurrentScreen = true;
+                name = "org.kde.plasma.pager";
+                config.General = {
+                  showOnlyCurrentScreen = true;
+                  displayedText = 1;
+                };
               }
               # Launchers, and only launchers. An Icons-only Task Manager
               # merges a running window INTO the launcher that started it --
