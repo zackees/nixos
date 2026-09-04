@@ -1,6 +1,8 @@
 #pragma once
 #include <plasma/containmentactions.h>
 
+#include <QElapsedTimer>
+
 class QAction;
 
 // A ContainmentActions plugin that steps one virtual desktop when its mouse
@@ -17,7 +19,12 @@ public:
     void performNextAction() override;
     void performPreviousAction() override;
 
+private Q_SLOTS:
+    void onDesktopChanged();
+
 private:
     void step();
+    void arm();
     QAction *m_action;
+    QElapsedTimer m_armed; // valid while the rebind window is open
 };

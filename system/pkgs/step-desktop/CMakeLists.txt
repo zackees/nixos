@@ -23,7 +23,7 @@ function(step_plugin target id shortcut json)
   kcoreaddons_add_plugin(${target} SOURCES step.cpp step.h INSTALL_NAMESPACE "plasma/containmentactions")
   set_target_properties(${target} PROPERTIES OUTPUT_NAME ${id})
   target_compile_definitions(${target} PRIVATE STEP_SHORTCUT="${shortcut}" STEP_JSON="${json}")
-  target_link_libraries(${target} Qt::Widgets Qt::DBus Plasma::Plasma)
+  target_link_libraries(${target} Qt::Widgets Qt::DBus Plasma::Plasma KF6::ConfigCore)
 endfunction()
 
 step_plugin(stepdesktop_previous local.stepdesktop.previous "Switch One Desktop to the Left"  previous.json)
