@@ -140,6 +140,12 @@ let
   # them stop at the ends instead of wrapping.
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
 
+  # ── The sudo password dialog ──
+  # Password plus One time / 15 minutes / 4 hours. ksshaskpass could not do
+  # this: its "remember" checkbox only appears for ssh and git prompts it
+  # recognises, and `[sudo] password for niteris:` is not one of them.
+  sudoAskpass = pkgs.callPackage ./pkgs/sudo-askpass { };
+
   kittySingleInstance = pkgs.runCommand "kitty-single-instance-desktop" { } ''
     mkdir -p $out/share/applications
     sed 's/^Exec=kitty$/Exec=kitty --single-instance/' \
@@ -725,7 +731,7 @@ in
     socat               # socket plumbing
     whois
     inetutils           # telnet, ftp, hostname, ping variants
-    kdePackages.ksshaskpass  # graphical password prompt for sudo -A / ssh
+    kdePackages.ksshaskpass  # ssh-add passphrase prompt; sudo uses sudoAskpass
     kdePackages.kdeplasma-addons  # supplies the quicklaunch panel widget
     voxtype             # push-to-talk voice-to-text (Meta+H)
     pciutils            # lspci; voxtype's GPU probe needs it to name the card
@@ -1443,14 +1449,20 @@ in
 
   # ── Privilege escalation ─────────────────────────────────────
   # One successful authentication unlocks sudo for every session, including
-  # ones with no controlling TTY, for 15 minutes.
+  # ones with no controlling TTY. How long is chosen in the dialog:
+  # One time / 15 minutes / 4 hours. sudo itself cannot take that answer,
+  # so sudoers grants the 4-hour ceiling and sudo-askpass (pkgs/sudo-askpass)
+  # schedules `sudo -k` on a transient user timer for the shorter two --
+  # `systemctl --user list-timers sudo-ticket-expire` shows it pending.
+  # A sudo that never goes through the dialog (ssh, a bare console) gets
+  # the ceiling.
   # Drop it early at any time with `sudo -k`. timestamp_timeout is in
   # minutes; remove timestamp_type=global to scope the ticket per-terminal
   # instead of machine-wide.
   #
   security.sudo.extraConfig = ''
     Defaults timestamp_type=global
-    Defaults timestamp_timeout=15
+    Defaults timestamp_timeout=240
   '';
 
   # A touch on the YubiKey stands in for the password, for sudo only. The
@@ -1468,7 +1480,8 @@ in
   };
   security.pam.u2f.settings.cue = true; # print "Please touch the device" so a silent wait is not mistaken for a hang
 
-  # Graphical KDE password dialog. askpass is a sudo.conf setting, NOT a
+  # Graphical password dialog (our own; see sudoAskpass in the let block).
+  # ksshaskpass stays installed for ssh-add. askpass is a sudo.conf setting, NOT a
   # sudoers Defaults entry - putting it in sudoers fails `visudo -c` with
   # "unknown defaults entry". sudo uses it automatically when there is no
   # terminal to prompt in, and on demand with `sudo -A`. NixOS does not
@@ -1476,10 +1489,10 @@ in
   # For GUI apps, polkit's pkexec already pops a dialog via the
   # polkit-kde-authentication-agent that Plasma runs.
   environment.etc."sudo.conf".text =
-    "Path askpass ${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass\n";
+    "Path askpass ${sudoAskpass}/bin/sudo-askpass\n";
 
   environment.variables.SUDO_ASKPASS =
-    "${pkgs.kdePackages.ksshaskpass}/bin/ksshaskpass";
+    "${sudoAskpass}/bin/sudo-askpass";
 
   # Route interactive sudo through the graphical prompt too. Guarded on a
   # graphical session being present: on a bare console or over SSH there is

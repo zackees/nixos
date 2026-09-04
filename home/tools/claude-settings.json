@@ -10,6 +10,5 @@
   },
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
-  "advisorModel": "fable"
+  "theme": "dark"
 }
