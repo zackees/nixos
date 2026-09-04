@@ -1,2 +1,5 @@
+[DrKonqi]
+DownloadSymbols=true
+
 [SystemInformation]
 CompiledSources=false
