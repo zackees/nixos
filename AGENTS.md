@@ -188,6 +188,24 @@ rearranging the monitors can renumber it. Read the current mapping back with:
       var p = panels();
       for (var j = 0; j < p.length; j++) print(j + " -> " + p[j].screen);'
 
+**A `shortcuts.kwin` change is not live until KWin restarts, and do not try
+to hurry it.** plasma-manager writes `kglobalshortcutsrc` at activation, but
+on this Wayland session the global-shortcut daemon lives *inside*
+`kwin_wayland` (libKGlobalAccelD is loaded into it), and it holds the old
+bindings in memory. `systemctl --user restart plasma-kglobalaccel.service`
+does nothing useful -- the unit goes inactive and KWin keeps answering -- and
+poking `org.kde.kglobalaccel` over D-Bus to force a reload is what crashed
+KWin on 2026-09-03: `dbus: type invalid 0 not a basic type`, SIGABRT in
+`operator>>(QDBusArgument, QSet<QKeySequence>)`, the whole compositor down
+for a second. KWin's crash-restart happened to reread the file, which is the
+only reason the new keys then worked. Read the live state with
+
+    qdbus --literal org.kde.kglobalaccel /component/kwin \
+      org.kde.kglobalaccel.Component.allShortcutInfos
+
+and if it disagrees with the file, tell the user the keys land at next
+login (or a deliberate KWin restart) and leave it there.
+
 **"GPU Recovery Action: Reboot" does not mean you have to reboot.** A CUDA
 fault can wedge the driver so that every new process gets `failed to
 initialize CUDA: unknown error` while `nvidia-smi` keeps working perfectly --
