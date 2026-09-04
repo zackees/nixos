@@ -117,6 +117,39 @@ qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript <script> name
 
 listing `workspace.windowList()` and looking for `com.feaneron.Boatswain`.
 
+## When every key is dead: check the USB link, not the JSON
+
+Seen 2026-09-03/04. KWin crashed, every Wayland client died with it, and
+Boatswain exited ("Lost connection to Wayland compositor", exit 1). The deck
+then sat dead for 15 hours because the XDG-autostart unit had no restart
+policy -- `system/configuration.nix` now adds `Restart=on-failure` as a
+drop-in, so this part cannot recur silently.
+
+The nastier half: Boatswain talks to the deck through libusb, detaching the
+kernel HID driver (the interface shows `driver-if=usbfs`, and there is NO
+hidraw node for the deck while it runs -- that is normal). Killed abruptly,
+it left the device with no driver, and a sysfs unbind/bind of `1-6.1.4`
+then left it *unconfigured*: `bConfigurationValue` empty, every control
+request "Connection timed out", `authorized` 0/1 no help, and the hub port
+has no `disable` attribute for a software power cycle. Only a physical
+replug fixed it.
+
+Two symptoms that look like data loss and are not:
+
+- Boatswain's window shows the right profile name with 32 EMPTY keys, and
+  the title/firmware fields are mojibake. That is Boatswain reading garbage
+  when the open fails; the journal line is
+  `Error opening Stream Deck device: Failed to open Stream Deck device`.
+- Junk files appear next to the profile, named after the garbage serial:
+  `~/.local/share/S.json`, `~/.local/share/^D^C\t^D...E.json`, each a fresh
+  empty Default profile. Delete them; `CL22K1A01009.json` was never touched.
+  Confirm with `python3 -c` counting configured items, or diff against
+  `home/streamdeck/CL22K1A01009.json` in the repo.
+
+Order of checks next time: unit active? -> journal for "Error opening" ->
+`cat /sys/bus/usb/devices/1-6.1.4/bConfigurationValue` (must be 1) ->
+replug. Do not touch the JSON until the device opens.
+
 ## Upstream source
 
 If the format shifts, these are the files that define it, in

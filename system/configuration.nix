@@ -1622,6 +1622,24 @@ in
   # above supplies libstdc++ and friends. Without nix-ld the pip install still
   # SUCCEEDS and only the later import fails, which is a confusing way to find
   # out -- so the two settings belong together.
+  # Boatswain is autostarted by systemd's XDG autostart generator, which
+  # gives the unit no restart policy. When KWin crashed on 2026-09-03 every
+  # Wayland client died with it, and the Stream Deck then sat dead for 15
+  # hours because nothing brought Boatswain back. A drop-in keeps the
+  # generated ExecStart and adds the one thing it lacks.
+  systemd.user.services."app-com.feaneron.Boatswain@autostart" = {
+    overrideStrategy = "asDropin";
+    # NixOS would otherwise add Environment=PATH=<coreutils...> to the
+    # drop-in, replacing the session PATH the generated unit inherits, and
+    # the Hermes key's desktop entry finds pyweb-view on that PATH.
+    path = lib.mkForce [ ];
+    environment.PATH = lib.mkForce null;
+    serviceConfig = {
+      Restart = "on-failure";
+      RestartSec = 3;
+    };
+  };
+
   systemd.user.services.user-python-venv = {
     description = "Provision the user's writable Python venv at ~/.venv";
     wantedBy = [ "default.target" ];
