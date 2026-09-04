@@ -70,6 +70,7 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 
 [Windows]
 PerOutputVirtualDesktops=true
+RollOverDesktops=false
 
 [Xwayland]
 Scale=1.75

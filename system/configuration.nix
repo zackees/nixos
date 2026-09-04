@@ -133,6 +133,13 @@ let
   # This deliberately collides with pkgs.kitty's own kitty.desktop; lib.hiPrio
   # where it is installed is what settles that. It has to win, because
   # dockLaunchers below pins the absolute path in the system profile.
+  # ── Mouse back/forward on the desktop step virtual desktops ──
+  # Two containment-action plugins of our own; see pkgs/step-desktop for
+  # why nothing stock will do. Bound to BackButton/ForwardButton in the
+  # desktopScript below, and RollOverDesktops=false in kwinrc is what makes
+  # them stop at the ends instead of wrapping.
+  stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
+
   kittySingleInstance = pkgs.runCommand "kitty-single-instance-desktop" { } ''
     mkdir -p $out/share/applications
     sed 's/^Exec=kitty$/Exec=kitty --single-instance/' \
@@ -592,6 +599,7 @@ in
     kitty
     # Must outrank kitty's own kitty.desktop -- see the let block above.
     (lib.hiPrio kittySingleInstance)
+    stepDesktop
     imagemagick
 
     # Sublime Text. Needs the permittedInsecurePackages entry further down --
@@ -1886,6 +1894,31 @@ in
           rows = 1;
         };
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
+        # No wrap-around when stepping desktops: the mouse back/forward
+        # buttons on the desktop (below) stop at the first and last one.
+        # Global by nature -- the keyboard "Switch One Desktop" shortcuts
+        # and the pager wheel stop there too.
+        configFile.kwinrc.Windows.RollOverDesktops = false;
+
+        # Mouse back = previous desktop, forward = next, when clicked on the
+        # desktop background. Plasma keys desktop mouse actions by the
+        # Qt::MouseButton enum name, so BackButton/ForwardButton are valid
+        # triggers even though the System Settings page only offers
+        # left/middle/right/wheel. Same shape as plasma-manager's own
+        # desktop.mouseActions script, which cannot express these buttons.
+        # Writes the config file directly, hence the plasmashell restart.
+        startup.desktopScript."desktop_step_buttons" = {
+          text = ''
+            let configFile = ConfigFile('plasma-org.kde.plasma.desktop-appletsrc');
+            configFile.group = 'ActionPlugins';
+            // [ActionPlugins][0] is the desktop containment type; 1 is panels.
+            let actionPluginSubSection = ConfigFile(configFile, 0);
+            actionPluginSubSection.writeEntry("BackButton;NoModifier", "local.stepdesktop.previous");
+            actionPluginSubSection.writeEntry("ForwardButton;NoModifier", "local.stepdesktop.next");
+          '';
+          priority = 3;
+          restartServices = [ "plasma-plasmashell" ];
+        };
 
         # ── No file indexing ──
         # Baloo content-indexes everything under $HOME with no exclude list,
