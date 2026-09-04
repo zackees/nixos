@@ -83,6 +83,23 @@ let
     startupWMClass = "docker-tui";
   };
 
+  # The "monitor" button on the top panel: one click opens KWin's Grid View
+  # (every virtual desktop tiled on screen). It fires the same global
+  # shortcut KWin already owns, through kglobalaccel's D-Bus, so there is
+  # no second code path to drift from the keybinding. The comment is the
+  # widget's hover tooltip and is there on purpose: the button exists as
+  # much to teach Super+G as to be clicked.
+  gridView = pkgs.makeDesktopItem {
+    name = "grid-view";
+    desktopName = "Desktops";
+    comment = "Show all virtual desktops (Super+G)";
+    exec = "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut \"Grid View\"";
+    icon = "virtual-desktops";
+    categories = [ "System" ];
+    terminal = false;
+    noDisplay = true;
+  };
+
   # kitty, but every window in ONE process.
   #
   # A pane can only be dragged between OS windows of the SAME kitty process.
@@ -736,6 +753,8 @@ in
     lazydocker          # TUI dashboard; what the "Docker" dock icon launches
     dockerIcon          # the whale glyph, no icon theme ships one
     dockerTui           # the "Docker" desktop entry itself
+    gridView            # top-panel "Desktops" button (Super+G reminder)
+    pam_u2f             # pamu2fcfg, to register the YubiKey for sudo
     docker-compose      # the standalone name; `docker compose` needs nothing
 
     alsa-utils          # amixer/aplay/arecord
@@ -1419,6 +1438,21 @@ in
     Defaults timestamp_timeout=15
   '';
 
+  # A touch on the YubiKey stands in for the password, for sudo only. The
+  # module is enabled per service rather than with security.pam.u2f.enable,
+  # because the global switch turns it on for every PAM service (login,
+  # sddm, kscreenlocker, ...) and only sudo was asked for. `sufficient`
+  # means the password still works with the key unplugged. pam_u2f reads
+  # the registered key from ~/.config/Yubico/u2f_keys, which is written
+  # once by hand -- `pamu2fcfg` needs a touch -- and lives outside this
+  # repo on purpose: it is a per-machine credential handle, not config.
+  # With no such file the module just fails through to the password.
+  security.pam.services.sudo.u2f = {
+    enable = true;
+    control = "sufficient";
+  };
+  security.pam.u2f.settings.cue = true; # print "Please touch the device" so a silent wait is not mistaken for a hang
+
   # Graphical KDE password dialog. askpass is a sudo.conf setting, NOT a
   # sudoers Defaults entry - putting it in sudoers fails `visudo -c` with
   # "unknown defaults entry". sudo uses it automatically when there is no
@@ -1833,11 +1867,24 @@ in
         # nixpkgs-unstable in the overlay above. The dock's pager (see the
         # bottom panel) is told to show only its own screen, so it reads
         # and drives the primary's desktop rather than a global one.
+        # Named so Grid View, the pager tooltip and the switch OSD say what
+        # each one is for; `names` sets the count, so there is no separate
+        # `number` to keep in step with it.
         kwin.virtualDesktops = {
-          number = 4;
+          names = [ "Dev1" "Dev2" "Misc" ];
           rows = 1;
         };
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
+
+        # ── Global shortcuts ──
+        # Meta+Tab opens the desktop Grid View alongside Meta+G. It used to
+        # be a second key for "Walk Through Windows", which keeps Alt+Tab.
+        # Overview stays on Meta+W. Written to kglobalshortcutsrc, so the
+        # captured home/kde copy follows this after the next capture.
+        shortcuts.kwin = {
+          "Grid View" = [ "Meta+G" "Meta+Tab" ];
+          "Walk Through Windows" = "Alt+Tab";
+        };
 
         # ── Idle behaviour ──
         # Stock Plasma dims at 5 minutes, blanks at 10 and locks at 5, which
@@ -2032,6 +2079,13 @@ in
                     };
                   };
                 };
+              }
+              # Grid View button; see gridView in the let block. Its
+              # tooltip carries the Super+G reminder.
+              {
+                name = "org.kde.plasma.icon";
+                config.General.url =
+                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
               }
               "org.kde.plasma.digitalclock"
             ];
