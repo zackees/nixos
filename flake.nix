@@ -9,6 +9,13 @@
     # is the whole reason flake.lock exists here; see issue #3.
     nixpkgs.url = "github:NixOS/nixpkgs/c5c4a43b0e8056328ec4529f735cabdb8f1942bb";
 
+    # A second nixpkgs, used for ONE thing: the KDE package set. Plasma 6.7
+    # is where per-screen virtual desktops landed (bug 107302, 21 years
+    # open), and the 26.05 line stays on 6.6.x for its whole life. Pinned to
+    # a revision rather than the branch for the same reason nixpkgs above is;
+    # bump it on purpose. See issue #10 for the options that were weighed.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/3ed67ec0a4d3c7ab4ae1f04f8ee8df07bfa506a2";
+
     # Was builtins.fetchTarball of release-26.05.tar.gz pinned by sha256.
     # `follows` keeps it on the same nixpkgs as the system, which the tarball
     # form could not express -- it silently used whatever <nixpkgs> resolved to.

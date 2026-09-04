@@ -865,6 +865,27 @@ in
   # Setting buildFeatures here is silently ignored and yields an identical
   # binary.
   nixpkgs.overlays = [
+    # The whole KDE/Qt package set from nixpkgs-unstable, for Plasma 6.7's
+    # per-screen virtual desktops (the PerOutputVirtualDesktops setting
+    # below); 26.05 ships 6.6.6 and never will have it. Only kdePackages
+    # moves -- the kernel, NVIDIA driver, CUDA and voxtype stay on the pin.
+    # Both channels are on Qt 6.11, which is what makes swapping the scope
+    # wholesale reasonable; check that still holds before bumping either
+    # input. Issue #10 has the alternatives (KWin scripts that emulate this
+    # by shuffling windows between desktops) and why they were passed over.
+    #
+    # Qt itself has to move with it. kdePackages carries its own qtbase, but
+    # sddm and friends are built against pkgs.qt6, and the first build with
+    # only kdePackages overlaid died in sddm-wrapped with "detected
+    # mismatched Qt dependencies: qtbase-6.11.1 / qtbase-6.11.2". So the
+    # qt6 scopes come from the same revision, and everything Qt-based here
+    # agrees on one qtbase.
+    (final: prev:
+      let
+        unstable = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system};
+      in {
+        inherit (unstable) kdePackages qt6 qt6Packages;
+      })
     (final: prev: {
       voxtype = prev.voxtype.overrideAttrs (old: {
         # gpu-cuda maps to whisper-rs/cuda, which builds ggml's CUDA backend.
@@ -1803,6 +1824,21 @@ in
         };
         configFile.kcminputrc.Keyboard.KeyRepeat = "repeat";
 
+        # ── Virtual desktops, per screen ──
+        # Each monitor switches on its own: a desktop shortcut or a pager
+        # click changes the desktop of the screen that has focus and leaves
+        # the other two where they are. That is Plasma 6.7's
+        # "Switch desktop independently for each screen" (Window Management
+        # -> Virtual Desktops), and it is the reason kdePackages comes from
+        # nixpkgs-unstable in the overlay above. The dock's pager (see the
+        # bottom panel) is told to show only its own screen, so it reads
+        # and drives the primary's desktop rather than a global one.
+        kwin.virtualDesktops = {
+          number = 4;
+          rows = 1;
+        };
+        configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
+
         # ── Idle behaviour ──
         # Stock Plasma dims at 5 minutes, blanks at 10 and locks at 5, which
         # is far too eager for a desktop that sits in one room. Nothing now
@@ -2005,7 +2041,12 @@ in
             screen = 0;
             widgets = [
               "org.kde.plasma.kickoff"
-              "org.kde.plasma.pager"
+              # Per-screen: this pager belongs to the dock's screen and shows
+              # that screen's current desktop, not a global one. See the
+              # virtual desktops block above.
+              {
+                pager.general.showOnlyCurrentScreen = true;
+              }
               # Launchers, and only launchers. An Icons-only Task Manager
               # merges a running window INTO the launcher that started it --
               # that is the whole point of the icons-only design -- so a
