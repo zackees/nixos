@@ -1899,6 +1899,15 @@ in
         # `balooctl6 disable` writes.
         configFile.baloofilerc."Basic Settings"."Indexing-Enabled" = false;
 
+        # ── Snappy panel tooltips ──
+        # The pager's hover popup (desktop name plus the windows on it) took
+        # 700 ms to appear, which is too slow to glance across three
+        # desktops. That number is libplasma's ToolTipArea default
+        # (`cfg.readEntry("Delay", 700)` in tooltiparea.cpp) and every
+        # panel tooltip shares it. A KConfigWatcher picks up the change
+        # live, so no plasmashell restart is needed. 0 disables tooltips.
+        configFile.plasmarc.PlasmaToolTips.Delay = 200;
+
         # ── Global shortcuts ──
         # Meta+W, Meta+G and Meta+Tab all open Overview. Grid View, which
         # used to own Meta+G, is unbound: it shows every desktop with no
