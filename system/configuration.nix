@@ -83,17 +83,24 @@ let
     startupWMClass = "docker-tui";
   };
 
-  # The "monitor" button on the top panel: one click opens KWin's Grid View
-  # (every virtual desktop tiled on screen). It fires the same global
-  # shortcut KWin already owns, through kglobalaccel's D-Bus, so there is
-  # no second code path to drift from the keybinding. The comment is the
-  # widget's hover tooltip and is there on purpose: the button exists as
-  # much to teach Super+G as to be clicked.
+  # The "monitor" button on the top panel: one click opens KWin's Overview,
+  # the current desktop's windows with a bar of every desktop across the
+  # top. It fires the same global shortcut KWin already owns, through
+  # kglobalaccel's D-Bus, so there is no second code path to drift from the
+  # keybinding. The comment is the widget's hover tooltip and is there on
+  # purpose: the button exists as much to teach Super+W as to be clicked.
+  #
+  # Overview, not Grid View, on purpose: KWin's Grid View draws the desktops
+  # with no labels at all, and the desktop names -- and the double-click
+  # inline editor for them -- exist only in Overview's DesktopBar
+  # (kwin src/plugins/overview/qml/DesktopBar.qml; Main.qml has no name
+  # label in the grid state). Wanting to *see and rename* desktops from the
+  # button is what moved it; Super+G followed for the same reason.
   gridView = pkgs.makeDesktopItem {
     name = "grid-view";
     desktopName = "Desktops";
-    comment = "Show all virtual desktops (Super+G)";
-    exec = "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut \"Grid View\"";
+    comment = "Show your desktops, named; double-click a name to rename (Super+G)";
+    exec = "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut \"Overview\"";
     icon = "virtual-desktops";
     categories = [ "System" ];
     terminal = false;
@@ -1889,12 +1896,16 @@ in
         configFile.baloofilerc."Basic Settings"."Indexing-Enabled" = false;
 
         # ── Global shortcuts ──
-        # Meta+Tab opens the desktop Grid View alongside Meta+G. It used to
-        # be a second key for "Walk Through Windows", which keeps Alt+Tab.
-        # Overview stays on Meta+W. Written to kglobalshortcutsrc, so the
-        # captured home/kde copy follows this after the next capture.
+        # Meta+W, Meta+G and Meta+Tab all open Overview. Grid View, which
+        # used to own Meta+G, is unbound: it shows every desktop with no
+        # names, and once the names were visible in Overview that is the
+        # view that was wanted from every route (see gridView in the let
+        # block). Meta+Tab used to be a second key for "Walk Through
+        # Windows", which keeps Alt+Tab. Written to kglobalshortcutsrc, so
+        # the captured home/kde copy follows this after the next capture.
         shortcuts.kwin = {
-          "Grid View" = [ "Meta+G" "Meta+Tab" ];
+          "Overview" = [ "Meta+W" "Meta+G" "Meta+Tab" ];
+          "Grid View" = "none";
           "Walk Through Windows" = "Alt+Tab";
         };
 
@@ -2092,7 +2103,7 @@ in
                   };
                 };
               }
-              # Grid View button; see gridView in the let block. Its
+              # Overview button; see gridView in the let block. Its
               # tooltip carries the Super+G reminder.
               {
                 name = "org.kde.plasma.icon";
