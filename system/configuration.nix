@@ -1876,6 +1876,18 @@ in
         };
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
 
+        # ── No file indexing ──
+        # Baloo content-indexes everything under $HOME with no exclude list,
+        # and this is a build box: on 2026-09-03 a session restart set it
+        # loose on ~10k Rust .rlib/.rmeta files in ~/bench-artifacts. It
+        # wrote 95 GB into its index in 17 minutes and the mmap'd-index
+        # writeback tripped a kernel livelock (inode_switch_wbs vs
+        # cleanup_offline_cgwb) that pegged two more cores for minutes after
+        # baloo itself was stopped. Nothing here needs Dolphin/KRunner
+        # content search badly enough for that. This is what
+        # `balooctl6 disable` writes.
+        configFile.baloofilerc."Basic Settings"."Indexing-Enabled" = false;
+
         # ── Global shortcuts ──
         # Meta+Tab opens the desktop Grid View alongside Meta+G. It used to
         # be a second key for "Walk Through Windows", which keeps Alt+Tab.
