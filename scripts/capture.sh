@@ -38,6 +38,18 @@ for f in home/kde/*; do
   [ -f "$HOME/.config/$n" ] && cp "$HOME/.config/$n" "$f"
 done
 cp ~/.config/gtk-3.0/* home/kde/gtk-3.0/ 2>/dev/null || true
+
+# Apps pinned to the dock by right-click -> "Pin to Task Manager". Plasma
+# writes them as a single `launchers=` line on the icontasks applet inside
+# appletsrc, and the panel rebuild that plasma-manager runs deletes that file
+# outright, so a GUI pin only survives if it is captured here first and fed
+# back in: system/configuration.nix reads this file into iconTasks.launchers.
+# Only the task manager has a `launchers=` key (quicklaunch uses launcherUrls),
+# so a plain grep is unambiguous. Skipped, not blanked, when the key is
+# missing -- that happens mid-rebuild and would otherwise erase every pin.
+if line="$(grep -m1 '^launchers=' ~/.config/plasma-org.kde.plasma.desktop-appletsrc)"; then
+  printf '%s' "${line#launchers=}" | tr ',' '\n' | sed '/^$/d' > home/kde/dock-pins.txt
+fi
 cp ~/.config/gtk-4.0/* home/kde/gtk-4.0/ 2>/dev/null || true
 
 # The Stream Deck's buttons. Boatswain names the file after the device serial

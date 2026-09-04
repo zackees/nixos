@@ -53,9 +53,12 @@ including `.desktop`. The key's icon comes from that entry, which is why a
 custom launcher (see `chatgptLauncher` in `system/configuration.nix`) is worth
 declaring: it carries its own glyph with no per-key image to set by hand.
 
-A button that opens a URL (verified with Boatswain 5.0, used for the
-`go/hermes` key -- the URL resolves through the `go` hosts entry and nginx
-redirect in `system/configuration.nix`):
+A button that opens a URL (verified with Boatswain 5.0; the `go/hermes` key
+used this until 2026-09-03, when it became a `launch-action` on
+`pyweb-view.hermes.desktop` -- an entry in `~/.local/share/applications`,
+which Boatswain does enumerate -- so Hermes opens as its own native window
+instead of a browser tab. The URL form still resolves through the `go` hosts
+entry and nginx redirect in `system/configuration.nix`):
 
 ```json
 { "type": "action", "factory": "launcher", "action": "launcher-open-url-action",

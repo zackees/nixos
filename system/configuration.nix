@@ -2139,7 +2139,14 @@ in
               # this after a delay; clicking just skips the wait.
               {
                 iconTasks = {
-                  launchers = [ ];
+                  # Not hand-written: this is whatever the user has pinned by
+                  # right-click, captured from appletsrc into that file by
+                  # scripts/capture.sh. Declaring it here is what lets a pin
+                  # survive the panel rebuild, which deletes appletsrc. The
+                  # file is tracked, so a new pin needs `git add` -- flakes
+                  # cannot see an untracked change to it.
+                  launchers = lib.filter (l: l != "")
+                    (lib.splitString "\n" (builtins.readFile ../home/kde/dock-pins.txt));
                   appearance.fill = false;
                   appearance.showTooltips = true;
                   appearance.highlightWindows = true;
