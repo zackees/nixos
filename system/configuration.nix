@@ -2107,13 +2107,6 @@ in
                   };
                 };
               }
-              # Overview button; see gridView in the let block. Its
-              # tooltip carries the Super+G reminder.
-              {
-                name = "org.kde.plasma.icon";
-                config.General.url =
-                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
-              }
               "org.kde.plasma.digitalclock"
             ];
           }
@@ -2161,6 +2154,16 @@ in
               # dock showed 1 2 3. The applet's kcfg is Number=0, Name=1,
               # None=2 (verified on Plasma 6.7.4 by writing each value to
               # the live widget).
+              # Overview button, immediately left of the pager so the "show
+              # me my desktops" control sits with the desktops themselves;
+              # it lived beside the clock on the top panel before. See
+              # gridView in the let block; its tooltip carries the Super+G
+              # reminder.
+              {
+                name = "org.kde.plasma.icon";
+                config.General.url =
+                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
+              }
               {
                 name = "org.kde.plasma.pager";
                 config.General = {
