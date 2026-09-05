@@ -1,5 +1,5 @@
 {
-  "model": "opus[1m]",
+  "model": "claude-fable-5-1[1m]",
   "modelSettings": {
     "claude-fable-5-1": {
       "effortLevel": "low"
