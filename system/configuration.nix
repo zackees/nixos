@@ -643,6 +643,10 @@ in
     signal-desktop
     slack               # unfree; allowUnfree below covers it
     dbeaver-bin         # SQL client; binary release, unfree
+    # FHS sandbox for prebuilt binaries that outgrow nix-ld: Playwright's
+    # downloaded Chromium/Firefox need libnss3, libgbm and friends at
+    # standard paths, and only this makes them start here.
+    steam-run
     gh
     kitty
     # Must outrank kitty's own kitty.desktop -- see the let block above.
