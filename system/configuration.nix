@@ -140,6 +140,44 @@ let
   # them stop at the ends instead of wrapping.
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
 
+  # ── Links from kitty open in the Brave window on THIS desktop ──
+  # Chromium opens a URL in whichever of its windows was focused most
+  # recently, which with per-screen virtual desktops is usually one on
+  # another desktop. So: focus the Brave window closest to the terminal you
+  # clicked in (same desktop, nearest on screen), then hand Chromium the
+  # URL; with no Brave on that desktop, open a fresh window instead, which
+  # KWin places on the current desktop. kdotool is KWin's own scripting API
+  # wrapped as an xdotool-alike; it works on Wayland where xdotool cannot.
+  kittyOpenUrl = pkgs.writeShellApplication {
+    name = "kitty-open-url";
+    runtimeInputs = [ pkgs.kdotool pkgs.brave pkgs.coreutils pkgs.gawk pkgs.util-linux ];
+    text = ''
+      url="$1"
+      # The window that got the click is still the active one.
+      me="$(kdotool getactivewindow || true)"
+      desk="$(kdotool get_desktop_for_window "$me" 2>/dev/null || echo "")"
+      center() { # -> "x y" of a window's centre
+        kdotool getwindowgeometry "$1" 2>/dev/null | awk -F'[ ,x]+' '
+          /Position:/ {x=$3; y=$4} /Geometry:/ {w=$3; h=$4} END {printf "%d %d", x+w/2, y+h/2}'
+      }
+      read -r mx my <<< "$(center "$me")"
+      best=""; bestd=""
+      for w in $(kdotool search --class brave-browser 2>/dev/null); do
+        [ "$(kdotool get_desktop_for_window "$w" 2>/dev/null)" = "$desk" ] || continue
+        read -r bx by <<< "$(center "$w")"
+        d=$(( (bx-mx)*(bx-mx) + (by-my)*(by-my) ))
+        if [ -z "$best" ] || [ "$d" -lt "$bestd" ]; then best="$w"; bestd="$d"; fi
+      done
+      if [ -n "$best" ]; then
+        kdotool windowactivate "$best"
+        sleep 0.15
+        setsid -f brave "$url" >/dev/null 2>&1
+      else
+        setsid -f brave --new-window "$url" >/dev/null 2>&1
+      fi
+    '';
+  };
+
   # ── The sudo password dialog ──
   # Password plus One time / 15 minutes / 4 hours. ksshaskpass could not do
   # this: its "remember" checkbox only appears for ssh and git prompts it
@@ -610,6 +648,8 @@ in
     # Must outrank kitty's own kitty.desktop -- see the let block above.
     (lib.hiPrio kittySingleInstance)
     stepDesktop
+    kittyOpenUrl
+    kdotool             # KWin window queries from scripts; see kittyOpenUrl
     imagemagick
 
     # Sublime Text. Needs the permittedInsecurePackages entry further down --
