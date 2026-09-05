@@ -170,6 +170,7 @@ let
     "org.telegram.desktop.desktop"
     "signal.desktop"
     "slack.desktop"
+    "dbeaver.desktop"
     "kitty.desktop"
     "sublime_text.desktop"
     "org.kde.kdenlive.desktop"

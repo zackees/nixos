@@ -2,6 +2,7 @@
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/tg=org.telegram.desktop.desktop;
 x-scheme-handler/tonsite=org.telegram.desktop.desktop;
+x-scheme-handler/slack=slack.desktop
 
 [Default Applications]
 text/html=brave-browser.desktop
@@ -13,3 +14,4 @@ x-scheme-handler/unknown=brave-browser.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/tg=org.telegram.desktop.desktop
 x-scheme-handler/tonsite=org.telegram.desktop.desktop
+x-scheme-handler/slack=slack.desktop
