@@ -150,6 +150,13 @@ crop as launchers are added -- it is currently thirteen:
 `grep launchers= plasma-org.kde.plasma.desktop-appletsrc` reported all nine
 entries present while the dock was drawing four. Only the picture was right.
 
+**A panel rebuild wipes the desktop MOUSE BINDINGS too.** Same file: the
+back/forward-button desktop stepping lives in `[ActionPlugins][0]` of
+`appletsrc`, written by `3_desktop_script_desktop_step_buttons.sh`. After
+running the panel script by hand, run that one too, then restart
+plasmashell -- it is `runAlways`, so no `last_run` file to remove. Pinning
+Slack silently lost the bindings once.
+
 **A panel rebuild wipes the DESKTOP too.** The generated
 `2_desktop_script_panels.sh` opens by deleting
 `plasma-org.kde.plasma.desktop-appletsrc` outright (upstream's guard against

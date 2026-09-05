@@ -1950,6 +1950,13 @@ in
             actionPluginSubSection.writeEntry("ForwardButton;NoModifier", "local.stepdesktop.next");
           '';
           priority = 3;
+          # The panel script (priority 2) deletes appletsrc outright, taking
+          # these entries with it, and this script is hash-gated so it would
+          # not re-run for a panel-only change. Pinning Slack was enough to
+          # lose the bindings. runAlways re-applies them on every run, and
+          # a hand-run panel apply must be followed by this script too --
+          # see the panel notes in AGENTS.md.
+          runAlways = true;
           restartServices = [ "plasma-plasmashell" ];
         };
 
