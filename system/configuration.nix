@@ -601,6 +601,7 @@ in
     brave
     telegram-desktop
     signal-desktop
+    slack               # unfree; allowUnfree below covers it
     gh
     kitty
     # Must outrank kitty's own kitty.desktop -- see the let block above.
