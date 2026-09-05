@@ -32,6 +32,7 @@ from kitty.window_title_bar import WindowTitleFormatter
 # running it a second time has no effect beyond that.
 _tab_bar = runpy.run_path(os.path.join(config_dir, 'tab_bar.py'))
 _short_wd = _tab_bar['_short_wd']
+_pane_wd = _tab_bar['_pane_wd']
 SHELLS = _tab_bar['SHELLS']
 
 # Nerd Font branch glyph -- the same one starship draws in the prompt below.
@@ -143,7 +144,10 @@ def draw_window_title(data):
     being broken rather than as one pane having nothing to say.
     """
     w = get_boss().window_id_map.get(data.window_id)
-    wd = (w.get_cwd_of_child() if w is not None else '') or ''
+    # The shell's directory (OSC 7, then the oldest child), not the foreground
+    # process's: a transient `wl-copy` from Claude Code runs with cwd `/` and
+    # used to relabel the pane `/ · wl-copy`. See _pane_wd in tab_bar.py.
+    wd = _pane_wd(w)
     if not wd:
         # ssh, a `launch`ed pager, any child that never reported a directory.
         return ' %s' % (data.title or '…')
