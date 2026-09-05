@@ -34,6 +34,36 @@ def _short_wd(wd):
     return os.sep.join(parts) or os.sep
 
 
+def _pane_wd(w):
+    """The directory a pane should be labelled with, for kitty Window `w`.
+
+    Not `get_cwd_of_child()`: that is the cwd of the *foreground* process, so
+    while Claude Code shells out to `wl-copy` (spawned with cwd `/`) every
+    label flipped to `/ · wl-copy`. Prefer, in order: the directory the shell
+    last reported over OSC 7 (shell integration; stays put while children
+    run), the cwd of the oldest child (the shell itself), and only then the
+    foreground process.
+    """
+    if w is None:
+        return ''
+    try:
+        from kitty.window import path_from_osc7_url
+        reported = w.screen.last_reported_cwd
+        if reported:
+            wd = path_from_osc7_url(reported)
+            if wd:
+                return wd
+    except Exception:
+        pass
+    try:
+        wd = w.get_cwd_of_child(oldest=True)
+        if wd:
+            return wd
+    except Exception:
+        pass
+    return w.get_cwd_of_child() or ''
+
+
 def draw_title(data):
     """Tab label, reached from kitty.conf as `{custom}` in tab_title_template.
 
@@ -48,7 +78,17 @@ def draw_title(data):
     launched with `launch`, or any child that never reported one.
     """
     tab = data['tab']
-    wd = tab.active_wd
+    # tab.active_wd is the foreground process's cwd (see _pane_wd); resolve
+    # the active window and ask for the shell's directory instead.
+    wd = ''
+    try:
+        from kitty.boss import get_boss
+        live_tab = get_boss().tab_for_id(tab.tab_id)
+        w = live_tab.active_window if live_tab is not None else None
+        wd = _pane_wd(w)
+    except Exception:
+        wd = ''
+    wd = wd or tab.active_wd
     if not wd:
         return data['title']
     exe = tab.active_exe
