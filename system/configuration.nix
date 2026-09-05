@@ -603,6 +603,7 @@ in
     telegram-desktop
     signal-desktop
     slack               # unfree; allowUnfree below covers it
+    dbeaver-bin         # SQL client; binary release, unfree
     gh
     kitty
     # Must outrank kitty's own kitty.desktop -- see the let block above.
