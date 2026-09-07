@@ -2027,6 +2027,12 @@ in
         # live, so no plasmashell restart is needed. 0 disables tooltips.
         configFile.plasmarc.PlasmaToolTips.Delay = 200;
 
+        # Notification popups stay for 18 s instead of Plasma's 6. kitty's
+        # "needs your input" notice is the one that kept vanishing before it
+        # was read; the setting is global to every app's popups. Live-watched
+        # by the notification server, no restart needed.
+        configFile.plasmanotifyrc.Notifications.PopupTimeout = 18000;
+
         # ── Global shortcuts ──
         # Meta+W, Meta+G and Meta+Tab all open Overview. Grid View, which
         # used to own Meta+G, is unbound: it shows every desktop with no
