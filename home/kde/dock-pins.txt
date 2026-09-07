@@ -1,2 +1,3 @@
 applications:kitty.desktop
 applications:pyweb-view.hermes.desktop
+applications:slack.desktop

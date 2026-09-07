@@ -1969,7 +1969,7 @@ in
           # Overview (double-click the name) lasts only until the next
           # switch unless it is mirrored here. "NixeOS" was renamed live
           # on 2026-09-03 and copied back for that reason.
-          names = [ "Dev1" "Dev2" "NixeOS" ];
+          names = [ "Dev1" "Soldr" "NixeOS" "FastLED" "TWP" "Mimalloc" "Kernal-api" ];
           rows = 1;
         };
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
