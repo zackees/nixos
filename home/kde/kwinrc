@@ -2,10 +2,10 @@
 Id_1=Desktop_1
 Id_2=Desktop_2
 Id_3=Desktop_3
-Id_4=bd58b5b4-b1e9-474f-abe3-13d315cbce29
-Id_5=a2e19ee9-0f27-4c28-9b29-caf214ab0565
-Id_6=dbb0133e-bb68-4d30-a7b6-ff045c647e6f
-Id_7=233098d5-111f-4469-94c4-b7b6d879a287
+Id_4=Desktop_4
+Id_5=Desktop_5
+Id_6=Desktop_6
+Id_7=Desktop_7
 Name_1=Dev1
 Name_2=Soldr
 Name_3=NixeOS
@@ -37,6 +37,18 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][5976ebc0-bb49-4b1d-a8b4-432aea005736][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][91e3c96d-dda6-4a21-92b0-250a84c5f75b][17d9bdba-ca72-4c0f-afe1-b22d0dffe43d]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][91e3c96d-dda6-4a21-92b0-250a84c5f75b][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][91e3c96d-dda6-4a21-92b0-250a84c5f75b][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
