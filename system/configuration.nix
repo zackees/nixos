@@ -662,6 +662,7 @@ in
 
     # ── CLI toolkit (modelled on Omarchy's base package set) ──
     ripgrep             # rg: fast recursive search
+    gnugrep             # grep/egrep/fgrep; was only present transitively
     fd                  # find replacement; also fzf's file source
     bat                 # cat with syntax highlighting + line numbers
     eza                 # ls replacement, icons + git status
