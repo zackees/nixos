@@ -374,6 +374,41 @@ to be in the closure for that to work. That is not new disk use so much as
 moved: it used to sit in root's channel profile instead, outside any
 generation and impossible to roll back with one.
 
+## Hermes Agent
+
+Hermes Agent -- the Telegram gateway and the local dashboard -- is declared in
+`system/configuration.nix` as three `systemd.user.services`: `hermes-gateway`,
+`hermes-gateway-assistant` (the `assistant` profile, i.e. the second bot) and
+`hermes-dashboard`. The package comes from the `hermes-agent` flake input,
+pinned by revision in `flake.nix`.
+
+Its state does **not** move. `HERMES_HOME` is still `/home/niteris/dev/hermes`
+(and `profiles/assistant` for the second bot), owned by `niteris`, with
+`config.yaml`, `.env`, sessions, memories, skills and cron exactly where they
+were. Only the service definitions became declarative.
+
+**User units shadow system ones, silently.** NixOS writes these into
+`/etc/systemd/user/`, but systemd searches `~/.config/systemd/user/` first --
+and `hermes gateway install` had already written hand-made copies there. Those
+win, so the NixOS unit looks like it did nothing. One-time migration, after the
+first switch that includes this:
+
+```bash
+rm ~/.config/systemd/user/hermes-{gateway,gateway-assistant,dashboard}.service
+systemctl --user daemon-reload
+systemctl --user restart hermes-gateway hermes-gateway-assistant hermes-dashboard
+```
+
+Then confirm it is the NixOS unit, not the old one:
+
+```bash
+systemctl --user show -p FragmentPath hermes-gateway   # expect /etc/systemd/user/...
+```
+
+**To update Hermes, bump the revision in `flake.nix`** and rebuild. Do not run
+`hermes update`: it installs into the nix profile, which is the drift this
+replaced.
+
 ## sudo on this machine
 
 One successful authentication unlocks sudo for every session, machine-wide,

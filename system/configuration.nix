@@ -36,6 +36,12 @@ let
     '';
   };
 
+  # Hermes Agent, from the flake input pinned in flake.nix. `bin/hermes` is a
+  # wrapper that carries its own sealed uv2nix venv and runtime tools (node,
+  # git, ripgrep, ffmpeg) on PATH, so the units below do not need VIRTUAL_ENV
+  # or the hand-built PATH the `hermes gateway install` units carried.
+  hermesPkg = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+
   # ── A "Docker" launcher for the dock ──
   # Docker ships no GUI of its own -- the engine is a daemon, and the window
   # people call "Docker" is Docker Desktop, which does not exist here. So the
@@ -1061,7 +1067,26 @@ in
     open = true;
 
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    # 595.99.02, the current production driver on nixpkgs-unstable, built
+    # against the pinned kernel. The pin's 595.71.05 stalled the desktop
+    # for ~40 s at unlock on 2026-09-11 after two days locked: 145
+    # "NVRM: ... Out of memory [NV_ERR_NO_MEMORY] ... poolAllocate" asserts
+    # in one second as three DPMS-off monitors came back and every client
+    # remapped its buffers at once, kwin_wayland logging "The main thread
+    # was hanging temporarily!" throughout. The 595.71 open module has a
+    # cluster of such allocation-burst defects on Wayland (NVIDIA
+    # open-gpu-kernel-modules #1132, #1134, #1165). This is the same branch
+    # with fixes, so CUDA userspace (voxtype) stays compatible; 610.x was
+    # passed over because of its own suspend regressions (#1309). Hashes
+    # copied from nixpkgs-unstable's nvidia-x11/default.nix `production`.
+    package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+      version = "595.99.02";
+      sha256_64bit = "sha256-6HR3lYv3YwcFSTJL1a1slI66btIQ5EAFs+/4SUD24ew=";
+      sha256_aarch64 = "sha256-CCqHZTN2KNOZ4yZp2rDcuRJp9pHfRw47k4m4dWnS/2w=";
+      openSha256 = "sha256-T36x/jx8yQ8l3LFp1rZIrTfcSwbGy8YSAvXOUSptpb4=";
+      settingsSha256 = "sha256-GYCcnxfKPrTCrsmd25sMyzfC5cqJQJx0c31haooyTYM=";
+      persistencedSha256 = "sha256-VyKtF/HdHPQrHHK6opSO69M72LmnGZtauuchj9uuje8=";
+    };
 
     # Desktop, not a laptop: no hybrid graphics to suspend, and the runtime
     # power management is a known source of wake-up hangs on desktops.
@@ -1708,6 +1733,112 @@ in
         uv venv --seed --python ${userPythonVersion} "$HOME/.venv"
       fi
     '';
+  };
+
+  # ── Hermes Agent ──
+  # Declared here so the package is a NixOS-managed dependency (flake input in
+  # flake.nix) and the units survive nix-collect-garbage. This replaces the
+  # hand-written units `hermes gateway install` left in ~/.config/systemd/user,
+  # which hardcoded store paths GC could delete.
+  #
+  # HERMES_HOME is deliberately unchanged: config.yaml, .env, sessions,
+  # memories, skills and both profiles all stay in /home/niteris/dev/hermes,
+  # still owned by niteris. Only the service definitions move into Nix.
+  #
+  # NOTE: user units under ~/.config/systemd/user shadow the ones NixOS writes
+  # to /etc/systemd/user, so the old files must be deleted for these to take
+  # effect. See AGENTS.md "Hermes Agent" for the one-time migration.
+  systemd.user.services.hermes-gateway = {
+    description = "Hermes Agent Gateway - Messaging Platform Integration";
+    wantedBy = [ "default.target" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    # Retry forever rather than hitting systemd's default start limit when a
+    # bad config or a network outage makes the gateway exit immediately.
+    startLimitIntervalSec = 0;
+    # The `path` option appends /bin (and /sbin) to every entry, so these are
+    # given as the PARENT directories -- ~/.local/bin and ~/.cargo/bin are what
+    # actually lands on PATH. That is where gh, uv and clud live, which the
+    # agent shells out to; bin/hermes appends its own tools (node, git,
+    # ripgrep, ffmpeg) on top.
+    path = [ "/home/niteris/.local" "/home/niteris/.cargo" ];
+    environment = {
+      HERMES_HOME = "/home/niteris/dev/hermes";
+      HERMES_SUPERVISED_CHILD = "1";
+    };
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${hermesPkg}/bin/hermes gateway run";
+      WorkingDirectory = "/home/niteris/dev/hermes";
+      Restart = "always";
+      RestartSec = 5;
+      RestartForceExitStatus = 75;
+      RestartPreventExitStatus = 78;
+      KillMode = "mixed";
+      KillSignal = "SIGTERM";
+      ExecReload = "/bin/kill -USR1 $MAINPID";
+      # Bare interpreter, not bin/hermes: this runs after the unit stops and
+      # must not inherit the wrapper's environment.
+      ExecStopPost = "-${hermesPkg.passthru.hermesVenv}/bin/python -m gateway.cgroup_cleanup";
+      TimeoutStopSec = 70;
+      StandardOutput = "journal";
+      StandardError = "journal";
+    };
+  };
+
+  # The `assistant` profile -- the second Telegram bot. Its HERMES_HOME is the
+  # profile directory itself, which is how `hermes -p assistant gateway install`
+  # generated it.
+  systemd.user.services.hermes-gateway-assistant = {
+    description = "Hermes Agent Gateway - assistant profile";
+    wantedBy = [ "default.target" ];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    startLimitIntervalSec = 0;
+    path = [ "/home/niteris/.local" "/home/niteris/.cargo" ];
+    environment = {
+      HERMES_HOME = "/home/niteris/dev/hermes/profiles/assistant";
+      HERMES_SUPERVISED_CHILD = "1";
+    };
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${hermesPkg}/bin/hermes --profile assistant gateway run";
+      WorkingDirectory = "/home/niteris/dev/hermes/profiles/assistant";
+      Restart = "always";
+      RestartSec = 5;
+      RestartForceExitStatus = 75;
+      RestartPreventExitStatus = 78;
+      KillMode = "mixed";
+      KillSignal = "SIGTERM";
+      ExecReload = "/bin/kill -USR1 $MAINPID";
+      ExecStopPost = "-${hermesPkg.passthru.hermesVenv}/bin/python -m gateway.cgroup_cleanup";
+      TimeoutStopSec = 70;
+      StandardOutput = "journal";
+      StandardError = "journal";
+    };
+  };
+
+  # The local dashboard on 127.0.0.1:9119, which the host nginx proxies at
+  # https://164.92.65.2/ and the `go/hermes` link frames.
+  systemd.user.services.hermes-dashboard = {
+    description = "Hermes Agent Local Dashboard";
+    wantedBy = [ "default.target" ];
+    after = [ "network-online.target" "hermes-gateway.service" ];
+    wants = [ "network-online.target" ];
+    path = [ "/home/niteris/.local" ];
+    environment.HERMES_HOME = "/home/niteris/dev/hermes";
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = "${hermesPkg}/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open";
+      WorkingDirectory = "/home/niteris/dev/hermes";
+      Restart = "always";
+      RestartSec = 5;
+      KillMode = "mixed";
+      KillSignal = "SIGTERM";
+      TimeoutStopSec = 30;
+      StandardOutput = "journal";
+      StandardError = "journal";
+    };
   };
 
   fonts = {

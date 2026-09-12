@@ -32,6 +32,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    # Hermes Agent -- the messaging gateway and dashboard this machine runs.
+    # Previously installed ad-hoc with `nix profile install`, which left the
+    # three hand-written systemd user units pointing at a /nix/store path that
+    # nix-collect-garbage can delete. Declaring it here makes the package a
+    # NixOS-managed dependency, so the units survive GC and rebuilds.
+    #
+    # Pinned to the exact revision that profile install had (0.21.0), so this
+    # migration is a no-op rather than a silent upgrade -- same reasoning as
+    # the nixpkgs pin above. Bump it deliberately, then restart the units.
+    hermes-agent.url = "github:NousResearch/hermes-agent/5a8e8a6b87487c0e0785cd9eb561cc6a96c64f5e";
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
