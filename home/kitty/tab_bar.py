@@ -1,8 +1,18 @@
 # Custom tab bar: stock powerline tabs, plus a permanent reminder on the
 # right telling you where the cheat sheet and the command palette live.
 import os
+import runpy
 
 from kitty.tab_bar import as_rgb, draw_tab_with_powerline
+
+# Reloading kitty re-imports this module even for already open windows. The
+# helper publishes read-only pane identities for launch placement (issue #14).
+_origin_bridge = '/run/current-system/sw/share/launch-origin/kitty_bridge.py'
+if os.path.isfile(_origin_bridge):
+    try:
+        runpy.run_path(_origin_bridge)['install']()
+    except Exception:
+        pass  # An optional placement helper must not break the tab bar.
 
 KEY = 0xfdbc4b   # amber, matches color11
 LBL = 0x7f8c8d   # Breeze inactive-tab grey

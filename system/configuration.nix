@@ -4,6 +4,14 @@
 
 { config, pkgs, lib, inputs, ... }:
 let
+  # KWin knows a new window's PID but not which terminal created that process.
+  # Keep ancestry lookup outside the compositor; the tiny script only applies
+  # an unambiguous result. Read-only kitty metadata handles its shared PID.
+  launchOriginPython = pkgs.python3.withPackages (p: [ p.dbus-python p.pygobject3 ]);
+  launchOrigin = pkgs.runCommand "launch-origin" { } ''
+    mkdir -p $out/share/launch-origin
+    cp ${./launch-origin}/*.py ${./launch-origin}/*.js $out/share/launch-origin/
+  '';
   # TMOG (https://tmog.org) is a third-party Qt 6 task manager shipped only as an
   # unsigned AppImage, so there is no nixpkgs attribute for it. wrapType2 runs it
   # in an FHS sandbox where its bundled Qt libs resolve. The .deb upstream also
@@ -660,6 +668,7 @@ in
     stepDesktop
     kittyOpenUrl
     kdotool             # KWin window queries from scripts; see kittyOpenUrl
+    launchOrigin        # read-only kitty bridge; user service below owns placement
     imagemagick
 
     # Sublime Text. Needs the permittedInsecurePackages entry further down --
@@ -1733,6 +1742,18 @@ in
         uv venv --seed --python ${userPythonVersion} "$HOME/.venv"
       fi
     '';
+  };
+
+  systemd.user.services.launch-origin = {
+    description = "Keep new application windows on their source desktop";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      ExecStart = "${launchOriginPython}/bin/python ${launchOrigin}/share/launch-origin/service.py ${launchOrigin}/share/launch-origin/main.js";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
   };
 
   # ── Hermes Agent ──
