@@ -3,9 +3,9 @@ annotationToolType=3
 highlighterStrokeColor=255,0,0
 
 [ImageSave]
-preferredImageFormat=jpeg
 imageCompressionQuality=95
-lastImageSaveLocation=file:///tmp/kitty-paste-confirmation.png
+lastImageSaveLocation=file:///tmp/spectacle-native-final.jpg
+preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 
 [VideoSave]
