@@ -16,6 +16,9 @@ class MousePasteTests(unittest.TestCase):
     def setUp(self):
         self.window = Mock()
         self.boss = SimpleNamespace(window_id_map={42: self.window}, confirm=Mock())
+        popup = patch.dict(GLOBALS, _confirm_popup=lambda boss, msg, cb: boss.confirm(msg, cb))
+        popup.start()
+        self.addCleanup(popup.stop)
 
     def invoke(self, confirm=False):
         HANDLE(['paste.py'] + (['--confirm'] if confirm else []), None, 42, self.boss)
@@ -42,8 +45,6 @@ class MousePasteTests(unittest.TestCase):
         save.assert_not_called()
         self.assertEqual(self.boss.confirm.call_args.args[0], 'Paste image (2kB) [y/n]')
         self.window.paste_text.assert_not_called()
-        self.assertFalse(self.boss.confirm.call_args.kwargs['confirm_on_accept'])
-        self.assertFalse(self.boss.confirm.call_args.kwargs['confirm_on_cancel'])
 
     def test_confirmed_image_targets_original_pane(self):
         with patch.dict(GLOBALS, _clipboard_image=lambda: (b'image', 'png'),
@@ -91,6 +92,19 @@ class MousePasteTests(unittest.TestCase):
             self.assertNotEqual(first, second)
             self.assertEqual(Path(first).read_bytes(), b'first')
             self.assertEqual(Path(second).read_bytes(), b'second')
+
+    def test_native_popup_runs_without_blocking_and_fails_closed(self):
+        boss = SimpleNamespace(run_background_process=Mock(), show_error=Mock())
+        callback = Mock()
+        PASTE['_confirm_popup'](boss, 'Paste text (1kB) [y/n]', callback)
+        callback.assert_not_called()
+        args = boss.run_background_process.call_args
+        self.assertEqual(args.args[0][-1], 'Paste text (1kB) [y/n]')
+        finished = args.kwargs['notify_on_death']
+        for status, error, expected in [(0, None, True), (1, None, False),
+                                        (9, None, False), (-1, OSError('missing'), False)]:
+            finished(status, error)
+            callback.assert_called_with(expected)
 
     def test_bindings_cover_grabbed_and_ungrabbed(self):
         from kitty.options.utils import parse_mouse_map
