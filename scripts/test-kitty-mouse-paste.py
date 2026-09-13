@@ -14,6 +14,12 @@ GLOBALS = PASTE['paste_into'].__globals__
 
 
 class MousePasteTests(unittest.TestCase):
+    def test_right_click_disabled_but_middle_click_still_pastes(self):
+        config = (ROOT / 'home/kitty/kitty.conf').read_text()
+        self.assertIn('mouse_map right release grabbed,ungrabbed discard_event', config)
+        self.assertNotIn('kitten paste.py --confirm', config)
+        self.assertIn('mouse_map middle release grabbed,ungrabbed kitten paste.py', config)
+
     def test_issue_17_popup_has_compositor_parent_and_no_global_topmost(self):
         self.assertNotIn("root.attributes('-topmost', True)", PASTE['POPUP_CODE'])
         self.assertIn('KWIN_CODE', PASTE)
@@ -131,7 +137,7 @@ class MousePasteTests(unittest.TestCase):
     def test_bindings_cover_grabbed_and_ungrabbed(self):
         from kitty.options.utils import parse_mouse_map
         conf = (ROOT / 'home/kitty/kitty.conf').read_text()
-        for button, action in [('right', 'kitten paste.py --confirm'),
+        for button, action in [('right', 'discard_event'),
                                ('middle', 'kitten paste.py')]:
             for event, expected in [('press', 'discard_event'), ('release', action)]:
                 mapping = f'{button} {event} grabbed,ungrabbed {expected}'
