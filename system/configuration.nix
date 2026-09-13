@@ -48,7 +48,29 @@ let
   # wrapper that carries its own sealed uv2nix venv and runtime tools (node,
   # git, ripgrep, ffmpeg) on PATH, so the units below do not need VIRTUAL_ENV
   # or the hand-built PATH the `hermes gateway install` units carried.
-  hermesPkg = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  # Local build workers (notably fbuild-daemon) need a 16 GiB budget.
+  # Upstream caps them at 4 GiB even when the environment requests more.
+  hermesSource = pkgs.applyPatches {
+    name = "hermes-source-worker-memory";
+    src = inputs.hermes-agent;
+    postPatch = ''
+      substituteInPlace tools/process_registry.py \
+        --replace-fail '_WORKER_MEMORY_MAX_CAP_BYTES = 4 * 1024 * 1024 * 1024' \
+                       '_WORKER_MEMORY_MAX_CAP_BYTES = 16 * 1024 * 1024 * 1024' \
+        --replace-fail 'capped at 4 GiB' 'capped at 16 GiB'
+    '';
+  };
+  hermesBuildPkgs = inputs.hermes-agent.inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+  hermesPkg = hermesBuildPkgs.callPackage "${hermesSource}/nix/hermes-agent.nix" {
+    inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
+    npm-lockfile-fix = inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    rev = inputs.hermes-agent.rev;
+    extraDependencyGroups = [
+      "anthropic" "azure-identity" "bedrock" "daytona" "dingtalk"
+      "edge-tts" "exa" "fal" "feishu" "firecrawl" "hindsight" "honcho"
+      "messaging" "modal" "parallel-web" "tts-premium" "vercel" "voice" "matrix"
+    ];
+  };
 
   # ── A "Docker" launcher for the dock ──
   # Docker ships no GUI of its own -- the engine is a daemon, and the window
