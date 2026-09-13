@@ -645,6 +645,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
+    unrar               # Extract RAR archives from the command line.
     tmog                # tmog.org AppImage; see let-block above
     python3
     # NOT python3Packages.pip: it is a separate derivation from python3, so
