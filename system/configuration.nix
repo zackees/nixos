@@ -1010,7 +1010,14 @@ in
       let
         unstable = inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system};
       in {
-        inherit (unstable) kdePackages qt6 qt6Packages;
+        inherit (unstable) qt6 qt6Packages;
+        kdePackages = unstable.kdePackages.overrideScope (_kfinal: kprev: {
+          # Mixed fractional DPR previews resample even single-screen regions.
+          # Keep the captured native pixels for plain region crops (KDE #490353).
+          spectacle = kprev.spectacle.overrideAttrs (old: {
+            patches = (old.patches or []) ++ [ ./patches/spectacle-native-region.patch ];
+          });
+        });
       })
     (final: prev: {
       voxtype = prev.voxtype.overrideAttrs (old: {

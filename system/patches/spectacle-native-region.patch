@@ -1,0 +1,94 @@
+--- a/src/Platforms/ImagePlatform.h
++++ b/src/Platforms/ImagePlatform.h
+@@ -46,6 +46,9 @@
+     virtual GrabModes supportedGrabModes() const = 0;
+     virtual ShutterModes supportedShutterModes() const = 0;
+ 
++    // An original, unresampled screen covering the selection, if available.
++    virtual QImage nativeImageForSelection(const QRectF &) const { return {}; }
++
+ public Q_SLOTS:
+     virtual void
+     doGrab(ImagePlatform::ShutterMode shutterMode, ImagePlatform::GrabMode grabMode, bool includePointer, bool includeDecorations, bool includeShadow) = 0;
+--- a/src/Platforms/ImagePlatformKWin.h
++++ b/src/Platforms/ImagePlatformKWin.h
+@@ -63,6 +63,7 @@
+ 
+     GrabModes supportedGrabModes() const override;
+     ShutterModes supportedShutterModes() const override;
++    QImage nativeImageForSelection(const QRectF &rect) const override;
+ 
+ public Q_SLOTS:
+     void
+@@ -85,6 +86,7 @@
+     void trackSource(ScreenShotSourceMeta2 *source, OutputSignal outputSignal);
+ 
+     int m_apiVersion = 1;
++    QList<QImage> m_nativeSelectionImages;
+     GrabModes m_grabModes;
+ };
+ 
+--- a/src/Platforms/ImagePlatformKWin.cpp
++++ b/src/Platforms/ImagePlatformKWin.cpp
+@@ -423,6 +423,7 @@
+ 
+ void ImagePlatformKWin::doGrab(ShutterMode, GrabMode grabMode, bool includePointer, bool includeDecorations, bool includeShadow)
+ {
++    m_nativeSelectionImages.clear();
+     ScreenShotFlags flags = ScreenShotFlag::NativeSize;
+ 
+     flags.setFlag(ScreenShotFlag::IncludeShadow, includeShadow);
+@@ -496,6 +497,9 @@
+         }
+ 
+         if (!images.empty()) {
++            if (outputSignal == &ImagePlatform::newCroppableScreenshotTaken) {
++                m_nativeSelectionImages = images;
++            }
+             Q_EMIT (this->*outputSignal)(combinedImage(images));
+         }
+         if (!errorString.isEmpty()) {
+@@ -509,6 +513,20 @@
+     trackSource(new ScreenShotSourceArea2(area, flags));
+ }
+ 
++QImage ImagePlatformKWin::nativeImageForSelection(const QRectF &rect) const
++{
++    if (rect.isEmpty()) {
++        return {};
++    }
++    for (const auto &image : m_nativeSelectionImages) {
++        const QRectF screenRect{ImageMetaData::logicalXY(image), image.deviceIndependentSize()};
++        if (screenRect.contains(rect)) {
++            return image;
++        }
++    }
++    return {};
++}
++
+ void ImagePlatformKWin::takeScreenShotInteractive(InteractiveKind kind, ScreenShotFlags flags)
+ {
+     trackSource(new ScreenShotSourceInteractive2(kind, flags));
+--- a/src/SpectacleCore.cpp
++++ b/src/SpectacleCore.cpp
+@@ -165,7 +165,19 @@
+         } else {
+             SpectacleWindow::setVisibilityForAll(QWindow::Hidden);
+             deleteWindows();
+-            m_annotationDocument->cropCanvas(rect);
++            // The mixed-DPR preview has already resampled the screen pixels.
++            // Restore the original before cropping a plain single-screen region.
++            // Do not reset a document with existing annotation/history state.
++            auto cropRect = rect;
++            if (m_annotationDocument->undoStackDepth() == 0 && m_annotationDocument->redoStackDepth() == 0) {
++                const auto nativeImage = m_imagePlatform->nativeImageForSelection(rect);
++                if (!nativeImage.isNull()) {
++                    m_annotationDocument->setBaseImage(nativeImage);
++                    // cropCanvas takes coordinates relative to the current canvas.
++                    cropRect.translate(-ImageMetaData::logicalXY(nativeImage));
++                }
++            }
++            m_annotationDocument->cropCanvas(cropRect);
+             syncExportImage();
+             auto exportActions = actions & ExportManager::AnyAction ? actions : autoExportActions();
+             if (m_ocrExportInProgress) {
