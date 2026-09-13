@@ -215,7 +215,7 @@ let
   };
 
   # ── The sudo password dialog ──
-  # Password plus One time / 15 minutes / 4 hours. ksshaskpass could not do
+  # Password plus One Time / 15 Min / 4 Hours / All Day. ksshaskpass could not do
   # this: its "remember" checkbox only appears for ssh and git prompts it
   # recognises, and `[sudo] password for niteris:` is not one of them.
   sudoAskpass = pkgs.callPackage ./pkgs/sudo-askpass { };
@@ -1555,9 +1555,11 @@ in
   # ── Privilege escalation ─────────────────────────────────────
   # One successful authentication unlocks sudo for every session, including
   # ones with no controlling TTY. How long is chosen in the dialog:
-  # One time / 15 minutes / 4 hours. sudo itself cannot take that answer,
-  # so sudoers grants the 4-hour ceiling and sudo-askpass (pkgs/sudo-askpass)
-  # schedules `sudo -k` on a transient user timer for the shorter two --
+  # One Time / 15 Min / 4 Hours / All Day (24 hours). sudo cannot take that
+  # answer, so sudoers grants the 24-hour ceiling and sudo-askpass
+  # (pkgs/sudo-askpass) schedules `sudo -k` on a transient user timer --
+  # even for All Day, so repeated commands cannot slide its expiry forward.
+  # One Time uses a five-second grace period, not a strict command count.
   # `systemctl --user list-timers sudo-ticket-expire` shows it pending.
   # A sudo that never goes through the dialog (ssh, a bare console) gets
   # the ceiling.
@@ -1567,7 +1569,7 @@ in
   #
   security.sudo.extraConfig = ''
     Defaults timestamp_type=global
-    Defaults timestamp_timeout=240
+    Defaults timestamp_timeout=1440
   '';
 
   # A touch on the YubiKey stands in for the password, for sudo only. The
@@ -1593,11 +1595,12 @@ in
   # manage /etc/sudo.conf, and unset values keep their built-in defaults.
   # For GUI apps, polkit's pkexec already pops a dialog via the
   # polkit-kde-authentication-agent that Plasma runs.
-  environment.etc."sudo.conf".text =
-    "Path askpass ${sudoAskpass}/bin/sudo-askpass\n";
+  # Keep the exported path stable across rebuilds: long-lived GUI processes
+  # retain their environment and otherwise keep invoking an old store binary.
+  environment.etc."sudo-askpass".source = "${sudoAskpass}/bin/sudo-askpass";
+  environment.etc."sudo.conf".text = "Path askpass /etc/sudo-askpass\n";
 
-  environment.variables.SUDO_ASKPASS =
-    "${sudoAskpass}/bin/sudo-askpass";
+  environment.variables.SUDO_ASKPASS = "/etc/sudo-askpass";
 
   # Route interactive sudo through the graphical prompt too. Guarded on a
   # graphical session being present: on a bare console or over SSH there is
@@ -1605,6 +1608,9 @@ in
   # Aliases apply to interactive shells only, so scripts are unaffected.
   programs.bash.interactiveShellInit = ''
     if [ -n "''${WAYLAND_DISPLAY:-}''${DISPLAY:-}" ]; then
+      # Refresh inherited pre-migration ksshaskpass settings even when the
+      # parent desktop/terminal was started before the system switch.
+      export SUDO_ASKPASS=/etc/sudo-askpass
       alias sudo='sudo -A'
     fi
   '';

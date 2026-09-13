@@ -1,4 +1,4 @@
-# The graphical sudo prompt: password plus a One time / 15 minutes / 4 hours
+# The graphical sudo prompt: password plus One Time / 15 Min / 4 Hours / All Day
 # choice for how long the ticket lasts. Replaces ksshaskpass for sudo -A;
 # see main.cpp for how the duration is enforced, and the sudo block in
 # configuration.nix for the sudoers side of it.

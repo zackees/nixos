@@ -2,8 +2,8 @@
 //
 // sudo runs this with the prompt as argv[1] and reads the password from
 // stdout. It has no way to hear anything else back, so the duration is
-// enforced from here instead: sudoers grants the longest option (4 h) and
-// the shorter ones schedule `sudo -k` on a transient systemd user timer.
+// enforced from here instead: sudoers grants the longest option (24 h) and
+// each choice schedules `sudo -k` on a transient systemd user timer.
 // One timer unit, replaced on every use, so the latest choice always wins.
 #include <QApplication>
 #include <QDialog>
@@ -28,9 +28,10 @@ struct Choice {
     int seconds; // 0 = leave sudo's own timeout in charge
 };
 const Choice kChoices[] = {
-    {"One time", 5},
-    {"15 minutes", 15 * 60},
-    {"4 hours", 0},
+    {"One Time", 5},
+    {"15 Min", 15 * 60},
+    {"4 Hours", 4 * 60 * 60},
+    {"All Day", 24 * 60 * 60},
 };
 
 // Run a command to completion with its output discarded: sudo shows our
@@ -110,6 +111,11 @@ int main(int argc, char **argv)
     QList<QRadioButton *> radios;
     for (const Choice &c : kChoices) {
         auto *r = new QRadioButton(QString::fromUtf8(c.label));
+        if (c.seconds == 5) {
+            r->setToolTip(QStringLiteral("Expire the shared sudo ticket after a five-second grace period."));
+        } else if (c.seconds == 24 * 60 * 60) {
+            r->setToolTip(QStringLiteral("Expire the shared sudo ticket after 24 hours."));
+        }
         radios << r;
         durRow->addWidget(r);
     }
