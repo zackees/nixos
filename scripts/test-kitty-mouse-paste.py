@@ -13,10 +13,14 @@ GLOBALS = PASTE['paste_into'].__globals__
 
 
 class MousePasteTests(unittest.TestCase):
+    def test_issue_17_popup_has_compositor_parent_and_no_global_topmost(self):
+        self.assertNotIn("root.attributes('-topmost', True)", PASTE['POPUP_CODE'])
+        self.assertIn('KWIN_CODE', PASTE)
+
     def setUp(self):
         self.window = Mock()
         self.boss = SimpleNamespace(window_id_map={42: self.window}, confirm=Mock())
-        popup = patch.dict(GLOBALS, _confirm_popup=lambda boss, msg, cb: boss.confirm(msg, cb))
+        popup = patch.dict(GLOBALS, _confirm_popup=lambda boss, msg, cb, window: boss.confirm(msg, cb))
         popup.start()
         self.addCleanup(popup.stop)
 
@@ -96,10 +100,13 @@ class MousePasteTests(unittest.TestCase):
     def test_native_popup_runs_without_blocking_and_fails_closed(self):
         boss = SimpleNamespace(run_background_process=Mock(), show_error=Mock())
         callback = Mock()
-        PASTE['_confirm_popup'](boss, 'Paste text (1kB) [y/n]', callback)
+        with patch.dict(GLOBALS, _source_identity=lambda window: dict(pid=123, title='source')):
+            PASTE['_confirm_popup'](boss, 'Paste text (1kB) [y/n]', callback, self.window)
         callback.assert_not_called()
         args = boss.run_background_process.call_args
-        self.assertEqual(args.args[0][-1], 'Paste text (1kB) [y/n]')
+        self.assertEqual(args.args[0][3], 'Paste text (1kB) [y/n]')
+        self.assertIn('"pid": 123', args.args[0][-1])
+        self.assertIn('"title": "source"', args.args[0][-1])
         finished = args.kwargs['notify_on_death']
         for status, error, expected in [(0, None, True), (1, None, False),
                                         (9, None, False), (-1, OSError('missing'), False)]:
