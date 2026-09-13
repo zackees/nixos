@@ -43,6 +43,13 @@
     # migration is a no-op rather than a silent upgrade -- same reasoning as
     # the nixpkgs pin above. Bump it deliberately, then restart the units.
     hermes-agent.url = "github:NousResearch/hermes-agent/5a8e8a6b87487c0e0785cd9eb561cc6a96c64f5e";
+
+    # The private-desktop application is built from this immutable source
+    # revision.  flake.lock records the corresponding source NAR hash.
+    docker-vm = {
+      url = "github:zackees/docker-vm/bc2a6fc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {

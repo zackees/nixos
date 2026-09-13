@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "docker-vm": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789319229,
+        "narHash": "sha256-/ANGWss2hZGi2vPMIit4xP2N3sR5zOxIGAJdeeQZ74s=",
+        "owner": "zackees",
+        "repo": "docker-vm",
+        "rev": "bc2a6fc7a1a06b0fd2026f6bca794eafe1a965ef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zackees",
+        "ref": "bc2a6fc",
+        "repo": "docker-vm",
+        "type": "github"
+      }
+    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
@@ -232,6 +253,7 @@
     },
     "root": {
       "inputs": {
+        "docker-vm": "docker-vm",
         "hermes-agent": "hermes-agent",
         "home-manager": "home-manager_2",
         "nixpkgs": "nixpkgs_2",

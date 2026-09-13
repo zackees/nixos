@@ -175,7 +175,7 @@ let
   # desktopScript below, and RollOverDesktops=false in kwinrc is what makes
   # them stop at the ends instead of wrapping.
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
-  dockerVm = pkgs.callPackage ./pkgs/docker-vm { };
+  dockerVm = inputs.docker-vm.packages.${pkgs.system}.docker-vm;
 
   # ── Links from kitty open in the Brave window on THIS desktop ──
   # Chromium opens a URL in whichever of its windows was focused most
