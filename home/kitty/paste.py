@@ -21,6 +21,62 @@ IMAGE_TYPES = (
     ('image/gif', 'gif'),
 )
 
+# The declaratively provisioned user Python includes Tk. Run its GUI outside
+# Kitty's event loop; Kitty's own confirmation is a full-pane overlay.
+POPUP_PYTHON = os.path.expanduser('~/.venv/bin/python')
+POPUP_CODE = '''
+import sys
+import tkinter as tk
+from tkinter import ttk
+
+root = tk.Tk()
+root.withdraw()
+root.title('Paste clipboard')
+root.resizable(False, False)
+root.attributes('-topmost', True)
+root.attributes('-type', 'dialog')
+accepted = False
+
+def finish(value=False):
+    global accepted
+    accepted = value
+    root.destroy()
+
+frame = ttk.Frame(root, padding=18)
+frame.pack()
+ttk.Label(frame, text=sys.argv[1]).pack(pady=(0, 14))
+buttons = ttk.Frame(frame)
+buttons.pack()
+ttk.Button(buttons, text='Yes (Y)', command=lambda: finish(True)).pack(side='left', padx=6)
+no = ttk.Button(buttons, text='No (N)', command=finish)
+no.pack(side='left', padx=6)
+for key in ('y', 'Y'):
+    root.bind('<Key-' + key + '>', lambda event: finish(True))
+for key in ('n', 'N', 'Escape', 'Return'):
+    root.bind('<Key-' + key + '>', lambda event: finish(False))
+root.protocol('WM_DELETE_WINDOW', finish)
+root.update_idletasks()
+x = max(0, min(root.winfo_pointerx() + 12, root.winfo_screenwidth() - root.winfo_reqwidth()))
+y = max(0, min(root.winfo_pointery() + 12, root.winfo_screenheight() - root.winfo_reqheight()))
+root.geometry(f'+{x}+{y}')
+root.deiconify()
+no.focus_set()
+root.after(120000, finish)
+root.mainloop()
+sys.exit(0 if accepted else 1)
+'''
+
+
+def _confirm_popup(boss, message, callback):
+    def finished(status, error):
+        # Cancellation, a crash, and launch failure all fail closed.
+        if error is not None:
+            boss.show_error('Paste confirmation unavailable', str(error))
+        callback(error is None and status == 0)
+
+    boss.run_background_process(
+        [POPUP_PYTHON, '-c', POPUP_CODE, message], notify_on_death=finished)
+
 
 def _wl_paste():
     return WL_PASTE if os.access(WL_PASTE, os.X_OK) else 'wl-paste'
@@ -99,9 +155,7 @@ def handle_result(args, answer, target_window_id, boss):
             if accepted:
                 paste_into(target_window_id, boss, payload)
 
-        boss.confirm(_prompt(payload), confirmed, window=w,
-                     confirm_on_accept=False, confirm_on_cancel=False,
-                     title='Paste clipboard')
+        _confirm_popup(boss, _prompt(payload), confirmed)
         return
     paste_into(target_window_id, boss)
 
