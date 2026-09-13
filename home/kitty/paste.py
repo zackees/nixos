@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smart paste for kitty, bound to super+v.
+"""Smart clipboard paste; --confirm asks Yes/No before reading the clipboard.
 
 If the clipboard holds an image, save it and paste the file's path (a
 terminal cannot receive image bytes, but a path is what you actually want).
@@ -61,6 +61,23 @@ def main(args):
 
 @result_handler(no_ui=True)
 def handle_result(args, answer, target_window_id, boss):
+    w = boss.window_id_map.get(target_window_id)
+    if w is None:
+        return
+    if '--confirm' in args[1:]:
+        def confirmed(accepted):
+            # Do not redirect to a newly focused pane while the prompt is open.
+            if accepted:
+                paste_into(target_window_id, boss)
+
+        boss.confirm('Paste? (y/n)', confirmed, window=w,
+                     confirm_on_accept=False, confirm_on_cancel=False,
+                     title='Paste clipboard')
+        return
+    paste_into(target_window_id, boss)
+
+
+def paste_into(target_window_id, boss):
     w = boss.window_id_map.get(target_window_id)
     if w is None:
         return

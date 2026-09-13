@@ -184,9 +184,9 @@ def main():
         for key, note in items:
             out.append('  %s%-*s%s  %s' % (KEYC, kw, key, OFF, note))
         out.append('')
-    out.append('  %sForgot one?%s %sright-click%s %sor%s %sCtrl+Shift+M%s '
+    out.append('  %sForgot one?%s %sCtrl+Shift+M%s '
                '%sopens the full command palette.%s'
-               % (DIM, OFF, KEYC, OFF, DIM, OFF, KEYC, OFF, DIM, OFF))
+               % (DIM, OFF, KEYC, OFF, DIM, OFF))
     out.append('  %sReload config after editing:%s %sCtrl+Shift+F5%s'
                % (DIM, OFF, KEYC, OFF))
     out.append('')
