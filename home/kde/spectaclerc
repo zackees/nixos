@@ -4,7 +4,7 @@ highlighterStrokeColor=255,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///tmp/scaling-final-monitor.png
+lastImageSaveLocation=file:///run/user/1000/docker-vm-restarted.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 
@@ -12,5 +12,5 @@ translatedScreenshotsFolder=Screenshots
 translatedScreencastsFolder=Screencasts
 
 [ViewerWindow]
-3 screens: Height=1321
-3 screens: Width=2078
+3 screens: Height=795
+3 screens: Width=1463
