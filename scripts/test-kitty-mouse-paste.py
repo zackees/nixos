@@ -13,9 +13,16 @@ GLOBALS = PASTE['paste_into'].__globals__
 
 
 class MousePasteTests(unittest.TestCase):
+    def test_issue_17_popup_has_compositor_parent_and_no_global_topmost(self):
+        self.assertNotIn("root.attributes('-topmost', True)", PASTE['POPUP_CODE'])
+        self.assertIn('KWIN_CODE', PASTE)
+
     def setUp(self):
         self.window = Mock()
         self.boss = SimpleNamespace(window_id_map={42: self.window}, confirm=Mock())
+        popup = patch.dict(GLOBALS, _confirm_popup=lambda boss, msg, cb, window: boss.confirm(msg, cb))
+        popup.start()
+        self.addCleanup(popup.stop)
 
     def invoke(self, confirm=False):
         HANDLE(['paste.py'] + (['--confirm'] if confirm else []), None, 42, self.boss)
@@ -42,8 +49,6 @@ class MousePasteTests(unittest.TestCase):
         save.assert_not_called()
         self.assertEqual(self.boss.confirm.call_args.args[0], 'Paste image (2kB) [y/n]')
         self.window.paste_text.assert_not_called()
-        self.assertFalse(self.boss.confirm.call_args.kwargs['confirm_on_accept'])
-        self.assertFalse(self.boss.confirm.call_args.kwargs['confirm_on_cancel'])
 
     def test_confirmed_image_targets_original_pane(self):
         with patch.dict(GLOBALS, _clipboard_image=lambda: (b'image', 'png'),
@@ -91,6 +96,22 @@ class MousePasteTests(unittest.TestCase):
             self.assertNotEqual(first, second)
             self.assertEqual(Path(first).read_bytes(), b'first')
             self.assertEqual(Path(second).read_bytes(), b'second')
+
+    def test_native_popup_runs_without_blocking_and_fails_closed(self):
+        boss = SimpleNamespace(run_background_process=Mock(), show_error=Mock())
+        callback = Mock()
+        with patch.dict(GLOBALS, _source_identity=lambda window: dict(pid=123, title='source')):
+            PASTE['_confirm_popup'](boss, 'Paste text (1kB) [y/n]', callback, self.window)
+        callback.assert_not_called()
+        args = boss.run_background_process.call_args
+        self.assertEqual(args.args[0][3], 'Paste text (1kB) [y/n]')
+        self.assertIn('"pid": 123', args.args[0][-1])
+        self.assertIn('"title": "source"', args.args[0][-1])
+        finished = args.kwargs['notify_on_death']
+        for status, error, expected in [(0, None, True), (1, None, False),
+                                        (9, None, False), (-1, OSError('missing'), False)]:
+            finished(status, error)
+            callback.assert_called_with(expected)
 
     def test_bindings_cover_grabbed_and_ungrabbed(self):
         from kitty.options.utils import parse_mouse_map
