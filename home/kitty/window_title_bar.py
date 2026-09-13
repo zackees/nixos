@@ -18,21 +18,18 @@
 # OSC 7, which is always current. tab_bar.py's draw_title() does the same, so
 # a pane's label and its tab's label agree by construction.
 import os
-import runpy
 import stat
 
 from kitty.boss import get_boss
-from kitty.constants import config_dir
+from kitty.tab_bar import load_custom_draw_tab_module
 from kitty.window_title_bar import WindowTitleFormatter
 
-# _short_wd and SHELLS live in tab_bar.py, and are shared rather than copied
-# so the two labels cannot drift apart. kitty loads both of these files with
-# runpy.run_path and never puts the config directory on sys.path, so this is
-# the import: tab_bar.py's body only defines constants and functions, and
-# running it a second time has no effect beyond that.
-_tab_bar = runpy.run_path(os.path.join(config_dir, 'tab_bar.py'))
+# Share the loaded tab module, including its foreground cache, rather than
+# executing a second copy with a separate cache and duplicate startup hooks.
+_tab_bar = load_custom_draw_tab_module()
 _short_wd = _tab_bar['_short_wd']
 _pane_wd = _tab_bar['_pane_wd']
+_pane_exe = _tab_bar['_pane_exe']
 SHELLS = _tab_bar['SHELLS']
 
 # Nerd Font branch glyph -- the same one starship draws in the prompt below.
@@ -160,7 +157,7 @@ def draw_window_title(data):
         out.append(' %s%s %s%s' % (
             getattr(WindowTitleFormatter.fg, BRANCH_COLOUR), BRANCH_GLYPH,
             branch, WindowTitleFormatter.fg.window))
-    exe = os.path.basename((w.get_exe_of_child() if w is not None else '') or '')
+    exe = _pane_exe(w)
     if exe and exe not in SHELLS:
         out.append(' · %s' % exe)
     return ''.join(out)

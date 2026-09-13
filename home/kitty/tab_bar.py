@@ -2,8 +2,14 @@
 # right telling you where the cheat sheet and the command palette live.
 import os
 import runpy
+from time import monotonic
 
 from kitty.tab_bar import as_rgb, draw_tab_with_powerline
+from kitty.window_title_bar import clear_caches as clear_pane_title_cache
+
+# Kitty reloads this module on SIGUSR1 but does not invalidate the custom pane
+# title module itself. Invalidate it here so both title renderers reload together.
+clear_pane_title_cache()
 
 # Reloading kitty re-imports this module even for already open windows. The
 # helper publishes read-only pane identities for launch placement (issue #14).
@@ -30,6 +36,42 @@ HOME = os.path.expanduser('~')
 SHELLS = frozenset(('bash', 'zsh', 'fish', 'sh', 'dash', 'ksh'))
 # Leading elision when the path is deeper than this many components.
 WD_MAX_PARTS = 4
+
+# Foreground lookup otherwise walks all of /proc for every title redraw. Cache
+# per pane, and share kitty's process-group snapshot across panes for 500 ms.
+# OSC 7 directories remain immediate; only the fallback and program name wait.
+FOREGROUND_TTL = 0.5
+_foreground_cache = {}
+
+
+def _foreground_info(w):
+    if w is None:
+        return '', ''
+    key = (w.id, w.child.pid)
+    now = monotonic()
+    cached = _foreground_cache.get(key)
+    if cached is not None and now - cached[0] < FOREGROUND_TTL:
+        return cached[1], cached[2]
+
+    from kitty.child import process_data_cache
+    old_ttl = process_data_cache.ttl
+    process_data_cache.ttl = FOREGROUND_TTL
+    previous = process_data_cache.start_caching()
+    try:
+        exe = os.path.basename(w.get_exe_of_child() or '')
+        wd = w.get_cwd_of_child(oldest=True) or w.get_cwd_of_child() or ''
+    finally:
+        process_data_cache.stop_caching(previous)
+        process_data_cache.ttl = old_ttl
+    if len(_foreground_cache) >= 256:
+        _foreground_cache.clear()
+    # Start the TTL after the lookup so even a slow scan cannot consume it.
+    _foreground_cache[key] = (monotonic(), exe, wd)
+    return exe, wd
+
+
+def _pane_exe(w):
+    return _foreground_info(w)[0]
 
 
 def _short_wd(wd):
@@ -65,13 +107,7 @@ def _pane_wd(w):
                 return wd
     except Exception:
         pass
-    try:
-        wd = w.get_cwd_of_child(oldest=True)
-        if wd:
-            return wd
-    except Exception:
-        pass
-    return w.get_cwd_of_child() or ''
+    return _foreground_info(w)[1]
 
 
 def draw_title(data):
@@ -90,6 +126,7 @@ def draw_title(data):
     tab = data['tab']
     # tab.active_wd is the foreground process's cwd (see _pane_wd); resolve
     # the active window and ask for the shell's directory instead.
+    w = None
     wd = ''
     try:
         from kitty.boss import get_boss
@@ -98,10 +135,9 @@ def draw_title(data):
         wd = _pane_wd(w)
     except Exception:
         wd = ''
-    wd = wd or tab.active_wd
     if not wd:
         return data['title']
-    exe = tab.active_exe
+    exe = _pane_exe(w)
     if exe and exe not in SHELLS:
         return '%s \u00b7 %s' % (_short_wd(wd), exe)
     return _short_wd(wd)
