@@ -34,4 +34,5 @@
     // dark_color_scheme pairs -- they are only consulted by "auto", which
     // the line above deliberately stops using.
     "color_scheme": "Mariana.sublime-color-scheme",
+    "font_size": 13,
 }
