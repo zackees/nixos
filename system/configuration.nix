@@ -175,6 +175,7 @@ let
   # desktopScript below, and RollOverDesktops=false in kwinrc is what makes
   # them stop at the ends instead of wrapping.
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
+  dockerVm = pkgs.callPackage ./pkgs/docker-vm { };
 
   # ── Links from kitty open in the Brave window on THIS desktop ──
   # Chromium opens a URL in whichever of its windows was focused most
@@ -252,6 +253,7 @@ let
     "com.obsproject.Studio.desktop"
     "docker-tui.desktop"
     "podman-desktop.desktop"
+    "docker-vm.desktop"
     "com.feaneron.Boatswain.desktop"
   ] ++ [
     # Hermes is a pyweb-view app whose .desktop lives in the user's own
@@ -645,6 +647,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
+    dockerVm
     unrar               # Extract RAR archives from the command line.
     tmog                # tmog.org AppImage; see let-block above
     python3
