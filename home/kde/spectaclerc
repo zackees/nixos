@@ -3,7 +3,7 @@ annotationToolType=3
 highlighterStrokeColor=255,0,0
 
 [ImageSave]
-lastImageSaveLocation=file:///home/niteris/.cache/claude-fastled/micshow.png
+lastImageSaveLocation=file:///tmp/docker-vm-final-pair.png
 translatedScreenshotsFolder=Screenshots
 
 [VideoSave]

@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "1"
+  },
   "model": "claude-fable-5-1[1m]",
   "modelSettings": {
     "claude-fable-5-1": {
@@ -10,8 +13,5 @@
   },
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark",
-  "env": {
-    "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "1"
-  }
+  "theme": "dark"
 }

@@ -10,7 +10,7 @@ Id_8=ba952a91-6647-4d97-8dbb-5d6b290a93f3
 Id_9=848806f3-77d4-417f-ae19-ff3115be501c
 Name_1=Dev1
 Name_2=Soldr
-Name_3=NixeOS
+Name_3=NixeOS & Hermes
 Name_4=FastLED
 Name_5=TWP
 Name_6=Mimalloc
@@ -65,6 +65,18 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][91e3c96d-dda6-4a21-92b0-250a84c5f75b][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][9daba8fe-59ad-438c-a400-16a00bd9f882][17d9bdba-ca72-4c0f-afe1-b22d0dffe43d]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][9daba8fe-59ad-438c-a400-16a00bd9f882][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][9daba8fe-59ad-438c-a400-16a00bd9f882][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
