@@ -1,6 +1,7 @@
 """Run with kitty +runpy 'import runpy; runpy.run_path("scripts/test-kitty-mouse-paste.py")'."""
 import runpy
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -91,11 +92,25 @@ class MousePasteTests(unittest.TestCase):
 
     def test_image_files_are_unique_and_match_payload(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(GLOBALS, SAVE_DIR=directory):
-            first = PASTE['_save_image'](b'first', 'png')
-            second = PASTE['_save_image'](b'second', 'png')
+            first = PASTE['_save_image'](b'first', 'jpg')
+            second = PASTE['_save_image'](b'second', 'jpg')
             self.assertNotEqual(first, second)
             self.assertEqual(Path(first).read_bytes(), b'first')
             self.assertEqual(Path(second).read_bytes(), b'second')
+
+    def test_png_pastes_as_jpeg_without_resizing(self):
+        png = subprocess.check_output(['/run/current-system/sw/bin/magick',
+                                       '-size', '37x19', 'xc:red', 'png:-'])
+        with tempfile.TemporaryDirectory() as directory, patch.dict(GLOBALS, SAVE_DIR=directory):
+            saved = PASTE['_save_image'](png, 'png')
+            self.assertTrue(saved.endswith('.jpg'))
+            self.assertTrue(Path(saved).read_bytes().startswith(b'\xff\xd8'))
+            info = subprocess.check_output(['/run/current-system/sw/bin/magick', 'identify',
+                                            '-format', '%wx%h %Q', saved], text=True)
+            self.assertEqual(info, '37x19 95')
+
+    def test_lossless_png_is_preferred_to_clipboard_generated_jpeg(self):
+        self.assertEqual(PASTE['IMAGE_TYPES'][0], ('image/png', 'png'))
 
     def test_native_popup_runs_without_blocking_and_fails_closed(self):
         boss = SimpleNamespace(run_background_process=Mock(), show_error=Mock())

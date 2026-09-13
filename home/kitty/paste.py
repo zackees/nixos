@@ -194,6 +194,17 @@ def _read_clipboard():
 
 
 def _save_image(data, ext):
+    if ext == 'png':
+        # Screenshots should paste as high-quality JPEG, without resizing.
+        # Prefer the lossless PNG clipboard source: Klipper synthesizes JPEG
+        # at quality 75 even when Spectacle's preferred quality is 95.
+        data = subprocess.run(
+            ['/run/current-system/sw/bin/magick', 'png:-', '-background', 'white',
+             '-alpha', 'remove', '-alpha', 'off', '-sampling-factor', '4:4:4',
+             '-quality', '95', 'jpeg:-'],
+            input=data, capture_output=True, timeout=15, check=True,
+        ).stdout
+        ext = 'jpg'
     os.makedirs(SAVE_DIR, exist_ok=True)
     # Rapid pastes must never overwrite an image pasted earlier.
     with tempfile.NamedTemporaryFile(
@@ -246,7 +257,7 @@ def paste_into(target_window_id, boss, payload=None):
     if kind == 'image':
         try:
             path = _save_image(data, ext)
-        except OSError as error:
+        except (OSError, subprocess.SubprocessError) as error:
             boss.show_error('Paste failed', f'Could not save clipboard image: {error}')
             return
         # paste_text applies bracketed paste and the configured paste_actions
