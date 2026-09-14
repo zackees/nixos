@@ -2306,10 +2306,21 @@ in
         # `number` to keep in step with it.
         kwin.virtualDesktops = {
           # These are re-applied at every activation, so a rename made in
-          # Overview (double-click the name) lasts only until the next
-          # switch unless it is mirrored here. "NixeOS" was renamed live
-          # on 2026-09-03 and copied back for that reason.
-          names = [ "Dev1" "Soldr" "NixeOS" "FastLED" "TWP" "Mimalloc" "Kernal-api" ];
+          # Overview (double-click the name) -- or a desktop added there --
+          # lasts only until the next switch unless it is mirrored here.
+          # "NixeOS" was renamed live on 2026-09-03 and copied back for that
+          # reason. The list then fell behind again: live KWin grew to ten
+          # (3 renamed "NixOS & Hermes", 6 "fbuild", plus Clud, FastLED-wasm
+          # and bosn), and the switch on 2026-09-14 rewrote kwinrc back to
+          # these seven. KWin kept its ten in memory, so nothing moved on
+          # screen, but the next login would have read the file and dropped
+          # three. Copied back from
+          #   qdbus org.kde.KWin /VirtualDesktopManager \
+          #     org.kde.KWin.VirtualDesktopManager.desktops
+          names = [
+            "Dev1" "Soldr" "NixOS & Hermes" "FastLED" "TWP" "fbuild"
+            "Kernal-api" "Clud" "FastLED-wasm" "bosn"
+          ];
           rows = 1;
         };
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
