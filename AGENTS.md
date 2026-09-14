@@ -330,6 +330,18 @@ it `pip install` reports success and the *import* is what breaks, so nix-ld
 and the venv are one setting in two places. Test a change to either with an
 actual `import`, not with a successful install.
 
+**A Rust binary built here can link fine and still not find its libraries.**
+Nix's ld wrapper writes a RUNPATH for each store `-L`, which is why C links
+against a library just work. rustc does not go through it: it links with its
+bundled rust-lld (`readelf -p .comment` says `Linker: LLD`), so a cargo build
+against openssl produced a binary with no RUNPATH that failed to start, and
+`ldd` reported `libssl.so.3 => not found` -- the failure bosn's wheel build
+hit. The fix is the `-rpath` that `withDevLibraries` bakes into the system gcc
+and clang wrappers, which reaches whatever linker the cc wrapper calls. Do not
+"fix" it with a global `LD_LIBRARY_PATH`; the `devLibraryEnv` comment in
+`system/configuration.nix` says why. Judge a built binary by
+`readelf -d <bin> | grep RUNPATH`, not by whether the build succeeded.
+
 **A package in `systemPackages` whose own test suite fails takes the whole
 rebuild down.** `pipx` 1.8.0 on the 26.05 channel fails seven assertions in
 `tests/test_package_specifier.py` -- `packaging` >= 24 normalises `black@ url`

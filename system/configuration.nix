@@ -454,6 +454,87 @@ let
     legacySonameShims
   ];
 
+  # ── A standard set of development libraries ──
+  #
+  # The NixOS answer to what `apt install libssl-dev` and friends give Ubuntu
+  # in /usr/include and /usr/lib. The list is not a guess: it is what the
+  # Cargo.lock files under ~/dev actually link (openssl-sys, libz-sys,
+  # libgit2-sys, libssh2-sys, zstd-sys, lzma-sys, libsqlite3-sys, bzip2-sys,
+  # the webkit2gtk-sys stack for Tauri, clang-sys, libdbus-sys, alsa-sys and
+  # the appindicator pair), plus the usual C set a Python or autotools build
+  # reaches for.
+  #
+  # It reaches a build by two routes, and both are needed:
+  #
+  #  - PKG_CONFIG_PATH (sessionVariables, further down), which is how every
+  #    -sys crate and most C build systems find a library at all.
+  #  - The system gcc and clang wrappers (`withDevLibraries` below), for
+  #    headers, -L, and -- the part that matters -- an rpath.
+  #
+  # The rpath is the non-obvious half. A binary linked here gets the store
+  # glibc as its loader, so nix-ld never sees it, and it finds libraries only
+  # through its RUNPATH. Nix's ld wrapper normally writes that for each -L in
+  # the store, which is why `cc foo.c $(pkg-config --libs openssl)` has always
+  # worked. But rustc (1.95 here) links with its bundled rust-lld, which never
+  # goes through the ld wrapper -- `readelf -p .comment` on the output reads
+  # "Linker: LLD 22.1.2". So cargo found openssl, linked it, and produced a
+  # binary with no RUNPATH that dies on "libssl.so.3: cannot open shared
+  # object file", with ldd agreeing. bosn's wheel backend runs ldd to bundle
+  # OpenSSL and failed on exactly that. cc-ldflags reach whatever linker the
+  # cc wrapper hands off to, rust-lld included. Verified: an openssl-sys +
+  # libz-sys + libsqlite3-sys test crate runs with this and exits 127 without.
+  #
+  # Only the system compilers carry it. A `nix develop` / direnv shell puts
+  # its own cc wrapper first on PATH and is untouched. Headers go in with
+  # -idirafter, after glibc's and after any -I or -isystem a build passes, so
+  # this set fills a gap and never shadows a project's own copy (checked: no
+  # header here shares a path with glibc's or gcc's include-fixed).
+  #
+  # A binary built this way holds a RUNPATH into this environment's store path,
+  # so once the list changes and the old generation is garbage-collected it
+  # loses its libraries like any Nix-built binary would. Rebuild it.
+  #
+  # Deliberately NOT done: a global LD_LIBRARY_PATH. It outranks every Nix
+  # program's own RUNPATH, so it would feed these exact library versions to
+  # apps built from other nixpkgs revisions -- the hermes flake input, the user
+  # nix profile -- and GTK is on this list. gcc_multi is not wrapped either;
+  # these are 64-bit libraries with no business in a -m32 link.
+  devLibraries = with pkgs; [
+    # Crypto, compression and the network stack.
+    openssl zlib zstd xz bzip2 lz4 brotli libssh2 curl
+    # Version control, databases, parsers.
+    libgit2 sqlite libpq libxml2 libxslt libyaml expat pcre2 icu
+    # What Python, Ruby and autotools builds want from the C side.
+    libffi readline ncurses gmp libuv libevent libunwind elfutils
+    # Linux system interfaces.
+    util-linux systemdLibs dbus libseccomp libcap alsa-lib libusb1 hidapi
+    # Graphics and the Tauri / WebKitGTK stack. The appindicator pair is two
+    # entries because ayatana-appindicator3's .pc requires ayatana-indicator3,
+    # and pkg-config fails the whole query when a Requires is missing.
+    fontconfig freetype harfbuzz libGL libdrm libxkbcommon wayland
+    glib gtk3 cairo pango atk gdk-pixbuf webkitgtk_4_1 libsoup_3
+    libayatana-appindicator libayatana-indicator
+    # libclang for clang-sys / bindgen; LIBCLANG_PATH points into this.
+    libclang
+  ];
+
+  devLibraryEnv = pkgs.buildEnv {
+    name = "dev-libraries";
+    # Headers and .pc files live in `dev`, the shared objects in `lib` or
+    # `out` depending on the package; get* picks whichever exists. Listing
+    # the packages bare would miss both -- openssl's default install outputs
+    # are `bin` and `man`.
+    paths = map lib.getDev devLibraries ++ map lib.getLib devLibraries;
+    pathsToLink = [ "/include" "/lib" "/share/pkgconfig" ];
+  };
+
+  withDevLibraries = cc: cc.override (old: {
+    extraBuildCommands = (old.extraBuildCommands or "") + ''
+      echo "-idirafter ${devLibraryEnv}/include" >> $out/nix-support/cc-cflags
+      echo "-L${devLibraryEnv}/lib -rpath ${devLibraryEnv}/lib" >> $out/nix-support/cc-ldflags
+    '';
+  });
+
 in
 {
   # home-manager's NixOS module is added by flake.nix, alongside this file.
@@ -773,21 +854,25 @@ in
     # lowPrio makes gcc the deterministic winner; `clang` and `clang++` are
     # unique names and are unaffected.
     #
-    # These compile self-contained code and nothing else. There is no
-    # /usr/include on NixOS, so anything that wants zlib, openssl or any other
-    # library's headers still needs a `shell.nix` / `nix develop` (direnv is
-    # enabled below) -- the nix-ld library list above puts shared objects on a
-    # *runtime* search path and deliberately does not reach the compiler.
-    # pkg-config is here for the same reason and with the same caveat: it
-    # finds nothing until a dev shell populates PKG_CONFIG_PATH.
-    gcc
-    (lib.lowPrio clang)
+    # Both carry the development library set (`devLibraryEnv` in the let
+    # block): its headers, its libraries and an rpath to them, so openssl,
+    # zlib, sqlite and the rest compile, link and RUN without a dev shell, and
+    # pkg-config finds them through the PKG_CONFIG_PATH set further down. A
+    # `shell.nix` / `nix develop` (direnv is enabled below) still wins inside
+    # a project, with its own compiler and its own versions. The nix-ld list
+    # above is a different thing: it serves prebuilt foreign binaries at run
+    # time and never reaches the compiler.
+    (withDevLibraries gcc)
+    (lib.lowPrio (withDevLibraries clang))
     clang-tools         # clangd, clang-format, clang-tidy; not in `clang`
     binutils            # ld, as, ar, nm, objdump, readelf, strings
     gnumake
     cmake
     ninja
     pkg-config
+    # protoc. prost-build -- in 57 Cargo.lock entries under ~/dev -- shells
+    # out to it from its build script and fails the build without it.
+    protobuf
     autoconf
     automake
     libtool
@@ -962,6 +1047,22 @@ in
     # here fixes the asymmetry, and hands the same plugins to any other LADSPA
     # host on the machine.
     LADSPA_PATH = "${pkgs.ladspaPlugins}/lib/ladspa";
+  };
+
+  # The global half of the development library set; `devLibraryEnv` in the let
+  # block says why it exists and what else it takes. sessionVariables rather
+  # than environment.variables so an editor started from Plasma -- where
+  # rust-analyzer runs build scripts -- gets them too, not only a shell.
+  environment.sessionVariables = {
+    # A dev shell's own pkg-config still wins over this: nixpkgs' pkg-config
+    # wrapper puts the shell's paths first. Verified with openssl_3 in a
+    # nix-shell reporting 3.0.21 while this pointed at 3.6.3.
+    PKG_CONFIG_PATH = "${devLibraryEnv}/lib/pkgconfig:${devLibraryEnv}/share/pkgconfig";
+    # clang-sys (bindgen's libclang loader) looks here first, then falls back
+    # to `llvm-config`, which is not on PATH -- it lives in llvm's dev output.
+    # Without this its build script fails before compiling anything; verified
+    # with clang-sys 1.9.1.
+    LIBCLANG_PATH = "${devLibraryEnv}/lib";
   };
 
   # fzf: the module installs pkgs.fzf and sources the bash integration,
