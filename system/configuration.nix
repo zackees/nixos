@@ -215,6 +215,40 @@ let
     '';
   };
 
+  # ── Run a locally built Tauri / WebKitGTK app ──
+  # A Rust binary built here (extension2's `soldr cargo build -p tw-orange`)
+  # finds GTK and WebKitGTK through pkg-config at link time, but gets the Nix
+  # store glibc loader as its interpreter and an empty RUNPATH. It therefore
+  # never goes through nix-ld, and dies at start with `libgdk-3.so.0: cannot
+  # open shared object file` although every library it names is installed.
+  # Adding them to the nix-ld list below does not help that binary -- only a
+  # /lib64 loader consults nix-ld -- so this does at run time what
+  # wrapGAppsHook would have done at build time: the library path, GIO's TLS
+  # module (WebKit fetches https through glib-networking, and without it every
+  # remote page fails), and the GSettings schemas GTK aborts without the first
+  # time a file dialog opens.
+  #
+  # One wrapper covers X11 and Wayland alike: GTK picks its backend when the
+  # app starts, from WAYLAND_DISPLAY / DISPLAY, not when it is compiled.
+  #
+  #   tauri-run target/debug/tw-orange --test
+  tauriRun = pkgs.writeShellApplication {
+    name = "tauri-run";
+    text = ''
+      if [ "$#" -eq 0 ]; then
+        echo "usage: tauri-run <binary> [args...]" >&2
+        exit 2
+      fi
+      export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath (with pkgs; [
+        webkitgtk_4_1 gtk3 libsoup_3 glib cairo gdk-pixbuf pango harfbuzz
+        at-spi2-core dbus openssl
+      ])}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+      export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules''${GIO_EXTRA_MODULES:+:$GIO_EXTRA_MODULES}"
+      export XDG_DATA_DIRS="${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}''${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}"
+      exec "$@"
+    '';
+  };
+
   # ── The sudo password dialog ──
   # Password plus One Time / 15 Min / 4 Hours / All Day. ksshaskpass could not do
   # this: its "remember" checkbox only appears for ssh and git prompts it
@@ -405,6 +439,13 @@ let
     xorg.libX11 xorg.libXcomposite xorg.libXdamage xorg.libXext
     xorg.libXfixes xorg.libXrandr xorg.libXrender xorg.libXi xorg.libXtst
     xorg.libXScrnSaver xorg.libxcb xorg.libXcursor xorg.libxshmfence
+
+    # WebKitGTK 4.1 and its HTTP stack: what a prebuilt Tauri app (an
+    # AppImage payload, an Ubuntu-built release binary) asks for beyond GTK.
+    # This only reaches binaries whose loader is the /lib64 shim; a Tauri app
+    # built on THIS machine has a Nix-store loader and needs `tauri-run`
+    # (let block above) instead.
+    webkitgtk_4_1 libsoup_3
 
     # Audio and printing, for the same class of bundled desktop app.
     alsa-lib libpulseaudio cups
@@ -687,6 +728,9 @@ in
     # downloaded Chromium/Firefox need libnss3, libgbm and friends at
     # standard paths, and only this makes them start here.
     steam-run
+    # Runs a locally built Tauri/WebKitGTK binary on X11 or Wayland; see the
+    # let block above for why nix-ld cannot do this for such a binary.
+    tauriRun
     gh
     kitty
     # Must outrank kitty's own kitty.desktop -- see the let block above.
