@@ -279,6 +279,7 @@ let
     "org.telegram.desktop.desktop"
     "signal.desktop"
     "slack.desktop"
+    "Zoom.desktop"
     "dbeaver.desktop"
     "kitty.desktop"
     "sublime_text.desktop"
@@ -804,6 +805,8 @@ in
     telegram-desktop
     signal-desktop
     slack               # unfree; allowUnfree below covers it
+    zoom-us             # meetings; unfree. Screen share and camera go through
+                        # PipeWire and xdg-desktop-portal-kde, as OBS's do
     dbeaver-bin         # SQL client; binary release, unfree
     # FHS sandbox for prebuilt binaries that outgrow nix-ld: Playwright's
     # downloaded Chromium/Firefox need libnss3, libgbm and friends at
