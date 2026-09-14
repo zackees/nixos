@@ -1,9 +1,10 @@
 [Annotations]
+annotationToolType=3
 highlighterStrokeColor=255,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///tmp/tw-orange-issue-23.png
+lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-nixos/8b09e065-dfc8-4e27-9aab-2c17ed8b9c92/scratchpad/ct-full.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 
