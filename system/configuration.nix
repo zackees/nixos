@@ -2739,8 +2739,15 @@ in
           {
             name = "org.kde.plasma.icon";
             screen = 0;
+            # Top-RIGHT, not top-left. The desktop is a Folder View of
+            # ~/Desktop, and it lays files out from the top-left corner: the
+            # first file lands in exactly the slot this icon used to take at
+            # 30,30, and the icon draws on top of it. That read as "~/Desktop
+            # does not show on the desktop" (2026-09-14) -- running-tasks.txt
+            # was there, peeking out from under Hermes. Logical pixels on
+            # screen 0, which is 2560 wide: 2560 - 140 - 30.
             position = {
-              horizontal = 30;
+              horizontal = 2390;
               vertical = 30;
             };
             size = {
