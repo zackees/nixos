@@ -1,10 +1,9 @@
 [Annotations]
-annotationToolType=4
 highlighterStrokeColor=255,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///run/user/1000/docker-vm-restarted.png
+lastImageSaveLocation=file:///tmp/tw-orange-issue-23.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 
