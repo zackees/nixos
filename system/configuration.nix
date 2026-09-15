@@ -1843,11 +1843,23 @@ in
   # aging algorithm. A process that needs to keep a /tmp subtree can take a
   # BSD lock on it (`flock(2)`, shared or exclusive) and tmpfiles will skip
   # that directory and everything below it until the process exits; that is
-  # the documented exclusion API, and issue #9 has the details. Note also that
-  # this fs is `relatime`, so reads bump atime at most daily and mtime is what
-  # actually tracks work. /var/tmp keeps systemd's 30d, which is what it
-  # exists for and is 1.2 GB here.
-  systemd.tmpfiles.rules = [ "q /tmp 1777 root root 3d" ];
+  # the documented exclusion API, and issue #9 has the details. /var/tmp keeps
+  # systemd's 30d, which is what it exists for and is 1.2 GB here.
+  #
+  # `bcmBM:` -- reads do not count. By default tmpfiles also keeps an entry
+  # whose ACCESS time is recent, and `relatime` still bumps atime once a day
+  # on a read. Once a day is enough to defeat a three-day window forever: on
+  # 2026-09-14 /tmp was 189 GB after a reboot, and sampled entries more than a
+  # week old had newest mtimes 10-14 days back and ctimes 7-10 days back, but
+  # atimes only 13-18 hours old -- something reading through /tmp daily kept
+  # every one of them. `bcmBM` is the default age-by (`abcmABM`) minus both
+  # access letters: created, changed or modified within 72h keeps an entry,
+  # being read does not. Verified with `systemd-tmpfiles --clean --dry-run`
+  # on a file with an old mtime and a fresh atime: the default kept it, the
+  # access-free age-by listed it for removal. Directory ctime stays out, as
+  # tmpfiles.d(5) advises -- deleting a file changes its directory's ctime,
+  # so counting it would let each sweep postpone the next.
+  systemd.tmpfiles.rules = [ "q /tmp 1777 root root bcmBM:3d" ];
 
   # ...and this is what that loader is allowed to find. Declared in the
   # let-block above, where the reasoning and the per-group notes live.
@@ -1940,6 +1952,37 @@ in
       ExecStart = "${launchOriginPython}/bin/python ${launchOrigin}/share/launch-origin/service.py ${launchOrigin}/share/launch-origin/main.js";
       Restart = "on-failure";
       RestartSec = 2;
+    };
+  };
+
+  # ── The /tmp sweep runs hourly; the Trash empties itself after a day ──
+  # The /tmp retention itself (72h, and why reads no longer count) is the
+  # `systemd.tmpfiles.rules` entry further up. This only makes the sweep
+  # prompt: daily, an entry could outlive its 72h by up to another day, and
+  # on a disk that filled 291 GB of /tmp in four days that day matters. The
+  # empty entry clears upstream's OnUnitActiveSec=1d first -- timer settings
+  # accumulate, and without the reset both triggers would stay armed.
+  systemd.timers.systemd-tmpfiles-clean.timerConfig.OnUnitActiveSec = [ "" "1h" ];
+
+  # The Trash: anything deleted more than a day ago is purged, hourly.
+  # trash-empty goes by the DeletionDate each .trashinfo records, so it is
+  # the time something was trashed that counts, not the file's own
+  # timestamps. It also removes orphans that have no .trashinfo at all, which
+  # Dolphin cannot show and so never empties -- a --dry-run listed one, 22G.
+  systemd.user.services.trash-autoclean = {
+    description = "Purge Trash items deleted more than a day ago";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.trash-cli}/bin/trash-empty -f 1";
+      Nice = 19;
+      IOSchedulingClass = "idle";
+    };
+  };
+  systemd.user.timers.trash-autoclean = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "hourly";
+      Persistent = true;
     };
   };
 
