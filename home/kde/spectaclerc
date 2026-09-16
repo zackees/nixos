@@ -4,7 +4,7 @@ highlighterStrokeColor=255,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-nixos/8b09e065-dfc8-4e27-9aab-2c17ed8b9c92/scratchpad/icon-full2.png
+lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-fastled-wasm/0ba4a7fb-f141-4334-a33a-7f259d033af0/scratchpad/visual-revert-visual-wl/os-11.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 
@@ -12,5 +12,5 @@ translatedScreenshotsFolder=Screenshots
 translatedScreencastsFolder=Screencasts
 
 [ViewerWindow]
-3 screens: Height=795
-3 screens: Width=1463
+3 screens: Height=910
+3 screens: Width=1302
