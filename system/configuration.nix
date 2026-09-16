@@ -2389,9 +2389,14 @@ in
           # three. Copied back from
           #   qdbus org.kde.KWin /VirtualDesktopManager \
           #     org.kde.KWin.VirtualDesktopManager.desktops
+          # Drifted again on 2026-09-16: live KWin had grown to twelve, with
+          # "zach vorhies dynamic" and "Reld" added in Overview. Same read-back
+          # as above. Expect to repeat this whenever a desktop is added live --
+          # the list here is the source of truth at every activation.
           names = [
             "Dev1" "Soldr" "NixOS & Hermes" "FastLED" "TWP" "fbuild"
             "Kernal-api" "Clud" "FastLED-wasm" "bosn"
+            "zach vorhies dynamic" "Reld"
           ];
           rows = 1;
         };
