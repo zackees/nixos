@@ -51,12 +51,12 @@ cp "$REPO/home/voxtype/config.toml" "$HOME/.config/voxtype/config.toml"
 # only as a menu/KRunner way to toggle dictation without the hotkey.
 cp "$REPO/home/applications/voxtype-toggle.desktop" "$HOME/.local/share/applications/"
 
-# Models are not in the repo: ggml-base.en.bin is 141 MB and the VAD model
-# comes from HuggingFace. Without them voxtype starts fine and then fails at
-# the first transcription, which is a confusing way to find out. Both
-# commands are no-ops once the file is on disk.
+# Models are not in the repo: ggml-large-v3-turbo.bin is 1.6 GB and the VAD
+# model comes from HuggingFace. Without them voxtype starts fine and then
+# fails at the first transcription, which is a confusing way to find out.
+# Both commands are no-ops once the file is on disk.
 if command -v voxtype >/dev/null 2>&1; then
-  voxtype setup --download --model base.en --no-post-install
+  voxtype setup --download --model large-v3-turbo --no-post-install
   voxtype setup vad
 fi
 
