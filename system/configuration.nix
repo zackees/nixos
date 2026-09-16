@@ -844,6 +844,23 @@ in
     gum                 # shell-script UI widgets
     neovim              # installed, but nano stays $EDITOR (see below)
 
+    # ── Archives ──
+    #
+    # tar, gzip, bzip2 and xz are already on PATH today, but only transitively
+    # (they ride in as inputs of something else), so `tar -xzf` / `-xjf` /
+    # `-xJf` and `unzstd` would break the day a rebuild drops whatever pulled
+    # them in. Declared here for the same reason gnugrep is above. unrar is
+    # already declared at the top of this list.
+    gnutar              # tar: untar, and .tar.gz / .tar.bz2 / .tar.xz
+    gzip                # gunzip, zcat
+    bzip2               # bunzip2, bzcat
+    xz                  # unxz, xzcat
+    zstd                # zstd / unzstd / zstdmt
+    zip                 # create .zip archives
+    unzip               # extract .zip archives
+    p7zip               # 7z / 7za / 7zr: one extractor for 7z, zip, rar, tar...
+    unar                # unar / lsar: The Unarchiver, incl. RAR5 & multi-part
+
     # ── Native toolchains ──
     #
     # Both compilers, on purpose: gcc is what a Linux build system assumes,
