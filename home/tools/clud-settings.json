@@ -1,6 +1,6 @@
 {
   "backend": {
-    "default": "claude"
+    "default": "deepseek"
   },
   "codex": {
     "config_overrides": [

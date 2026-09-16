@@ -844,6 +844,23 @@ in
     gum                 # shell-script UI widgets
     neovim              # installed, but nano stays $EDITOR (see below)
 
+    # ── Archives ──
+    #
+    # tar, gzip, bzip2 and xz are already on PATH today, but only transitively
+    # (they ride in as inputs of something else), so `tar -xzf` / `-xjf` /
+    # `-xJf` and `unzstd` would break the day a rebuild drops whatever pulled
+    # them in. Declared here for the same reason gnugrep is above. unrar is
+    # already declared at the top of this list.
+    gnutar              # tar: untar, and .tar.gz / .tar.bz2 / .tar.xz
+    gzip                # gunzip, zcat
+    bzip2               # bunzip2, bzcat
+    xz                  # unxz, xzcat
+    zstd                # zstd / unzstd / zstdmt
+    zip                 # create .zip archives
+    unzip               # extract .zip archives
+    p7zip               # 7z / 7za / 7zr: one extractor for 7z, zip, rar, tar...
+    unar                # unar / lsar: The Unarchiver, incl. RAR5 & multi-part
+
     # ── Native toolchains ──
     #
     # Both compilers, on purpose: gcc is what a Linux build system assumes,
@@ -1574,6 +1591,35 @@ in
   # Keys are quoted because PipeWire wants literal dotted names: written bare,
   # Nix would read `node.name` as nesting and emit {"node":{"name":...}},
   # which the config parser does not understand.
+  # ── Zoom never inherits a mute from the last meeting ──
+  # WirePlumber remembers each application's volume and mute and re-applies
+  # them the next time that application opens a stream. For Zoom that turned
+  # one stray click into a standing fault: `Output/Audio:application.name:
+  # ZOOM\sVoiceEngine` sat in ~/.local/state/wireplumber/stream-properties
+  # with `"mute":true`, so every meeting played the other participants into a
+  # muted stream. Zoom's own controls showed full volume (`speaker_volume=255`
+  # in zoomus.conf) because the mute lives below Zoom, in PipeWire, and only
+  # the OUTPUT was muted -- the microphone entry was not, so the far end heard
+  # us while we heard nothing. It cost a hosted meeting on 2026-09-15.
+  #
+  # The click is easy to make and invisible afterwards: Plasma draws a speaker
+  # badge on any task that is playing audio (`indicateAudioStreams`, on by
+  # default and not overridden here), and clicking it mutes that application.
+  #
+  # `stream.rules` is the section `scripts/node/state-stream.lua` reads
+  # (`Conf.get_section_as_json ("stream.rules")`), and `state.restore-props`
+  # is the per-stream opt-out it honours -- the same property WirePlumber's
+  # own alsa.lua sets on split device nodes. Deliberately narrow: only the
+  # props (volume/mute) are dropped, NOT `state.restore-target`, so Zoom still
+  # remembers which speaker to use. Muting Zoom during a call keeps working;
+  # it just cannot survive into the next meeting.
+  services.pipewire.wireplumber.extraConfig."51-zoom-no-restore-props" = {
+    "stream.rules" = [{
+      matches = [{ "application.name" = "ZOOM VoiceEngine"; }];
+      actions.update-props."state.restore-props" = false;
+    }];
+  };
+
   services.pipewire.extraConfig.pipewire."99-obs-virtual-mic" = {
     "context.modules" = [{
       name = "libpipewire-module-loopback";
@@ -2360,9 +2406,14 @@ in
           # three. Copied back from
           #   qdbus org.kde.KWin /VirtualDesktopManager \
           #     org.kde.KWin.VirtualDesktopManager.desktops
+          # Drifted again on 2026-09-16: live KWin had grown to twelve, with
+          # "zach vorhies dynamic" and "Reld" added in Overview. Same read-back
+          # as above. Expect to repeat this whenever a desktop is added live --
+          # the list here is the source of truth at every activation.
           names = [
             "Dev1" "Soldr" "NixOS & Hermes" "FastLED" "TWP" "fbuild"
             "Kernal-api" "Clud" "FastLED-wasm" "bosn"
+            "zach vorhies dynamic" "Reld"
           ];
           rows = 1;
         };
