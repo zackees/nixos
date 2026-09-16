@@ -149,7 +149,9 @@ if [ ! -x "$HOME/.nix-profile/bin/uv" ]; then
   nix profile add "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz#uv"
 fi
 export PATH="$HOME/.local/bin:$PATH"
-uv tool install --force clud
+# clud is pip-managed in ~/.venv (the declared user venv); the uv-tool install
+# was removed because it shadowed pip's binary with a stale pinned version.
+"$HOME/.venv/bin/pip" install -U clud
 uv tool install --force soldr
 
 say "claude + clud settings"
