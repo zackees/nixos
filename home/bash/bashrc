@@ -12,16 +12,25 @@
 # either -- the graphical session exports __ETC_PROFILE_DONE.
 if [ -r /etc/bashrc ]; then . /etc/bashrc; fi
 
-# Run clud from PyPI via uvx rather than the uv-installed tool binary.
-alias clud='uvx clud'
+# clud is pip-managed in ~/.venv (see scripts/03-apply-home.sh): `clud` on
+# PATH is the venv binary. No uvx alias -- the uv-tool clud was removed so a
+# stale second binary can never shadow pip's.
 
-# `update` upgrades uv-managed CLI tools: `update clud`, `update clud soldr`,
-# or bare `update` for everything in `uv tool list`.
+# `update` upgrades CLI tools: `update soldr` (uv-managed), `update clud`
+# (pip-managed), or bare `update` for everything.
 update() {
   if [ "$#" -eq 0 ]; then
     uv tool upgrade --all
+    "$HOME/.venv/bin/pip" install -U clud
   else
-    uv tool upgrade "$@"
+    local tool
+    for tool in "$@"; do
+      if [ "$tool" = "clud" ]; then
+        "$HOME/.venv/bin/pip" install -U clud
+      else
+        uv tool upgrade "$tool"
+      fi
+    done
   fi
 }
 . "$HOME/.cargo/env"
