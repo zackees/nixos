@@ -53,27 +53,32 @@ max_duration_secs = 60
 [whisper]
 model = "large-v3-turbo"
 language = "en"
-# Model switched from base.en to large-v3-turbo on 2026-09-16. The timings and
-# VRAM figures in the on_demand_loading comment below were measured on base.en
-# (142 MB); turbo is ~11x larger (~1.6 GB), so its load is proportionally
-# longer and its idle footprint ~1.6 GB rather than 108 MiB. The principle
-# (load is threaded and hidden inside recording) still holds.
-# Load the model when recording starts, release it after transcription,
-# rather than holding it for the life of the daemon. Upstream defaults this
-# off to protect response time, but on a push-to-talk workload the load hides
-# entirely inside the recording: measured, it fires 46ms after the hotkey and
-# finishes 0.34s later -- 3.7s before a 4s dictation ends. It is threaded, and
-# audio keeps being captured throughout (VAD found speech at 0.13s, mid-load),
-# so nothing is clipped off the front of a phrase.
+# Model switched from base.en to large-v3-turbo on 2026-09-16. That made
+# on_demand_loading = true (below, was the setting here) cost far more than
+# the reasoning that originally justified it: the file is ~11x bigger
+# (~1.6 GB vs 142 MB), and the per-recording reload -- confirmed via the
+# journal, not guesswork -- was taking 0.7-1.3s of CPU-side parsing and
+# PCIe upload to VRAM, every single dictation, visibly on anything shorter
+# than ~1-2s. Keeping the file in the OS page cache doesn't help: verified
+# with `vmtouch` that it was already 100% resident in RAM (125 GB total, 96
+# GB available -- no memory pressure to evict it), so the cost was never
+# disk I/O to begin with.
 #
-# Buys back 142 MiB of VRAM: 250 -> 108 MiB at idle. Costs nothing in RSS,
-# which does not move across the cycle -- the model never enters voxtype's
-# heap, it streams from page cache straight to VRAM. The 141 MB file stays
-# 100% page-cached, which is reclaimable, so it is not really "held" at all.
-#
-# The one case this loses: a recording shorter than ~0.35s waits on the join
-# at recording stop. Dictations here are 2-10s, so it never bites.
-on_demand_loading = true
+# false keeps the model resident in VRAM instead, at daemon start and
+# across recordings, so no per-dictation reload. What makes that not just
+# "hold 1.6 GB forever" is cold_model_timeout_secs below: voxtype's own
+# ModelManager already evicts idle models on a 60s timer, but upstream
+# exempts the primary model from that eviction (its use case is freeing a
+# *secondary* model reached via a hotkey modifier). system/patches/
+# voxtype-primary-idle-evict.patch drops that exemption so the primary
+# ages out too -- see the overlay in system/configuration.nix.
+on_demand_loading = false
+# How long the model can sit unused before ModelManager evicts it (see the
+# patch note above -- without that patch this key has zero effect on the
+# primary model, which is the only model here). Next recording after an
+# eviction pays the same reload cost on_demand_loading used to pay on
+# every dictation; kept short and deliberately so.
+cold_model_timeout_secs = 60
 # Transcription used to cost a flat ~10.2s whether the clip was 0.9s or 1.5s,
 # because whisper.cpp pads every recording out to its full 30s context window.
 # This shrinks the window for clips under 22.5s, which is every dictation.
