@@ -50,6 +50,7 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
       kitty/                     terminal config; deployed to ~/dotfiles/kitty
       kde/                       captured Plasma/KDE/GTK settings files
       voxtype/                   dictation daemon config
+      obs/                       recording path/filename settings (captured)
       applications/              the .desktop entry Meta+H launches
       tools/                     claude, clud and gh non-secret settings
       sublime/                   Sublime Text preferences (captured)

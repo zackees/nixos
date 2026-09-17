@@ -114,6 +114,19 @@ else
   done
 fi
 
+say "OBS recording path"
+# basic.ini is rewritten by OBS itself (settings dialog, and on exit), same
+# problem as plasmashell/appletsrc and Boatswain's JSON above -- it must be
+# stopped first or this gets silently reverted.
+if pgrep -x obs >/dev/null 2>&1; then
+  echo "  obs is running and would overwrite this on exit; skipping."
+  echo "  quit it and re-run, or copy home/obs/basic.ini by hand."
+else
+  mkdir -p "$HOME/Videos/obs"
+  keep "$HOME/.config/obs-studio/basic/profiles/Untitled/basic.ini"
+  cp "$REPO/home/obs/basic.ini" "$HOME/.config/obs-studio/basic/profiles/Untitled/basic.ini"
+fi
+
 say "go/ links certificate trust"
 # nginx serves https://go/ with a self-signed cert that system activation
 # generates into /var/lib/go-links (see go-links-cert in configuration.nix).
