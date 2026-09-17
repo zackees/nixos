@@ -689,6 +689,19 @@ in
     "x-scheme-handler/https" = "brave-browser.desktop";
     "x-scheme-handler/about" = "brave-browser.desktop";
     "x-scheme-handler/unknown" = "brave-browser.desktop";
+
+    # ── Default video player: VLC ──
+    "video/mp4" = "vlc.desktop";
+    "video/x-matroska" = "vlc.desktop";
+    "video/webm" = "vlc.desktop";
+    "video/quicktime" = "vlc.desktop";
+    "video/x-msvideo" = "vlc.desktop";
+    "video/mpeg" = "vlc.desktop";
+    "video/x-ms-wmv" = "vlc.desktop";
+    "video/x-ms-asf" = "vlc.desktop";
+    "video/3gpp" = "vlc.desktop";
+    "video/ogg" = "vlc.desktop";
+    "video/mp2t" = "vlc.desktop";
   };
 
   # Configure keymap in X11
@@ -1039,6 +1052,7 @@ in
     ladspaPlugins        # swh-plugins; see LADSPA_PATH below
     handbrake            # batch transcoder; `ghb` is the GUI, HandBrakeCLI the
                          # binary the package calls its mainProgram
+    vlc                  # general playback; ffmpeg-backed, plays almost anything
   ];
 
   # nano is already installed and enabled by default on NixOS; make it the
@@ -1190,6 +1204,17 @@ in
       })
     (final: prev: {
       voxtype = prev.voxtype.overrideAttrs (old: {
+        # ModelManager.evict_idle_models() exempts the primary model from
+        # cold_model_timeout_secs -- upstream's use case is freeing a
+        # secondary model reached via a hotkey modifier, and the primary is
+        # always kept. This machine has no secondary model, so with
+        # on_demand_loading = false the primary would otherwise sit resident
+        # in VRAM for the daemon's entire life with no way to age it out.
+        # One-line patch: drop the is_primary exemption in that one filter.
+        patches = (old.patches or [ ]) ++ [
+          ./patches/voxtype-primary-idle-evict.patch
+        ];
+
         # gpu-cuda maps to whisper-rs/cuda, which builds ggml's CUDA backend.
         # Viable only since the card moved to the proprietary driver: nouveau
         # exposes no CUDA at all.
@@ -1430,6 +1455,21 @@ in
       ExecStart = "${pkgs.voxtype}/bin/voxtype daemon";
       Restart = "on-failure";
       RestartSec = 2;
+
+      # A 10s dictation latency was traced to CPU starvation, not the GPU:
+      # load average hit 33-41 on this 16-thread box from concurrent
+      # cargo/rustc builds (soldr, zccache), and voxtype's model load + VAD
+      # are CPU-bound work that has to wait its turn like anything else.
+      # `Nice` can't fix this -- `systemctl --user show -p LimitNICE` reads
+      # 0, so this session has no permission to raise scheduling priority --
+      # but cgroup CPUWeight needs no such privilege and applies directly:
+      # `cat /proc/<pid>/cgroup` on a live rustc process showed it running
+      # as a sibling kitty-*.scope under the same
+      # user@1000.service/app.slice parent as this unit, so weighted
+      # fair-share between siblings is exactly what's contended. 10000 is
+      # the systemd max (default is 100); voxtype's CPU use is brief and
+      # bursty, so this does not meaningfully starve the build in return.
+      CPUWeight = 10000;
     };
   };
 
@@ -1466,13 +1506,28 @@ in
           SAVE="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/voxtype-ducked"
           LEVEL="''${VOXTYPE_DUCK_LEVEL:-0.3}"
 
-          # Every playback stream except voxtype's own and OBS's. voxtype
-          # holds an ALSA playback stream open for its start/stop beeps, and
-          # ducking that would quiet the very cue that says recording began.
-          # OBS only ever plays back to monitor -- into the OBS Mix sink and
-          # out to whoever is watching -- so ducking it would duck the
-          # broadcast rather than the room. \b keeps that from also matching
-          # an unrelated name that merely starts with "obs".
+          # Every playback stream except voxtype's own, OBS's, and Brave's.
+          # voxtype holds an ALSA playback stream open for its start/stop
+          # beeps, and ducking that would quiet the very cue that says
+          # recording began. OBS only ever plays back to monitor -- into the
+          # OBS Mix sink and out to whoever is watching -- so ducking it
+          # would duck the broadcast rather than the room. \b keeps that
+          # from also matching an unrelated name that merely starts with
+          # "obs".
+          #
+          # Brave is excluded because restore() proved unreliable for it in
+          # practice: on 2026-09-17 its stream was found stuck at 9% (two
+          # undone duck-to-30% cycles compounding: 1.0 x 0.3 x 0.3), and it
+          # re-ducked and failed to restore again live, in front of us,
+          # under heavy CPU load (rustc/soldr build, load average 33-41 on
+          # 16 threads) -- state went recording -> idle -> recording within
+          # a couple of seconds and the idle-triggered restore never landed
+          # before the next duck. Chromium-based browsers also create a new
+          # PipeWire stream node per tab/page/video rather than reusing one,
+          # which independently breaks restore()'s assumption that the
+          # ducked node ID is still there to restore when a recording ends.
+          # Excluding it here is simpler and more robust than trying to
+          # make restore() race-proof.
           streams() {
             pw-dump | jq -r '
               .[]
@@ -1480,7 +1535,7 @@ in
               | select(((.info.props."node.name" // "")
                         + (.info.props."application.name" // ""))
                        | ascii_downcase
-                       | test("voxtype|\\bobs\\b") | not)
+                       | test("voxtype|\\bobs\\b|brave") | not)
               | .id'
           }
 

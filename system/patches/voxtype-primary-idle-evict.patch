@@ -1,0 +1,13 @@
+--- a/src/model_manager.rs
++++ b/src/model_manager.rs
+@@ -201,5 +201,9 @@
+             .loaded_models
+             .iter()
+-            .filter(|(_, m)| !m.is_primary && m.last_used < cutoff)
++            // Upstream exempts the primary model here so cold_model_timeout_secs
++            // only ever cleans up a secondary model reached via a hotkey
++            // modifier. This machine has no secondary model, so the primary is
++            // the only thing worth evicting -- drop the exemption.
++            .filter(|(_, m)| m.last_used < cutoff)
+             .map(|(name, _)| name.clone())
+             .collect();
