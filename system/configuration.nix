@@ -835,6 +835,12 @@ in
     stepDesktop
     kittyOpenUrl
     kdotool             # KWin window queries from scripts; see kittyOpenUrl
+    # GTK dialogs for scripts that must ask the user something -- above all
+    # a secret -- on the desktop instead of through a terminal or an agent's
+    # chat. `zenity --password` hands the value straight to the caller's
+    # stdout, so it never lands in a transcript or shell history. No
+    # launcher, so nothing to pin.
+    zenity
     launchOrigin        # read-only kitty bridge; user service below owns placement
     imagemagick
 
