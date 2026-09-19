@@ -1405,20 +1405,6 @@ in
       settings.main = {
         # Spare button by the thumb; firmware sends KEY_LEFTSHIFT.
         leftshift = "f14";
-        # Thumb side button (BTN_SIDE, code 275). It is NOT a spare: it is
-        # the button browsers navigate Back with, which binding it outright
-        # silently took away. So it is shared by duration instead -- a
-        # normal click still goes Back, holding it past 200ms pastes.
-        #
-        # S-insert rather than C-v for the paste half: Ctrl+V collides with
-        # what terminal programs already use it for (vim's visual block,
-        # readline's quoted insert), whereas Shift+Insert is paste in GTK,
-        # Qt and browsers and is claimed by essentially no TUI.
-        #
-        # A consequence of timeout() worth knowing: the Back click is
-        # emitted on RELEASE rather than press, since keyd cannot know
-        # which half you meant until then.
-        mouse1 = "timeout(mouse1, 200, S-insert)";
       };
     };
   };
