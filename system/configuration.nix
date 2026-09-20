@@ -2605,19 +2605,26 @@ in
                 };
               }
 
-              # World clock: New York, Tokyo and UTC alongside the local time.
+              # World clock: local time plus New York (Eastern), Chicago
+              # (Central), Denver (Mountain), Sydney, Luxembourg and Tokyo.
               # `selected` populates the timezone row in the popup you get by
               # clicking the clock, and the same list shows in its hover
               # tooltip -- "Local" is the special value for the system
-              # timezone itself, not a literal zone name.
+              # timezone itself, not a literal zone name. `format = "city"`
+              # spells out the city name instead of the 3-4 letter zone code.
               {
                 digitalClock = {
                   timeZone.selected = [
                     "Local"
                     "America/New_York"
+                    "America/Chicago"
+                    "America/Denver"
+                    "Australia/Sydney"
+                    "Europe/Luxembourg"
                     "Asia/Tokyo"
                     "UTC"
                   ];
+                  timeZone.format = "city";
                 };
               }
             ];
