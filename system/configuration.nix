@@ -2604,7 +2604,22 @@ in
                   };
                 };
               }
-              "org.kde.plasma.digitalclock"
+
+              # World clock: New York, Tokyo and UTC alongside the local time.
+              # `selected` populates the timezone row in the popup you get by
+              # clicking the clock, and the same list shows in its hover
+              # tooltip -- "Local" is the special value for the system
+              # timezone itself, not a literal zone name.
+              {
+                digitalClock = {
+                  timeZone.selected = [
+                    "Local"
+                    "America/New_York"
+                    "Asia/Tokyo"
+                    "UTC"
+                  ];
+                };
+              }
             ];
           }
           {
