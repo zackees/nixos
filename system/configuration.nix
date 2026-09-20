@@ -1907,6 +1907,43 @@ in
     '';
   };
 
+  # A rustup nightly toolchain's bundled libLLVM.so.* is prebuilt on Ubuntu
+  # and links against libz.so.1, which NixOS has no /usr/lib to hold. That
+  # normally goes through nix-ld (`foreignBinaryLibraries` above already
+  # lists zlib), but nix-ld only intercepts binaries whose ELF interpreter is
+  # its own /lib64 shim. rustup's dylint-driver and librustc_driver.so are
+  # linked with a real Nix-store glibc as their loader -- `readelf -p
+  # .interp` shows it -- so nix-ld never sees the lookup; it resolves via
+  # each object's own DT_RUNPATH instead, and that chain bottoms out at
+  # libLLVM.so's RUNPATH of `$ORIGIN/../lib`, i.e. its own toolchain
+  # directory, which rustup never populates with zlib. `cargo-dylint`'s UI
+  # test suite failed on exactly this: `libz.so.1: cannot open shared object
+  # file`.
+  #
+  # The fix is a plain symlink dropped in that same directory, since that is
+  # what $ORIGIN/../lib actually resolves to. rustup keeps adding toolchains
+  # (both here and under ~/.soldr/rustup, soldr's own rustup home), so this
+  # re-walks every toolchain at each login rather than fixing one snapshot;
+  # idempotent, so a login that finds nothing to do costs a handful of stats.
+  systemd.user.services.rustup-toolchain-libz = {
+    description = "Symlink libz.so.1 into every rustup toolchain's lib dir";
+    wantedBy = [ "default.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      set -eu
+      for root in "$HOME/.rustup/toolchains" "$HOME/.soldr/rustup/toolchains"; do
+        [ -d "$root" ] || continue
+        for lib in "$root"/*/lib; do
+          [ -d "$lib" ] || continue
+          [ -e "$lib/libz.so.1" ] || ln -s ${pkgs.zlib}/lib/libz.so.1 "$lib/libz.so.1"
+        done
+      done
+    '';
+  };
+
   systemd.user.services.launch-origin = {
     description = "Keep new application windows on their source desktop";
     wantedBy = [ "graphical-session.target" ];
