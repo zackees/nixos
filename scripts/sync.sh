@@ -57,8 +57,23 @@ fi
 # ── 3. credential scan, on the captured content ───────────────────────
 # KDE and tool configs are captured verbatim, so a future settings file could
 # start carrying a token without anyone noticing. Check before it is pushed,
-# not after.
-echo "== scanning for credentials"
+# not after. Two passes (nixos#29):
+#
+#  - PATTERN below: fast, no dependency beyond grep, and it is what this
+#    repo has actually been burned by. Kept as a cheap first line even
+#    though gitleaks' default ruleset is a superset of it, because it needs
+#    no network and no nix-store fetch to run.
+#  - gitleaks (fetched via the pinned nixpkgs -- see the "nixpkgs#foo" trap
+#    in CLAUDE.md for why that stays reproducible): entropy-aware, hundreds
+#    of upstream-maintained detectors, config in .gitleaks.toml. It scans
+#    the STAGED diff, which is why staging moves up to here instead of
+#    step 5 -- `gitleaks protect --staged` needs something staged to look
+#    at, and scanning the index rather than the working tree means it sees
+#    exactly what capture.sh produced, gitignored build artifacts (result,
+#    __pycache__) excluded for free. scripts/test-secrets-scan.sh proves
+#    this pass actually catches something, rather than trusting a clean
+#    run to mean the gate works and not just that it silently no-ops.
+echo "== scanning for credentials (pattern)"
 # Matches secret VALUES, not the words for them, so that the docs can discuss
 # password hashes and this script can name its own patterns without tripping.
 #   $y$ / $6$ / $2b$   crypt hashes with real payload after them
@@ -92,14 +107,29 @@ WARN
   exit 1
 fi
 
+echo "== scanning for credentials (gitleaks)"
+git add -A
+if ! nix run nixpkgs#gitleaks -- protect --staged --redact --source "$REPO"; then
+  echo >&2
+  echo "REFUSING TO PUSH -- gitleaks found a possible credential above." >&2
+  cat >&2 <<'WARN'
+
+This repo is meant to hold no credentials. Remove the value, or -- only for a
+confirmed false positive -- add a narrow [[allowlist]] entry to .gitleaks.toml.
+WARN
+  git reset >/dev/null
+  exit 1
+fi
+
 # ── 4. show what changed ──────────────────────────────────────────────
 echo
 git status --short
 echo
-git --no-pager diff --stat
+git --no-pager diff --cached --stat
 echo
 
 if [ "$DRY_RUN" = 1 ]; then
+  git reset >/dev/null
   echo "dry run -- nothing committed. Inspect with: git diff"
   exit 0
 fi
@@ -115,11 +145,16 @@ fi
 if [ "$ASSUME_YES" != 1 ]; then
   echo "Commit message: $MSG"
   read -rp "Commit and push to $(git remote get-url origin)? [y/N] " reply
-  case "$reply" in [yY]*) ;; *) echo "aborted -- changes left in the tree"; exit 1 ;; esac
+  case "$reply" in
+    [yY]*) ;;
+    *) git reset >/dev/null; echo "aborted -- changes left in the tree"; exit 1 ;;
+  esac
 fi
 
-# ── 5. commit and push ────────────────────────────────────────────────
-git add -A
+# ── 5. commit and push ─────────────────────────────────────────────────
+# Already staged by the gitleaks pass in step 3 -- no `git add -A` needed
+# here, and re-running it would risk picking up something written to the
+# tree in the gap between the scan and this point.
 git commit -qm "$MSG"
 git push -q origin HEAD
 echo

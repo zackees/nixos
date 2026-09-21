@@ -1,0 +1,10 @@
+# nixos#29: extends gitleaks' own maintained ruleset rather than
+# replacing it, so new detectors arrive with a `nix flake update` on
+# nixpkgs instead of needing to be hand-added here. Add an [[allowlist]]
+# entry below if a real false positive shows up -- scripts/sync.sh and
+# .github/workflows/secrets-scan.yml both read this file automatically
+# (it's gitleaks' default config path), nothing else needs to change.
+title = "nixos repo gitleaks config"
+
+[extend]
+useDefault = true
