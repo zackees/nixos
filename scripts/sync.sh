@@ -90,8 +90,12 @@ PATTERN="$PATTERN"'|psk=.'
 
 # This script is excluded from its own scan: it necessarily contains every
 # pattern above, and a self-match would make the guard unusable.
+# scripts/test-secrets-scan.sh is excluded for the same reason -- it quotes
+# AKIAIOSFODNN7EXAMPLE (AWS's own published example key) in a comment
+# explaining why the *test* doesn't use it, which is exactly AKIA-shaped.
 scan_files() {
-  git ls-files -com --exclude-standard | grep -vx 'scripts/sync.sh'
+  git ls-files -com --exclude-standard \
+    | grep -vx -e 'scripts/sync.sh' -e 'scripts/test-secrets-scan.sh'
 }
 
 if scan_files | tr '\n' '\0' | xargs -0 -r grep -lIE "$PATTERN" 2>/dev/null | grep -q .; then
