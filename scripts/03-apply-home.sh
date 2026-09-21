@@ -127,6 +127,25 @@ else
   cp "$REPO/home/obs/basic.ini" "$HOME/.config/obs-studio/basic/profiles/Untitled/basic.ini"
 fi
 
+say "kdenlive project profiles"
+# Custom project profiles (e.g. a square 1080x1080 preset) are plain MLT
+# profile files kdenlive reads from this directory; captured/restored like
+# home/kde/ and home/obs/ rather than declared, since they only exist once
+# created through kdenlive's own "Manage Project Profiles" dialog. Guarded
+# the same way as the OBS/Boatswain sections above -- a running kdenlive
+# would overwrite a restored file if the profile list changes before exit.
+if pgrep -x kdenlive >/dev/null 2>&1; then
+  echo "  kdenlive is running and could overwrite these on exit; skipping."
+  echo "  quit it and re-run, or copy home/kdenlive/* by hand."
+else
+  mkdir -p "$HOME/.local/share/kdenlive/profiles"
+  for f in "$REPO"/home/kdenlive/*; do
+    [ -f "$f" ] || continue
+    keep "$HOME/.local/share/kdenlive/profiles/$(basename "$f")"
+    cp "$f" "$HOME/.local/share/kdenlive/profiles/$(basename "$f")"
+  done
+fi
+
 say "go/ links certificate trust"
 # nginx serves https://go/ with a self-signed cert that system activation
 # generates into /var/lib/go-links (see go-links-cert in configuration.nix).

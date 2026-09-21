@@ -72,6 +72,12 @@ cp ~/.config/gh/config.yml home/tools/gh-config.yml
 cp ~/.config/sublime-text/Packages/User/Preferences.sublime-settings \
    home/sublime/ 2>/dev/null || true
 
+# Custom kdenlive project profiles (plain MLT profile files), same category
+# as home/kde/ -- they only exist once created through kdenlive's own
+# "Manage Project Profiles" dialog, so there is no declarative source.
+mkdir -p home/kdenlive
+cp ~/.local/share/kdenlive/profiles/* home/kdenlive/ 2>/dev/null || true
+
 # hardware inventory, regenerated so docs/hardware.md never goes stale
 "$REPO/scripts/gen-hardware-doc.sh" > docs/hardware.md
 
