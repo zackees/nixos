@@ -1377,6 +1377,21 @@ in
   users.groups.voxtype-input = { };
   services.udev.extraRules = ''
     SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="keyd virtual keyboard", GROUP="voxtype-input", MODE="0640"
+
+    # udisks2's own rules (80-udisks2.rules) already exclude ram* and zram*
+    # from Solid's view, but not loop*. Dev tooling that losetup+mkfs+mount
+    # a scratch loop device directly -- zccache's daemon test suite does
+    # this every run, briefly formatting /dev/loop0 as ext4 then vfat under
+    # ~/.clud/tmp/zccache-loop-*/mount -- still fires udisks2's normal
+    # device-added/filesystem-mounted signals, since those come from
+    # udev/the kernel regardless of which tool did the mounting. Plasma's
+    # "Disks and Devices" system tray applet (org.kde.plasma.devicenotifier)
+    # auto-pops its popup on that signal, and because the loop device is
+    # gone again within about a second, the popup shows nothing by the time
+    # it renders -- the "keeps popping up but showing nothing" symptom.
+    # UDISKS_IGNORE keeps every loop device out of Solid's view entirely, the
+    # same mechanism udisks2's own rules use for ram/zram above.
+    SUBSYSTEM=="block", KERNEL=="loop*", ENV{UDISKS_IGNORE}="1"
   '';
 
   # ── Key remapping ───────────────────────────────────────────
