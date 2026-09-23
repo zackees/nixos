@@ -1681,14 +1681,18 @@ in
     }];
   };
 
-  # Zoom's PulseAudio client can also write the hardware sink and source
-  # volumes while a call is running. Those device levels belong to the user:
-  # changing Zoom's own stream volume or mute remains available. The
-  # WirePlumber rule above only controls saved stream properties at startup.
-  services.pipewire.extraConfig.pipewire-pulse."51-zoom-no-device-volume" = {
+  # Zoom and Brave both use PulseAudio through PipeWire. WebRTC's Linux
+  # automatic gain control writes the *source device* volume, so a meeting
+  # can change the Wave:3 level for every other application too. Keep that
+  # level under the user's control while leaving stream mute and playback
+  # volume alone. Elgato calls this problem out for Wave microphones.
+  services.pipewire.extraConfig.pipewire-pulse."51-voice-apps-no-mic-gain" = {
     "pulse.rules" = [{
-      matches = [{ "application.process.binary" = "zoom"; }];
-      actions.quirks = [ "block-sink-volume" "block-source-volume" ];
+      matches = [
+        { "application.process.binary" = "zoom"; }
+        { "application.process.binary" = "brave"; }
+      ];
+      actions.quirks = [ "block-source-volume" ];
     }];
   };
 
