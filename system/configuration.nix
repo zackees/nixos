@@ -1681,18 +1681,19 @@ in
     }];
   };
 
-  # Zoom and Brave both use PulseAudio through PipeWire. WebRTC's Linux
-  # automatic gain control writes the *source device* volume, so a meeting
-  # can change the Wave:3 level for every other application too. Keep that
-  # level under the user's control while leaving stream mute and playback
-  # volume alone. Elgato calls this problem out for Wave microphones.
-  services.pipewire.extraConfig.pipewire-pulse."51-voice-apps-no-mic-gain" = {
+  # Audio applications must not change shared device levels. WebRTC's Linux
+  # automatic gain control writes the microphone source volume directly, and
+  # other clients can write sink volume too. This covers PulseAudio apps,
+  # including Zoom, Brave, Slack and Signal. Plasma's volume UI and
+  # explicit command-line mixers stay able to make manual changes. In-app
+  # stream volume and mute remain separate from these device-level controls.
+  services.pipewire.extraConfig.pipewire-pulse."51-user-owned-device-volumes" = {
     "pulse.rules" = [{
       matches = [
-        { "application.process.binary" = "zoom"; }
-        { "application.process.binary" = "brave"; }
+        { "application.process.binary" = "!~^([.]kded6-wrapped|[.]plasmashell-wrapped|pactl|pamixer|pulsemixer|pavucontrol|pavucontrol-qt)$"; }
+        { "application.process.binary" = null; }
       ];
-      actions.quirks = [ "block-source-volume" ];
+      actions.quirks = [ "block-source-volume" "block-sink-volume" ];
     }];
   };
 
