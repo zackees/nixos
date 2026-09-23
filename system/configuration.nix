@@ -1681,6 +1681,17 @@ in
     }];
   };
 
+  # Zoom's PulseAudio client can also write the hardware sink and source
+  # volumes while a call is running. Those device levels belong to the user:
+  # changing Zoom's own stream volume or mute remains available. The
+  # WirePlumber rule above only controls saved stream properties at startup.
+  services.pipewire.extraConfig.pipewire-pulse."51-zoom-no-device-volume" = {
+    "pulse.rules" = [{
+      matches = [{ "application.process.binary" = "zoom"; }];
+      actions.quirks = [ "block-sink-volume" "block-source-volume" ];
+    }];
+  };
+
   services.pipewire.extraConfig.pipewire."99-obs-virtual-mic" = {
     "context.modules" = [{
       name = "libpipewire-module-loopback";
