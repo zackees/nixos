@@ -787,6 +787,10 @@ in
     unrar               # Extract RAR archives from the command line.
     tmog                # tmog.org AppImage; see let-block above
     python3
+    # Newest Node the pinned nixpkgs carries (26.x), npm included. Global
+    # installs go to ~/.npm-global via NPM_CONFIG_PREFIX below, because npm's
+    # default prefix is this package's read-only /nix/store path.
+    nodejs_latest
     # NOT python3Packages.pip: it is a separate derivation from python3, so
     # `python3 -m pip` reports "No module named pip" while the `pip` binary it
     # does install can only ever fail PEP 668. Real pip lives in ~/.venv.
@@ -1854,7 +1858,8 @@ in
   # application has an absolute /nix/store shebang and never consults PATH.
   # The blast radius is interactive shells and scripts run by hand -- which is
   # exactly the set of things that were previously forced through `uv`.
-  environment.sessionVariables.PATH = [ "$HOME/.venv/bin" "$HOME/.local/bin" ];
+  environment.sessionVariables.PATH = [ "$HOME/.venv/bin" "$HOME/.local/bin" "$HOME/.npm-global/bin" ];
+  environment.sessionVariables.NPM_CONFIG_PREFIX = "$HOME/.npm-global";
 
   # pipx builds each app its own venv, and needs a base interpreter to build
   # them from. Point it at the same uv-managed CPython the user venv uses, not
