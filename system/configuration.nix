@@ -437,6 +437,11 @@ let
     glib gtk3 cairo pango atk gdk-pixbuf at-spi2-atk at-spi2-core
     nss nspr dbus fontconfig freetype
     libGL libdrm libxkbcommon mesa vulkan-loader
+    # libgbm.so.1 lives in its own package now; `mesa` only brings the
+    # gbm/dri_gbm.so backend. Without it every Playwright Chromium (and
+    # headless shell) dies at start with "libgbm.so.1: cannot open shared
+    # object file".
+    libgbm
     xorg.libX11 xorg.libXcomposite xorg.libXdamage xorg.libXext
     xorg.libXfixes xorg.libXrandr xorg.libXrender xorg.libXi xorg.libXtst
     xorg.libXScrnSaver xorg.libxcb xorg.libXcursor xorg.libxshmfence
@@ -825,9 +830,10 @@ in
     zoom-us             # meetings; unfree. Screen share and camera go through
                         # PipeWire and xdg-desktop-portal-kde, as OBS's do
     dbeaver-bin         # SQL client; binary release, unfree
-    # FHS sandbox for prebuilt binaries that outgrow nix-ld: Playwright's
-    # downloaded Chromium/Firefox need libnss3, libgbm and friends at
-    # standard paths, and only this makes them start here.
+    # FHS sandbox for prebuilt binaries that outgrow nix-ld. Playwright's
+    # downloaded Chromium runs through nix-ld directly (foreignBinaryLibraries
+    # carries libgbm for it); this stays as the fallback for anything that
+    # hard-codes /usr/lib paths.
     steam-run
     # Runs a locally built Tauri/WebKitGTK binary on X11 or Wayland; see the
     # let block above for why nix-ld cannot do this for such a binary.
