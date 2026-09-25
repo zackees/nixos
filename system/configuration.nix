@@ -1694,6 +1694,9 @@ in
 
   programs.git = {
     enable = true;
+    # Installs git-lfs and writes the filter.lfs.* config into /etc/gitconfig,
+    # so no per-user `git lfs install` is needed.
+    lfs.enable = true;
     config = {
       user.name = "Zach Vorhies";
       user.email = "zachvorhies@protonmail.com";
