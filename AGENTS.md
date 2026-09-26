@@ -360,7 +360,7 @@ alone before rebuilding the system, because the feedback loop is far shorter.
 
 **`uv` is declared in `scripts/03-apply-home.sh`, not in
 `configuration.nix`, and that is deliberate.** The pinned nixpkgs' uv lags
-while `clud` and `soldr` track PyPI, so the restore installs uv into the
+while `clud` tracks PyPI, so the restore installs uv into the
 *user nix profile* instead, from a fully-spelled nixpkgs-unstable URL.
 Writing that as `nixpkgs#uv` would now resolve through the system flake
 registry to this repo's *locked* nixpkgs and install the very version being

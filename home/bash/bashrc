@@ -16,8 +16,9 @@ if [ -r /etc/bashrc ]; then . /etc/bashrc; fi
 # PATH is the venv binary. No uvx alias -- the uv-tool clud was removed so a
 # stale second binary can never shadow pip's.
 
-# `update` upgrades CLI tools: `update soldr` (uv-managed), `update clud`
-# (pip-managed), or bare `update` for everything.
+# `update` upgrades CLI tools: `update <uv-tool>` (uv-managed), `update clud`
+# (pip-managed), or bare `update` for everything. soldr is not installed by
+# this config.
 update() {
   if [ "$#" -eq 0 ]; then
     uv tool upgrade --all

@@ -184,7 +184,6 @@ export PATH="$HOME/.local/bin:$PATH"
 # clud is pip-managed in ~/.venv (the declared user venv); the uv-tool install
 # was removed because it shadowed pip's binary with a stale pinned version.
 "$HOME/.venv/bin/pip" install -U clud
-uv tool install --force soldr
 
 say "claude + clud settings"
 mkdir -p "$HOME/.claude" "$HOME/.clud" "$HOME/.config/gh"

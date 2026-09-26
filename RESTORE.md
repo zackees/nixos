@@ -143,7 +143,7 @@ If you would rather do it from inside the desktop, run it as
 *immediately* afterwards. Without `KDE_FORCE=1` the script detects Plasma and
 skips the KDE portion rather than doing something that will not stick.
 
-The script also installs `uv` and the `clud` and `soldr` CLI tools, and
+The script also installs `uv` and the `clud` CLI tool, and
 restores the kitty config, the voxtype dictation config, and the shell
 aliases.
 
@@ -188,7 +188,7 @@ Run these as `niteris` in a normal desktop session:
     # then press Meta+H, speak, press Meta+H again -- text types at the cursor
 
     # tools
-    uv tool list                       # clud, soldr
+    ~/.venv/bin/clud --version         # clud (pip-managed in ~/.venv)
     gh auth status                     # logged in as zackees
 
     # no credentials crept into the repo during the restore
