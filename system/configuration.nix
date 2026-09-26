@@ -1973,6 +1973,41 @@ in
     '';
   };
 
+  # soldr's wheel, built here by maturin, vendors liblzma into
+  # site-packages/soldr.libs under a hashed name and finds it through an
+  # RPATH of `$ORIGIN/../soldr.libs`. soldr then hardlinks that same binary
+  # into ~/.soldr-dev/v<version>/shims/rustc, where $ORIGIN/.. is the version
+  # directory and holds no soldr.libs, so every `soldr cargo` dies with
+  # `liblzma-<hash>.so.5: cannot open shared object file` (0.9.23,
+  # 2026-09-25). Only a /lib64 loader consults nix-ld, and this binary's
+  # loader is a store glibc, so the fix is again a symlink where $ORIGIN
+  # points. The path unit reruns it when soldr creates a new version dir;
+  # the first build in a brand-new one can still race it. The real fix
+  # belongs in soldr's shim materialization.
+  systemd.user.services.soldr-shim-libs = {
+    description = "Symlink soldr.libs into every soldr version dir";
+    wantedBy = [ "default.target" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      set -eu
+      libs=
+      for candidate in "$HOME"/.venv/lib/python*/site-packages/soldr.libs; do
+        [ -d "$candidate" ] && libs=$candidate
+      done
+      [ -n "$libs" ] || exit 0
+      for root in "$HOME/.soldr-dev" "$HOME/.soldr"; do
+        [ -d "$root" ] || continue
+        for dir in "$root"/v*/; do
+          [ -e "$dir/soldr.libs" ] || ln -sfn "$libs" "$dir/soldr.libs"
+        done
+      done
+    '';
+  };
+  systemd.user.paths.soldr-shim-libs = {
+    wantedBy = [ "default.target" ];
+    pathConfig.PathChanged = [ "%h/.soldr-dev" "%h/.soldr" ];
+  };
+
   systemd.user.services.launch-origin = {
     description = "Keep new application windows on their source desktop";
     wantedBy = [ "graphical-session.target" ];
