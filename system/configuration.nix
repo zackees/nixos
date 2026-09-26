@@ -175,7 +175,7 @@ let
   # desktopScript below, and RollOverDesktops=false in kwinrc is what makes
   # them stop at the ends instead of wrapping.
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
-  dockerVm = inputs.docker-vm.packages.${pkgs.system}.docker-vm;
+  dockerVm = inputs.docker-vm.packages.${pkgs.stdenv.hostPlatform.system}.docker-vm;
 
   # ── Links from kitty open in the Brave window on THIS desktop ──
   # Chromium opens a URL in whichever of its windows was focused most
@@ -442,9 +442,9 @@ let
     # headless shell) dies at start with "libgbm.so.1: cannot open shared
     # object file".
     libgbm
-    xorg.libX11 xorg.libXcomposite xorg.libXdamage xorg.libXext
-    xorg.libXfixes xorg.libXrandr xorg.libXrender xorg.libXi xorg.libXtst
-    xorg.libXScrnSaver xorg.libxcb xorg.libXcursor xorg.libxshmfence
+    libx11 libxcomposite libxdamage libxext
+    libxfixes libxrandr libxrender libxi libxtst
+    libxscrnsaver libxcb libxcursor libxshmfence
 
     # WebKitGTK 4.1 and its HTTP stack: what a prebuilt Tauri app (an
     # AppImage payload, an Ubuntu-built release binary) asks for beyond GTK.
