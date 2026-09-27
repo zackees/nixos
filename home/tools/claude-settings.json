@@ -2,13 +2,22 @@
   "env": {
     "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "1"
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "opus[1m]",
   "modelSettings": {
     "claude-fable-5-1": {
       "effortLevel": "high"
     },
     "deepseek-v4-pro": {
       "effortLevel": "medium"
+    },
+    "clud-claude-codex-terra": {
+      "effortLevel": "high"
+    },
+    "clud-claude-codex-sol": {
+      "effortLevel": "low"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "high"
     }
   },
   "tui": "fullscreen",

@@ -1,6 +1,6 @@
 {
   "backend": {
-    "default": "deepseek"
+    "default": "codex"
   },
   "codex": {
     "config_overrides": [
@@ -21,8 +21,11 @@
   "git": {
     "pr_wait_fail_fast": true
   },
+  "harness": {
+    "default": "default"
+  },
   "hook_health": {
-    "auto_fix_hooks": true
+    "auto_fix_hooks": false
   },
   "launch_setup": {
     "claude": {
@@ -33,7 +36,7 @@
     }
   },
   "launcher": {
-    "last_harness": "claude"
+    "last_harness": "codex"
   },
   "shell": {
     "disable_powershell": false

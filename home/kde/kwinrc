@@ -11,8 +11,8 @@ Id_6=Desktop_6
 Id_7=Desktop_7
 Id_8=Desktop_8
 Id_9=Desktop_9
-Name_1=Dev1
-Name_10=bosn
+Name_1=Main
+Name_10=mimalloc
 Name_11=zach vorhies dynamic
 Name_12=Reld
 Name_2=Soldr
@@ -130,6 +130,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][Desktop_1][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][Desktop_1][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -142,7 +146,35 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][Desktop_10][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][Desktop_10][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_11][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_11][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_11][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_12][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_12][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_12][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
@@ -151,6 +183,10 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][Desktop_2][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_2][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
@@ -166,6 +202,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][Desktop_3][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][Desktop_3][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -175,6 +215,10 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][Desktop_4][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_4][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
@@ -190,6 +234,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][Desktop_5][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][Desktop_5][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -199,6 +247,10 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][Desktop_6][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_6][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
@@ -214,6 +266,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][Desktop_7][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][Desktop_7][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -226,6 +282,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][Desktop_8][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][Desktop_8][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -235,6 +295,10 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][Desktop_9][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][Desktop_9][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
@@ -319,4 +383,4 @@ PerOutputVirtualDesktops=true
 RollOverDesktops=false
 
 [Xwayland]
-Scale=1.75
+Scale=1.95

@@ -14,7 +14,7 @@ replacement parts and sanity-checking a restore. Nothing reads it at runtime.
 ## System
 
     hostname        $(hostname)
-    NixOS           $(nixos-version)
+    NixOS           $(nixos-version --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["nixosVersion"])')
     kernel          $(uname -r)
     CPU             $(lscpu | sed -n 's/^Model name: *//p') ($(nproc) threads)
     memory          $(free -h | awk '/^Mem:/{print $2}')

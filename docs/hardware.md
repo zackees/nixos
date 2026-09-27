@@ -7,7 +7,7 @@ replacement parts and sanity-checking a restore. Nothing reads it at runtime.
 ## System
 
     hostname        nixos
-    NixOS           26.05.20260829.c5c4a43 (Yarara)
+    NixOS           26.05.20260829.c5c4a43
     kernel          6.18.48
     CPU             AMD Ryzen 7 3700X 8-Core Processor (16 threads)
     memory          125Gi
@@ -16,6 +16,13 @@ replacement parts and sanity-checking a restore. Nothing reads it at runtime.
 
 ```
 NAME          SIZE FSTYPE LABEL           UUID                                 MOUNTPOINT
+loop0         400M btrfs                  264e898e-263c-4832-bc12-e1c50266af0f 
+loop1         400M btrfs                  c38a349e-a3cc-4c52-a20a-a67a046a6ddf 
+loop2         400M btrfs                  8384d5ac-8b06-4f9c-98fb-937949db5133 
+loop3         400M btrfs                  8fe7d42a-26c5-41bd-b218-fdf11c738446 
+loop4         400M btrfs                  52d89573-ff66-4834-bcd1-5502b9627322 
+loop5         400M btrfs                  62ff543d-70fd-480c-987c-28fa59884a20 
+loop6           2G btrfs                  1de916a3-9ed2-45fd-aeea-ad5b17a1cf36 /home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-zccache2/f17af3ed-0a11-492f-a434-56c20bca6537/scratchpad/btrfs
 sda         931.5G                                                             
 ├─sda1         50M ntfs   System Reserved C7C0D431375DBADC                     
 ├─sda2        931G ntfs                   F03CCA193CC9DB2C                     
@@ -33,8 +40,9 @@ nvme0n1       1.8T
 ## Displays
 
     HDMI-A-1   TCL 0 0 22 2020 0        3840x2160@60Hz  scale 1.5
-    DP-1       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1.75
+    DP-1       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1.95
     DP-3       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1.75
+    DP-2       RTK 25616 25616 25 2015 0 2560x1440@59Hz  scale 1.8
 
 ## Audio capture devices
 
