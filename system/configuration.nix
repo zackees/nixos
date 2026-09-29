@@ -177,6 +177,27 @@ let
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
   dockerVm = inputs.docker-vm.packages.${pkgs.stdenv.hostPlatform.system}.docker-vm;
 
+  # ── Reorder virtual desktops live ──
+  # KWin's D-Bus API can create, remove and rename desktops but not move
+  # them; the scripting API's workspace.moveDesktop(desktop, position) can
+  # (verified on 6.7.4). Positions are 1-based. The order does not outlive
+  # the next activation unless mirrored in kwin.virtualDesktops.names.
+  desktopMove = pkgs.writeShellApplication {
+    name = "desktop-move";
+    runtimeInputs = [ pkgs.qt6.qttools pkgs.coreutils ];
+    text = ''
+      from="''${1:?usage: desktop-move FROM TO (1-based positions)}"
+      to="''${2:?usage: desktop-move FROM TO (1-based positions)}"
+      js="$(mktemp --suffix=.js)"
+      trap 'rm -f "$js"' EXIT
+      echo "workspace.moveDesktop(workspace.desktops[$((from - 1))], $((to - 1)));" > "$js"
+      id="$(qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$js" desktop-move)"
+      qdbus org.kde.KWin "/Scripting/Script$id" org.kde.kwin.Script.run > /dev/null
+      sleep 0.5
+      qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript desktop-move > /dev/null
+    '';
+  };
+
   # ── Links from kitty open in the Brave window on THIS desktop ──
   # Chromium opens a URL in whichever of its windows was focused most
   # recently, which with per-screen virtual desktops is usually one on
@@ -1042,6 +1063,7 @@ in
     lazydocker          # TUI dashboard; what the "Docker" dock icon launches
     dockerIcon          # the whale glyph, no icon theme ships one
     dockerTui           # the "Docker" desktop entry itself
+    desktopMove         # desktop-move FROM TO: reorder desktops live
     gridView            # top-panel "Desktops" button (Super+G reminder)
     pam_u2f             # pamu2fcfg, to register the YubiKey for sudo
     docker-compose      # the standalone name; `docker compose` needs nothing
@@ -2431,10 +2453,11 @@ in
           # "zach vorhies dynamic" and "Reld" added in Overview. Same read-back
           # as above. Expect to repeat this whenever a desktop is added live --
           # the list here is the source of truth at every activation.
+          # Order set live with workspace.moveDesktop on 2026-09-29; live had
+          # eight (Loops and Loop2 added, the rest gone).
           names = [
-            "Dev1" "Soldr" "NixOS & Hermes" "FastLED" "TWP" "fbuild"
-            "Kernal-api" "Clud" "FastLED-wasm" "bosn"
-            "zach vorhies dynamic" "Reld"
+            "Main" "NixOS & Hermes" "TWP" "Clud" "mimalloc"
+            "zach vorhies dynamic" "Loops" "Loop2"
           ];
           rows = 1;
         };
