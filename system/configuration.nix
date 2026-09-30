@@ -2475,7 +2475,7 @@ in
           # eight (Loops and Loop2 added, the rest gone).
           names = [
             "Main" "NixOS & Hermes" "TWP" "Clud" "mimalloc"
-            "zach vorhies dynamic" "Loops" "Loop2"
+            "zach vorhies dynamic" "Loops" "Loop2" "Wild"
           ];
           rows = 1;
         };
