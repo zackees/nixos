@@ -2780,6 +2780,7 @@ in
                     "America/Denver"
                     "Australia/Sydney"
                     "Europe/Luxembourg"
+                    "Europe/Moscow"
                     "Asia/Tokyo"
                     "UTC"
                   ];
