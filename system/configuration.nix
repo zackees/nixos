@@ -182,9 +182,12 @@ let
   # them; the scripting API's workspace.moveDesktop(desktop, position) can
   # (verified on 6.7.4). Positions are 1-based. The order does not outlive
   # the next activation unless mirrored in kwin.virtualDesktops.names.
-  # Overview has no drag-to-reorder (tried: KWin 6.7.4), so this is the UI:
-  # `desktop-move left|right` shifts the desktop showing on the focused
-  # screen; bound to Meta+Ctrl+Alt+Left/Right via hotkeys.commands.
+  # Dragging works too, but only in Grid View: Main.qml's per-desktop
+  # DragHandler is `enabled: gridVal !== 0`, and it drops through
+  # Workspace.moveDesktop. Overview's DesktopBar has no drag-reorder in
+  # 6.7.4 (upstream MR 9832 adds it). `desktop-move left|right` is the
+  # keyboard route: it shifts the desktop showing on the focused screen,
+  # bound to Meta+Ctrl+Alt+Left/Right via hotkeys.commands.
   desktopMove = pkgs.writeShellApplication {
     name = "desktop-move";
     runtimeInputs = [ pkgs.qt6.qttools pkgs.coreutils ];
@@ -2545,9 +2548,13 @@ in
         # block). Meta+Tab used to be a second key for "Walk Through
         # Windows", which keeps Alt+Tab. Written to kglobalshortcutsrc, so
         # the captured home/kde copy follows this after the next capture.
+        #
+        # Grid View keeps a key of its own (Meta+Shift+G) because it is the
+        # only place desktops can be DRAGGED into a new order; having no
+        # binding at all made that impossible to reach.
         shortcuts.kwin = {
           "Overview" = [ "Meta+W" "Meta+G" "Meta+Tab" ];
-          "Grid View" = "none";
+          "Grid View" = "Meta+Shift+G";
           "Walk Through Windows" = "Alt+Tab";
         };
         # Reorder desktops: move the current one a place left or right.
