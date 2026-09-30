@@ -2,7 +2,7 @@
   "env": {
     "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "1"
   },
-  "model": "opus[1m]",
+  "model": "sonnet",
   "modelSettings": {
     "claude-fable-5-1": {
       "effortLevel": "high"
@@ -17,7 +17,10 @@
       "effortLevel": "low"
     },
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "low"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "low"
     }
   },
   "tui": "fullscreen",
