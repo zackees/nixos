@@ -182,15 +182,30 @@ let
   # them; the scripting API's workspace.moveDesktop(desktop, position) can
   # (verified on 6.7.4). Positions are 1-based. The order does not outlive
   # the next activation unless mirrored in kwin.virtualDesktops.names.
+  # Overview has no drag-to-reorder (tried: KWin 6.7.4), so this is the UI:
+  # `desktop-move left|right` shifts the desktop showing on the focused
+  # screen; bound to Meta+Ctrl+Alt+Left/Right via hotkeys.commands.
   desktopMove = pkgs.writeShellApplication {
     name = "desktop-move";
     runtimeInputs = [ pkgs.qt6.qttools pkgs.coreutils ];
     text = ''
-      from="''${1:?usage: desktop-move FROM TO (1-based positions)}"
-      to="''${2:?usage: desktop-move FROM TO (1-based positions)}"
+      usage="usage: desktop-move left|right | FROM TO (1-based positions)"
+      case "''${1:?$usage}" in
+        left|right)
+          dir=-1; [ "$1" = right ] && dir=1
+          code="var d = workspace.desktops;
+                var cur = workspace.currentDesktopForScreen(workspace.activeScreen);
+                var i = d.indexOf(cur), j = i + ($dir);
+                if (i >= 0 && j >= 0 && j < d.length) workspace.moveDesktop(cur, j);"
+          ;;
+        *)
+          from="$1"; to="''${2:?$usage}"
+          code="workspace.moveDesktop(workspace.desktops[$((from - 1))], $((to - 1)));"
+          ;;
+      esac
       js="$(mktemp --suffix=.js)"
       trap 'rm -f "$js"' EXIT
-      echo "workspace.moveDesktop(workspace.desktops[$((from - 1))], $((to - 1)));" > "$js"
+      echo "$code" > "$js"
       id="$(qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "$js" desktop-move)"
       qdbus org.kde.KWin "/Scripting/Script$id" org.kde.kwin.Script.run > /dev/null
       sleep 0.5
@@ -1063,7 +1078,7 @@ in
     lazydocker          # TUI dashboard; what the "Docker" dock icon launches
     dockerIcon          # the whale glyph, no icon theme ships one
     dockerTui           # the "Docker" desktop entry itself
-    desktopMove         # desktop-move FROM TO: reorder desktops live
+    desktopMove         # desktop-move left|right|FROM TO: reorder desktops live
     gridView            # top-panel "Desktops" button (Super+G reminder)
     pam_u2f             # pamu2fcfg, to register the YubiKey for sudo
     docker-compose      # the standalone name; `docker compose` needs nothing
@@ -2534,6 +2549,17 @@ in
           "Overview" = [ "Meta+W" "Meta+G" "Meta+Tab" ];
           "Grid View" = "none";
           "Walk Through Windows" = "Alt+Tab";
+        };
+        # Reorder desktops: move the current one a place left or right.
+        hotkeys.commands.desktop-move-left = {
+          name = "Move desktop left";
+          key = "Meta+Ctrl+Alt+Left";
+          command = "desktop-move left";
+        };
+        hotkeys.commands.desktop-move-right = {
+          name = "Move desktop right";
+          key = "Meta+Ctrl+Alt+Right";
+          command = "desktop-move right";
         };
 
         # ── Idle behaviour ──
