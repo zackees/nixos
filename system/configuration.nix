@@ -44,6 +44,32 @@ let
     '';
   };
 
+  # Upstream ships an AppImage; the FHS wrapper supplies Linux runtime paths.
+  # Keep the versioned URL and hash together so restores never fetch "latest".
+  photonVersion = "0.1.35";
+  photonSrc = pkgs.fetchurl {
+    url = "https://downloads.tenzen.studio/photon/stable/linux/${photonVersion}/Photon-Studio-${photonVersion}-linux-x64.AppImage";
+    hash = "sha256-kKhkrAn8JDlX1wFCJSOMlloHY/jlkSzgWAuBemXuQPU=";
+  };
+  photonExtracted = pkgs.appimageTools.extract {
+    pname = "photon-studio";
+    version = photonVersion;
+    src = photonSrc;
+  };
+  photon = pkgs.appimageTools.wrapType2 {
+    pname = "photon-studio";
+    version = photonVersion;
+    src = photonSrc;
+    extraInstallCommands = ''
+      install -Dm444 ${photonExtracted}/photon-studio.desktop \
+        $out/share/applications/photon-studio.desktop
+      substituteInPlace $out/share/applications/photon-studio.desktop \
+        --replace-fail 'Exec=AppRun' 'Exec=photon-studio'
+      install -Dm444 ${photonExtracted}/usr/share/icons/hicolor/512x512/apps/photon-studio.png \
+        $out/share/icons/hicolor/512x512/apps/photon-studio.png
+    '';
+  };
+
   # Hermes Agent, from the flake input pinned in flake.nix. `bin/hermes` is a
   # wrapper that carries its own sealed uv2nix venv and runtime tools (node,
   # git, ripgrep, ffmpeg) on PATH, so the units below do not need VIRTUAL_ENV
@@ -322,6 +348,7 @@ let
     "dbeaver.desktop"
     "kitty.desktop"
     "sublime_text.desktop"
+    "photon-studio.desktop"
     "org.kde.kdenlive.desktop"
     "fr.handbrake.ghb.desktop"
     "com.obsproject.Studio.desktop"
@@ -829,6 +856,7 @@ in
   environment.systemPackages = with pkgs; [
     dockerVm
     unrar               # Extract RAR archives from the command line.
+    photon              # pinned Photon Studio AppImage; see let-block above
     tmog                # tmog.org AppImage; see let-block above
     python3
     # Newest Node the pinned nixpkgs carries (26.x), npm included. Global
