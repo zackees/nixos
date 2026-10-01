@@ -1,10 +1,9 @@
 [Annotations]
-annotationToolType=3
 highlighterStrokeColor=255,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///tmp/full_check2.png
+lastImageSaveLocation=file:///tmp/full.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 

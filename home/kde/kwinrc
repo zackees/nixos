@@ -7,6 +7,7 @@ Id_5=Desktop_5
 Id_6=Desktop_6
 Id_7=Desktop_7
 Id_8=Desktop_8
+Id_9=ae059d77-5c92-4dc9-95fb-540e8d73770e
 Name_1=Main
 Name_2=NixOS & Hermes
 Name_3=TWP
@@ -15,6 +16,7 @@ Name_5=mimalloc
 Name_6=zach vorhies dynamic
 Name_7=Loops
 Name_8=Loop2
+Name_9=Wild
 Number=8
 Rows=1
 
@@ -319,6 +321,18 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][a2e19ee9-0f27-4c28-9b29-caf214ab0565][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][ae059d77-5c92-4dc9-95fb-540e8d73770e][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][ae059d77-5c92-4dc9-95fb-540e8d73770e][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][ae059d77-5c92-4dc9-95fb-540e8d73770e][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 

@@ -1,17 +1,18 @@
-[PlasmaViews][Panel 1026]
+[PlasmaViews][Panel 1060]
 floating=0
 panelLengthMode=1
+panelOpacity=1
 panelVisibility=3
 shell=org.kde.plasma.desktop
 
-[PlasmaViews][Panel 1026][Defaults]
+[PlasmaViews][Panel 1060][Defaults]
 thickness=36
 
-[PlasmaViews][Panel 1029]
+[PlasmaViews][Panel 1063]
 floating=0
 shell=org.kde.plasma.desktop
 
-[PlasmaViews][Panel 1029][Defaults]
+[PlasmaViews][Panel 1063][Defaults]
 thickness=44
 
 [PlasmaViews][Panel 656]
