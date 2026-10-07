@@ -90,10 +90,19 @@ let
   hermesPkg = hermesBuildPkgs.callPackage "${hermesSource}/nix/hermes-agent.nix" {
     inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
     npm-lockfile-fix = inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    # Upstream moved versioning into git tags and hardcodes `version = "0.0.0"`
+    # in pyproject.toml, so the derivation falls back to 0.0.0 unless told
+    # otherwise. That is not cosmetic: `hermes --version` gates plugin and
+    # feature availability on it, and everything needing >= 0.21.5 (the
+    # Home Assistant plugin) refuses to load against a 0.0.0 build. Keep this
+    # in step with the pinned rev in flake.nix -- flake.nix currently pins
+    # rc.35-v0.21.5, the newest release candidate; there is no stable 0.21.5
+    # tag yet, so bump both together when one lands.
+    version = "0.21.5";
     rev = inputs.hermes-agent.rev;
     extraDependencyGroups = [
       "anthropic" "azure-identity" "bedrock" "daytona" "dingtalk"
-      "edge-tts" "exa" "fal" "feishu" "firecrawl" "hindsight" "honcho"
+      "edge-tts" "exa" "fal" "feishu" "firecrawl"
       "messaging" "modal" "parallel-web" "tts-premium" "vercel" "voice" "matrix"
     ];
   };
@@ -710,11 +719,16 @@ in
             <style>html,body,iframe{margin:0;height:100%;width:100%;border:0;background:#0f1a17}</style>
             <iframe src="/kanban"></iframe>
           '';
+          calRedirect = {
+            return = "302 https://calendar.google.com/calendar/u/0/r";
+          };
         in {
           "= /hermes" = {
             root = frame;
             extraConfig = "default_type text/html;";
           };
+          "= /cal" = calRedirect;
+          "= /calendar" = calRedirect;
           "/" = hermes "";
         };
     };
@@ -906,6 +920,7 @@ in
     # let block above for why nix-ld cannot do this for such a binary.
     tauriRun
     gh
+    glab                # GitLab CLI, the counterpart to gh
     kitty
     # Must outrank kitty's own kitty.desktop -- see the let block above.
     (lib.hiPrio kittySingleInstance)
@@ -2170,37 +2185,14 @@ in
     };
   };
 
-  # The `assistant` profile -- the second Telegram bot. Its HERMES_HOME is the
-  # profile directory itself, which is how `hermes -p assistant gateway install`
-  # generated it.
-  systemd.user.services.hermes-gateway-assistant = {
-    description = "Hermes Agent Gateway - assistant profile";
-    wantedBy = [ "default.target" ];
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    startLimitIntervalSec = 0;
-    path = [ "/home/niteris/.local" "/home/niteris/.cargo" ];
-    environment = {
-      HERMES_HOME = "/home/niteris/dev/hermes/profiles/assistant";
-      HERMES_SUPERVISED_CHILD = "1";
-    };
-    serviceConfig = {
-      Type = "simple";
-      ExecStart = "${hermesPkg}/bin/hermes --profile assistant gateway run";
-      WorkingDirectory = "/home/niteris/dev/hermes/profiles/assistant";
-      Restart = "always";
-      RestartSec = 5;
-      RestartForceExitStatus = 75;
-      RestartPreventExitStatus = 78;
-      KillMode = "mixed";
-      KillSignal = "SIGTERM";
-      ExecReload = "/bin/kill -USR1 $MAINPID";
-      ExecStopPost = "-${hermesPkg.passthru.hermesVenv}/bin/python -m gateway.cgroup_cleanup";
-      TimeoutStopSec = 70;
-      StandardOutput = "journal";
-      StandardError = "journal";
-    };
-  };
+  # The `assistant` profile -- the second Telegram bot -- deliberately has NO
+  # unit of its own. Upstream moved to a multiplexed gateway model: exactly one
+  # gateway process per host is the inbound poller for every profile, and
+  # `hermes --profile assistant gateway run` now exits 78 with
+  # "Profile 'assistant' does not get a gateway of its own". The host gateway
+  # (hermes-gateway, HERMES_HOME=/home/niteris/dev/hermes) already serves both
+  # profiles; its journal shows it running `hermes -p assistant ...` on a
+  # 30s rescan. Do not re-add a per-profile unit here.
 
   # The local dashboard on 127.0.0.1:9119, which the host nginx proxies at
   # https://164.92.65.2/ and the `go/hermes` link frames.

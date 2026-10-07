@@ -42,7 +42,7 @@
     # Pinned to the exact revision that profile install had (0.21.0), so this
     # migration is a no-op rather than a silent upgrade -- same reasoning as
     # the nixpkgs pin above. Bump it deliberately, then restart the units.
-    hermes-agent.url = "github:NousResearch/hermes-agent/5a8e8a6b87487c0e0785cd9eb561cc6a96c64f5e";
+    hermes-agent.url = "github:NousResearch/hermes-agent/fcaa65c905ceacdd52db914b44b2a2b541a8a9ad";
 
     # The private-desktop application is built from this immutable source
     # revision.  flake.lock records the corresponding source NAR hash.

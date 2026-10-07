@@ -18,6 +18,9 @@
       "interval_ms": 2000
     }
   },
+  "gc": {
+    "delete_remote_branches": false
+  },
   "git": {
     "pr_wait_fail_fast": true
   },
@@ -48,5 +51,8 @@
   },
   "web_term": {
     "enabled": false
+  },
+  "worktrees": {
+    "warn_bytes": 53687091200
   }
 }
