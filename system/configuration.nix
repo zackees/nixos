@@ -722,6 +722,9 @@ in
           calRedirect = {
             return = "302 https://calendar.google.com/calendar/u/0/r";
           };
+          mailRedirect = {
+            return = "302 https://mail.proton.me/u/2/inbox";
+          };
         in {
           "= /hermes" = {
             root = frame;
@@ -729,6 +732,8 @@ in
           };
           "= /cal" = calRedirect;
           "= /calendar" = calRedirect;
+          "= /mail" = mailRedirect;
+          "= /email" = mailRedirect;
           "/" = hermes "";
         };
     };
