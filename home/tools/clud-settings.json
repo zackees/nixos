@@ -1,6 +1,10 @@
 {
   "backend": {
-    "default": "claude"
+    "default": "codex"
+  },
+  "cache": {
+    "max_bytes": 34359738368,
+    "warn_bytes": 21474836480
   },
   "codex": {
     "config_overrides": [
@@ -22,6 +26,7 @@
     "delete_remote_branches": false
   },
   "git": {
+    "gh_read_broker": true,
     "pr_wait_fail_fast": true
   },
   "harness": {
@@ -39,15 +44,21 @@
     }
   },
   "launcher": {
-    "last_harness": "claude"
+    "last_harness": "codex"
   },
   "providers": {
     "openrouter": {
-      "model": "deepseek/deepseek-v4.1-flash"
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
     }
   },
   "shell": {
     "disable_powershell": false
+  },
+  "tmp": {
+    "warn_bytes": 21474836480
+  },
+  "trash": {
+    "max_bytes": 21474836480
   },
   "web_term": {
     "enabled": false

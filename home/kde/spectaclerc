@@ -1,9 +1,13 @@
 [Annotations]
-highlighterStrokeColor=255,0,0
+annotationToolType=3
+arrowStrokeColor=255,255,255
+freehandStrokeWidth=5
+highlighterStrokeColor=170,0,0
+highlighterStrokeWidth=10
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///tmp/full.png
+lastImageSaveLocation=file:///home/niteris/Pictures/Screenshots/Screenshot_20261004_174321.jpeg
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 

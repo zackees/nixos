@@ -2,7 +2,7 @@
   "env": {
     "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "1"
   },
-  "model": "sonnet",
+  "model": "opus",
   "modelSettings": {
     "claude-fable-5-1": {
       "effortLevel": "high"
@@ -20,6 +20,18 @@
       "effortLevel": "low"
     },
     "claude-sonnet-5-5": {
+      "effortLevel": "medium"
+    },
+    "stealth/space-bunny-alpha": {
+      "effortLevel": "high"
+    },
+    "nvidia/nemotron-3-ultra-550b-a55b": {
+      "effortLevel": "high"
+    },
+    "nvidia/nemotron-3-ultra-550b-a55b:free": {
+      "effortLevel": "medium"
+    },
+    "deepseek/deepseek-v4.1-flash": {
       "effortLevel": "medium"
     }
   },

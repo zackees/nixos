@@ -34,3 +34,9 @@ update() {
   fi
 }
 . "$HOME/.cargo/env"
+# >>> Photon CLI >>>
+case ":$PATH:" in
+  *:'/home/niteris/.photon/bin':*) ;;
+  *) export PATH="$PATH":'/home/niteris/.photon/bin' ;;
+esac
+# <<< Photon CLI <<<
