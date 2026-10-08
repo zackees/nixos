@@ -79,12 +79,20 @@ cold_model_timeout_secs = 0
 context_window_optimization = false
 
 [output]
-# ydotool, not wtype: KWin does not implement the virtual keyboard protocol.
-mode = "type"
-# Pin the driver: the default order tries wtype first, and voxtype's own
-# check only verifies wtype is installed, not that the compositor supports
-# it. On KWin wtype always fails, so name ydotool explicitly.
+# Paste the complete result instead of emitting thousands of individual
+# key events for long dictations. Shift+Insert uses this machine's clipboard
+# paste binding in kitty and the standard paste shortcut in GUI text fields.
+mode = "paste"
+paste_keys = "shift+insert"
+# Borrow the clipboard for insertion, then restore its previous content.
+restore_clipboard = true
+restore_clipboard_delay_ms = 200
+# If switched back to type mode, pin the driver: the default tries wtype,
+# whose virtual keyboard protocol KWin does not implement. Voxtype's check
+# only verifies installation, so name ydotool explicitly for that mode.
 driver_order = ["ydotool", "clipboard"]
+# Used if switched back to type mode. Paste mode probes its own backends
+# and falls through to ydotool when KWin rejects wtype.
 fallback_to_clipboard = true
 
 [audio.feedback]
