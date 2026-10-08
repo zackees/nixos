@@ -378,6 +378,7 @@ let
     "org.kde.kdenlive.desktop"
     "fr.handbrake.ghb.desktop"
     "com.obsproject.Studio.desktop"
+    "startcenter.desktop"
     "docker-tui.desktop"
     "podman-desktop.desktop"
     "docker-vm.desktop"
@@ -1106,6 +1107,7 @@ in
     inetutils           # telnet, ftp, hostname, ping variants
     kdePackages.ksshaskpass  # ssh-add passphrase prompt; sudo uses sudoAskpass
     kdePackages.kdeplasma-addons  # supplies the quicklaunch panel widget
+    libreoffice         # open and edit ODT and other office documents
     voxtype             # push-to-talk voice-to-text (Meta+H)
     pciutils            # lspci; voxtype's GPU probe needs it to name the card
 
@@ -1638,6 +1640,16 @@ in
   # (PipeWire)" source is the one that works on Wayland -- the older
   # "Screen Capture (XSHM)" source sees nothing.
   programs.obs-studio.enable = true;
+  # OBS probes NVENC in the separate obs-nvenc-test executable. The main
+  # process finds the driver through its RUNPATH, but the probe does not.
+  programs.obs-studio.package = pkgs.symlinkJoin {
+    name = "obs-studio-with-nvenc-probe";
+    paths = [ pkgs.obs-studio ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/obs --prefix LD_LIBRARY_PATH : /run/opengl-driver/lib
+    '';
+  };
 
   # Per-application audio capture. Without it OBS can only take a whole
   # PipeWire device, so a stream picks up every notification and browser tab
