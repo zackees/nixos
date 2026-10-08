@@ -36,6 +36,24 @@ Layer 2 exists because KDE writes its own settings files at runtime and there
 is no declarative source for most of them. Those files are *captured*, not
 generated, so they can drift; `scripts/capture.sh` pulls them back in.
 
+## GPU assignments
+
+The RTX 3060 at PCI `06:00.0` drives the desktop and voxtype. The modified
+RTX 2080 Ti at `07:00.0` has 22 GiB of VRAM and is reserved for ML workloads.
+`system/configuration.nix` restricts both KWin's display and render devices
+to the 3060, and voxtype's service sees only the 3060's CUDA UUID. KWin's
+restriction takes effect at the next login.
+
+CUDA and `nvidia-smi` can enumerate these cards differently. Select the ML
+card by UUID when launching a workload:
+
+    CUDA_VISIBLE_DEVICES=GPU-a1c3881b-3372-4320-5cf3-ea672f86e2d0 python train.py
+
+For a manual `voxtype transcribe` command, use
+`CUDA_VISIBLE_DEVICES=GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd` instead.
+These settings route the desktop and dictation; applications launched with
+their own GPU selection can still access either card.
+
 ## Layout
 
     flake.nix                    inputs: nixpkgs, home-manager, plasma-manager

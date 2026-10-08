@@ -1192,6 +1192,14 @@ in
   # than environment.variables so an editor started from Plasma -- where
   # rust-analyzer runs build scripts -- gets them too, not only a shell.
   environment.sessionVariables = {
+    # Only the RTX 3060 belongs to the desktop. KWin otherwise opens both
+    # GPUs, including the 22 GiB RTX 2080 Ti reserved for ML. The udev alias
+    # below survives card-number changes and has no ':' path separators.
+    # KWin reads this at startup; switching does not change a live session.
+    KWIN_DRM_DEVICES = "/dev/dri/desktop-gpu";
+    # Plasma 6.7 enumerates render nodes independently of display devices.
+    # Restrict both lists or it still initializes the ML GPU's EGL context.
+    KWIN_RENDER_NODES = "/dev/dri/desktop-gpu-render";
     # A dev shell's own pkg-config still wins over this: nixpkgs' pkg-config
     # wrapper puts the shell's paths first. Verified with openssl_3 in a
     # nix-shell reporting 3.0.21 while this pointed at 3.6.3.
@@ -1474,6 +1482,11 @@ in
   # while getfacl showed nothing.
   users.groups.voxtype-input = { };
   services.udev.extraRules = ''
+    # Stable, colon-free path for KWIN_DRM_DEVICES. Match only the real
+    # PCI DRM card, not its render node or the firmware framebuffer.
+    SUBSYSTEM=="drm", KERNEL=="card[0-9]*", KERNELS=="0000:06:00.0", DRIVERS=="nvidia", SYMLINK+="dri/desktop-gpu"
+    SUBSYSTEM=="drm", KERNEL=="renderD[0-9]*", KERNELS=="0000:06:00.0", DRIVERS=="nvidia", SYMLINK+="dri/desktop-gpu-render"
+
     SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="keyd virtual keyboard", GROUP="voxtype-input", MODE="0640"
 
     # udisks2's own rules (80-udisks2.rules) already exclude ram* and zram*
@@ -1547,6 +1560,11 @@ in
     # directory" and dictation runs blind.
     path = [ pkgs.voxtype pkgs.ydotool pkgs.wl-clipboard ];
     environment.YDOTOOL_SOCKET = config.environment.variables.YDOTOOL_SOCKET;
+    # CUDA's default performance ordering puts the 2080 Ti before the 3060,
+    # unlike nvidia-smi's indices. Voxtype is compiled for sm_86 only, so
+    # using the sm_75 ML card aborts with "no kernel image is available".
+    # A UUID hides the ML card entirely and survives enumeration changes.
+    environment.CUDA_VISIBLE_DEVICES = "GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd";
 
     # voxtype refuses to start when another instance holds the lock in
     # /run/user/1000/voxtype, and exits 1 every time. Without a start limit
