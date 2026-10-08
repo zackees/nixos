@@ -41,18 +41,32 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
 The RTX 3060 at PCI `06:00.0` drives the desktop and voxtype. The modified
 RTX 2080 Ti at `07:00.0` has 22 GiB of VRAM and is reserved for ML workloads.
 `system/configuration.nix` restricts both KWin's display and render devices
-to the 3060, and voxtype's service sees only the 3060's CUDA UUID. KWin's
-restriction takes effect at the next login.
+to the 3060. Ordinary CUDA programs and services see only the 3060 by default;
+voxtype is also explicitly pinned to it. KWin's restriction takes effect at
+the next login. Open a new shell after changing the CUDA default.
 
-CUDA and `nvidia-smi` can enumerate these cards differently. Select the ML
-card by UUID when launching a workload:
+Launch CUDA model workloads on the 2080 Ti with:
 
-    CUDA_VISIBLE_DEVICES=GPU-a1c3881b-3372-4320-5cf3-ea672f86e2d0 python train.py
+    ml-gpu python train.py
+    ml-gpu llama-server -m /path/to/model.gguf --n-gpu-layers 99
+    ml-gpu ollama serve
 
-For a manual `voxtype transcribe` command, use
-`CUDA_VISIBLE_DEVICES=GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd` instead.
-These settings route the desktop and dictation; applications launched with
-their own GPU selection can still access either card.
+Interactive shell aliases automatically apply `ml-gpu` to `llama-server`,
+`llama-cli`, `llama-bench`, `llama-perplexity`, `ollama`, and `vllm`.
+The launcher selects the GPU; the runtime's own options still control whether
+and how much of the model is offloaded. These commands do not install runtimes.
+
+Scripts and GUI launchers should use `ml-gpu` explicitly. A model service
+should set `CUDA_VISIBLE_DEVICES=GPU-a1c3881b-3372-4320-5cf3-ea672f86e2d0`
+in its service environment. Set the server's environment when starting it:
+changing an Ollama client's environment does not move an existing server.
+
+CUDA and `nvidia-smi` can enumerate these cards differently, so assignments
+use UUIDs. CUDA's masking makes the selected GPU appear as device 0 inside
+the program. This policy applies to CUDA runtimes, including PyTorch and CUDA
+builds of llama.cpp; Vulkan runtimes need their own GPU selection. Programs
+can override the policy explicitly. There is no automatic routing based on
+model size or a later request for VRAM.
 
 ## Layout
 

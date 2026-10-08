@@ -4,6 +4,23 @@
 
 { config, pkgs, lib, inputs, ... }:
 let
+  # UUIDs keep CUDA assignments stable when its performance ordering or
+  # nvidia-smi's PCI ordering changes. The modified 2080 Ti is for models.
+  desktopGpuUuid = "GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd";
+  modelGpuUuid = "GPU-a1c3881b-3372-4320-5cf3-ea672f86e2d0";
+  mlGpu = pkgs.writeShellApplication {
+    name = "ml-gpu";
+    text = ''
+      if [ "$#" -eq 0 ]; then
+        echo "Usage: ml-gpu COMMAND [ARGUMENTS...]" >&2
+        echo "Run a CUDA model workload on the 22 GiB RTX 2080 Ti." >&2
+        exit 64
+      fi
+      export CUDA_VISIBLE_DEVICES=${modelGpuUuid}
+      exec "$@"
+    '';
+  };
+
   # KWin knows a new window's PID but not which terminal created that process.
   # Keep ancestry lookup outside the compositor; the tiny script only applies
   # an unambiguous result. Read-only kitty metadata handles its shared PID.
@@ -873,6 +890,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
+    mlGpu
     dockerVm
     unrar               # Extract RAR archives from the command line.
     photon              # pinned Photon Studio AppImage; see let-block above
@@ -1192,6 +1210,9 @@ in
   # than environment.variables so an editor started from Plasma -- where
   # rust-analyzer runs build scripts -- gets them too, not only a shell.
   environment.sessionVariables = {
+    # Small CUDA jobs use the desktop GPU. Model launchers override this
+    # before initializing CUDA; allocation size cannot select a GPU later.
+    CUDA_VISIBLE_DEVICES = desktopGpuUuid;
     # Only the RTX 3060 belongs to the desktop. KWin otherwise opens both
     # GPUs, including the 22 GiB RTX 2080 Ti reserved for ML. The udev alias
     # below survives card-number changes and has no ':' path separators.
@@ -1210,6 +1231,13 @@ in
     # with clang-sys 1.9.1.
     LIBCLANG_PATH = "${devLibraryEnv}/lib";
   };
+
+  # Cover services too: PAM/login shell variables alone do not reach every
+  # systemd service. A model service can override this with Environment=.
+  systemd.settings.Manager.DefaultEnvironment = [ "CUDA_VISIBLE_DEVICES=${desktopGpuUuid}" ];
+  environment.etc."environment.d/60-gpu-default.conf".text = ''
+    CUDA_VISIBLE_DEVICES=${desktopGpuUuid}
+  '';
 
   # fzf: the module installs pkgs.fzf and sources the bash integration,
   # giving ctrl+r fuzzy history, ctrl+t file picker and alt+c directory jump.
@@ -1252,6 +1280,14 @@ in
 
   # Shorthands, adapted from Omarchy's default/bash/aliases.
   environment.shellAliases = {
+    # These select the server's GPU when launched from an interactive shell.
+    # For scripts, GUI launchers or other runtimes, use ml-gpu explicitly.
+    "llama-server" = "ml-gpu llama-server";
+    "llama-cli" = "ml-gpu llama-cli";
+    "llama-bench" = "ml-gpu llama-bench";
+    "llama-perplexity" = "ml-gpu llama-perplexity";
+    ollama = "ml-gpu ollama";
+    vllm = "ml-gpu vllm";
     ".." = "cd ..";
     "..." = "cd ../..";
     "...." = "cd ../../..";
@@ -1564,7 +1600,7 @@ in
     # unlike nvidia-smi's indices. Voxtype is compiled for sm_86 only, so
     # using the sm_75 ML card aborts with "no kernel image is available".
     # A UUID hides the ML card entirely and survives enumeration changes.
-    environment.CUDA_VISIBLE_DEVICES = "GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd";
+    environment.CUDA_VISIBLE_DEVICES = desktopGpuUuid;
 
     # voxtype refuses to start when another instance holds the lock in
     # /run/user/1000/voxtype, and exits 1 every time. Without a start limit
@@ -1864,6 +1900,9 @@ in
   # nowhere to draw a dialog, so sudo must fall back to prompting inline.
   # Aliases apply to interactive shells only, so scripts are unaffected.
   programs.bash.interactiveShellInit = ''
+    # Also cover new shells in a terminal opened before the switch. Preserve
+    # an explicit assignment inherited from ml-gpu or a caller's override.
+    export CUDA_VISIBLE_DEVICES="''${CUDA_VISIBLE_DEVICES:-${desktopGpuUuid}}"
     if [ -n "''${WAYLAND_DISPLAY:-}''${DISPLAY:-}" ]; then
       # Refresh inherited pre-migration ksshaskpass settings even when the
       # parent desktop/terminal was started before the system switch.
