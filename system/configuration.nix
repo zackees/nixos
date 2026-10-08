@@ -232,8 +232,8 @@ let
   # ── Reorder virtual desktops live ──
   # KWin's D-Bus API can create, remove and rename desktops but not move
   # them; the scripting API's workspace.moveDesktop(desktop, position) can
-  # (verified on 6.7.4). Positions are 1-based. The order does not outlive
-  # the next activation unless mirrored in kwin.virtualDesktops.names.
+  # (verified on 6.7.4). Positions are 1-based. KDE saves the order; keep
+  # kwin.virtualDesktops unset so activation preserves live edits.
   # Dragging works too, but only in Grid View: Main.qml's per-desktop
   # DragHandler is `enabled: gridVal !== 0`, and it drops through
   # Workspace.moveDesktop. Overview's DesktopBar has no drag-reorder in
@@ -2533,34 +2533,10 @@ in
         # nixpkgs-unstable in the overlay above. The dock's pager (see the
         # bottom panel) is told to show only its own screen, so it reads
         # and drives the primary's desktop rather than a global one.
-        # Named so Grid View, the pager tooltip and the switch OSD say what
-        # each one is for; `names` sets the count, so there is no separate
-        # `number` to keep in step with it.
-        kwin.virtualDesktops = {
-          # These are re-applied at every activation, so a rename made in
-          # Overview (double-click the name) -- or a desktop added there --
-          # lasts only until the next switch unless it is mirrored here.
-          # "NixeOS" was renamed live on 2026-09-03 and copied back for that
-          # reason. The list then fell behind again: live KWin grew to ten
-          # (3 renamed "NixOS & Hermes", 6 "fbuild", plus Clud, FastLED-wasm
-          # and bosn), and the switch on 2026-09-14 rewrote kwinrc back to
-          # these seven. KWin kept its ten in memory, so nothing moved on
-          # screen, but the next login would have read the file and dropped
-          # three. Copied back from
-          #   qdbus org.kde.KWin /VirtualDesktopManager \
-          #     org.kde.KWin.VirtualDesktopManager.desktops
-          # Drifted again on 2026-09-16: live KWin had grown to twelve, with
-          # "zach vorhies dynamic" and "Reld" added in Overview. Same read-back
-          # as above. Expect to repeat this whenever a desktop is added live --
-          # the list here is the source of truth at every activation.
-          # Order set live with workspace.moveDesktop on 2026-09-29; live had
-          # eight (Loops and Loop2 added, the rest gone).
-          names = [
-            "Main" "NixOS & Hermes" "TWP" "Clud" "mimalloc"
-            "zach vorhies dynamic" "Loops" "Loop2" "Wild"
-          ];
-          rows = 1;
-        };
+        # KDE owns desktop names, count, order and rows. Declaring
+        # kwin.virtualDesktops here overwrites edits made in Overview or
+        # System Settings at activation; the reset appears at next login.
+        # Leave those options unset so KWin persists the user's layout.
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
         # No wrap-around when stepping desktops: the mouse back/forward
         # buttons on the desktop (below) stop at the first and last one.
@@ -2906,7 +2882,7 @@ in
               # that screen's current desktop, not a global one. See the
               # virtual desktops block above.
               # displayedText is what makes the desktop names from
-              # kwin.virtualDesktops visible here; the default draws each
+              # KDE settings visible here; the default draws each
               # desktop as an unlabelled box, which is what "the desktops
               # have no names" looks like. Spelled as the raw config rather
               # than plasma-manager's `pager.general.displayedText =
