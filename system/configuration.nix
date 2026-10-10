@@ -363,6 +363,19 @@ let
   #
   # That is also why preferred://filemanager had to become Dolphin by name:
   # there is no scheme here that expands to a default application.
+  mediaAppDesktopIds = [
+    "photon-studio.desktop"
+    "org.kde.kdenlive.desktop"
+    "fr.handbrake.ghb.desktop"
+    "com.obsproject.Studio.desktop"
+    "losslesscut.desktop"
+    "org.kde.glaxnimate.desktop"
+    "vlc.desktop"
+  ];
+  mediaAppsFolder = pkgs.linkFarm "media-apps" (map (name: {
+    inherit name;
+    path = "/run/current-system/sw/share/applications/${name}";
+  }) mediaAppDesktopIds);
   dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
     "systemsettings.desktop"
     "org.kde.dolphin.desktop"
@@ -374,16 +387,14 @@ let
     "dbeaver.desktop"
     "kitty.desktop"
     "sublime_text.desktop"
-    "photon-studio.desktop"
-    "org.kde.kdenlive.desktop"
-    "fr.handbrake.ghb.desktop"
-    "com.obsproject.Studio.desktop"
+    "losslesscut.desktop"
     "startcenter.desktop"
     "docker-tui.desktop"
     "podman-desktop.desktop"
     "docker-vm.desktop"
     "com.feaneron.Boatswain.desktop"
   ] ++ [
+    "file:///home/niteris/Media%20Apps"
     # Hermes is a pyweb-view app whose .desktop lives in the user's own
     # applications dir, not the system one, so it cannot share the prefix
     # above. It used to be pinned by hand onto the window strip, and the
@@ -1176,6 +1187,7 @@ in
     ladspaPlugins        # swh-plugins; see LADSPA_PATH below
     handbrake            # batch transcoder; `ghb` is the GUI, HandBrakeCLI the
                          # binary the package calls its mainProgram
+    losslesscut          # quick MP4 trims; smart cut can re-encode around exact cuts
     vlc                  # general playback; ffmpeg-backed, plays almost anything
   ];
 
@@ -2470,6 +2482,7 @@ in
     {
       imports = [ inputs.plasma-manager.homeModules.plasma-manager ];
       home.stateVersion = "26.05";
+      home.file."Media Apps".source = mediaAppsFolder;
 
       programs.plasma = {
         enable = true;
