@@ -25,7 +25,7 @@ PlasmoidItem {
     Timer {
         id: closeTimer
         interval: 450
-        onTriggered: plasmoid.expanded = false
+        onTriggered: root.expanded = false
     }
 
     Plasma5Support.DataSource {
@@ -50,12 +50,12 @@ PlasmoidItem {
 
         onEntered: {
             closeTimer.stop()
-            plasmoid.expanded = true
+            root.expanded = true
         }
         onExited: closeTimer.restart()
         onClicked: {
             closeTimer.stop()
-            plasmoid.expanded = true
+            root.expanded = true
         }
     }
 
@@ -91,7 +91,7 @@ PlasmoidItem {
 
                     onClicked: {
                         closeTimer.stop()
-                        plasmoid.expanded = false
+                        root.expanded = false
                         launcher.connectSource("/run/current-system/sw/bin/kioclient exec "
                                                + "/run/current-system/sw/share/applications/"
                                                + modelData.desktop)
