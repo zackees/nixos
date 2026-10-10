@@ -1548,10 +1548,11 @@ in
   # Push-to-talk is a spare mouse button. Its firmware emits KEY_LEFTSHIFT
   # (code 42) on the mouse's keyboard interface, which is unusable as a
   # hotkey directly -- shift is a modifier needed for ordinary typing. keyd
-  # rewrites it to F14, but ONLY on 25a7:fa0a, the Compx mouse. Nobody
-  # types capitals on a mouse, so nothing is lost there, and the real
-  # keyboards never see this mapping: the Compx *keyboard* is a separate
-  # product id (25a7:fa09) and the SONiX is 0c45:8008.
+  # rewrites it to F14, but ONLY on the Compx mouse, which shows up under
+  # two ids: 25a7:fa0a on its USB cable and 25a7:fa09, the 2.4G receiver,
+  # when wireless. Matching only fa0a broke push-to-talk the moment the
+  # cable came out (2026-10-10). Nothing types capitals through either, and
+  # the real keyboard, the SONiX (0c45:8008), never sees this mapping.
   #
   # keyd rather than binding code 42 in voxtype directly, because voxtype's
   # listener only READS keys and never consumes them. Left as shift, every
@@ -1566,7 +1567,7 @@ in
   services.keyd = {
     enable = true;
     keyboards.compx-mouse = {
-      ids = [ "25a7:fa0a" ];
+      ids = [ "25a7:fa0a" "25a7:fa09" ];
       settings.main = {
         # Spare button by the thumb; firmware sends KEY_LEFTSHIFT.
         leftshift = "f14";
