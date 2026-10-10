@@ -378,7 +378,6 @@ let
     "dbeaver.desktop"
     "kitty.desktop"
     "sublime_text.desktop"
-    "losslesscut.desktop"
     "startcenter.desktop"
     "docker-tui.desktop"
     "podman-desktop.desktop"
