@@ -1,0 +1,11 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.niteris.media-launcher",
+    "Name": "Media Apps",
+    "Description": "Media application launcher that opens on hover",
+    "Icon": "folder-videos",
+    "Category": "Utilities",
+    "Version": "1.0"
+  }
+}
