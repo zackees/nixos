@@ -1176,7 +1176,16 @@ in
     ladspaPlugins        # swh-plugins; see LADSPA_PATH below
     handbrake            # batch transcoder; `ghb` is the GUI, HandBrakeCLI the
                          # binary the package calls its mainProgram
-    losslesscut          # quick MP4 trims; smart cut can re-encode around exact cuts
+    # quick MP4 trims; smart cut can re-encode around exact cuts. The
+    # desktop entry's bare `Exec=losslesscut` resolved to zcmds' shim in
+    # ~/.venv/bin, which is earlier on PATH and only raises "not implemented
+    # for linux" -- so clicking it did nothing. Pin Exec to the store binary.
+    (losslesscut.overrideAttrs (old: {
+      postFixup = (old.postFixup or "") + ''
+        substituteInPlace $out/share/applications/losslesscut.desktop \
+          --replace-fail "Exec=losslesscut" "Exec=$out/bin/losslesscut"
+      '';
+    }))
     vlc                  # general playback; ffmpeg-backed, plays almost anything
   ];
 
