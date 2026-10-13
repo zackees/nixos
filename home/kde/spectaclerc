@@ -1,9 +1,8 @@
 [Annotations]
-annotationToolType=7
-arrowStrokeColor=255,255,255
 freehandStrokeWidth=5
 highlighterStrokeColor=170,0,0
 highlighterStrokeWidth=10
+rectangleFillColor=255,0,0,0
 
 [ImageSave]
 imageCompressionQuality=95
