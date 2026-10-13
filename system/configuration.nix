@@ -363,13 +363,56 @@ let
   #
   # That is also why preferred://filemanager had to become Dolphin by name:
   # there is no scheme here that expands to a default application.
+  # Strata (stratafiles.io), the GTK4 Miller-column file manager that
+  # replaced Dolphin. Not in nixpkgs, and 1.0.0 needs rustc 1.98 against the
+  # pin's 1.95, so this repackages upstream's own release binary -- the same
+  # artifact the AUR strata-bin installs -- with autoPatchelf for the
+  # libraries and wrapGAppsHook4 for GSettings/GStreamer paths. Bump
+  # version and hash together.
+  strata = pkgs.stdenv.mkDerivation rec {
+    pname = "strata";
+    version = "1.0.0";
+    src = pkgs.fetchzip {
+      url = "https://github.com/lgse/strata/releases/download/v${version}/strata-${version}-x86_64-unknown-linux-gnu.tar.gz";
+      hash = "sha256-fVgu7OPDqIoScjQZfUZtadpbKbu6INRsucBclx7Id/E=";
+    };
+    nativeBuildInputs = with pkgs; [ autoPatchelfHook wrapGAppsHook4 ];
+    buildInputs = with pkgs; [
+      gtk4 pango gdk-pixbuf cairo graphene glib poppler fontconfig
+      gtksourceview5 gst_all_1.gstreamer gst_all_1.gst-plugins-base
+      gst_all_1.gst-plugins-good stdenv.cc.cc.lib
+      # wrapGAppsHook4 puts its gio/modules on GIO_EXTRA_MODULES, so trash://
+      # works without relying on the login session having picked gvfs up.
+      gvfs
+    ];
+    # Byte-identical to the attested release; stripping gains nothing.
+    dontStrip = true;
+    installPhase = ''
+      runHook preInstall
+      install -Dm755 strata $out/bin/strata
+      install -Dm644 io.github.lgse.Strata.desktop -t $out/share/applications
+      install -Dm644 io.github.lgse.Strata.svg -t $out/share/icons/hicolor/scalable/apps
+      # Upstream hardcodes /usr/bin; the D-Bus FileManager1 activation is
+      # what "show in folder" from browsers and other apps goes through.
+      install -Dm644 io.github.lgse.Strata.FileManager1.service \
+        $out/share/dbus-1/services/io.github.lgse.Strata.FileManager1.service
+      substituteInPlace $out/share/dbus-1/services/io.github.lgse.Strata.FileManager1.service \
+        --replace-fail /usr/bin/strata $out/bin/strata
+      # Absolute Exec, for the same reason as LosslessCut: ~/.venv/bin
+      # comes first on PATH and must not be able to shadow it.
+      substituteInPlace $out/share/applications/io.github.lgse.Strata.desktop \
+        --replace-fail "Exec=strata" "Exec=$out/bin/strata"
+      runHook postInstall
+    '';
+  };
+
   mediaLauncherApplet = pkgs.runCommand "media-launcher-applet" { } ''
     mkdir -p $out
     cp -r ${./media-launcher}/. $out/
   '';
   dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
     "systemsettings.desktop"
-    "org.kde.dolphin.desktop"
+    "io.github.lgse.Strata.desktop"
     "brave-browser.desktop"
     "org.telegram.desktop.desktop"
     "signal.desktop"
@@ -790,6 +833,11 @@ in
   # dock and Stream Deck comments note where they invoke Brave by name).
   # This is the distro-level default; ~/.config/mimeapps.list (captured in
   # home/kde/) carries the same entries at the user level.
+  # Strata is a GTK app and reaches trash, mounts and SMB through GIO, which
+  # needs gvfs; KDE apps use KIO instead, so nothing here enabled it before
+  # and Strata logged "unable to read trash contents" on every start.
+  services.gvfs.enable = true;
+
   xdg.mime.defaultApplications = {
     "text/html" = "brave-browser.desktop";
     "application/xhtml+xml" = "brave-browser.desktop";
@@ -797,6 +845,9 @@ in
     "x-scheme-handler/https" = "brave-browser.desktop";
     "x-scheme-handler/about" = "brave-browser.desktop";
     "x-scheme-handler/unknown" = "brave-browser.desktop";
+
+    # ── Default file manager: Strata ──
+    "inode/directory" = "io.github.lgse.Strata.desktop";
 
     # ── Default video player: VLC ──
     "video/mp4" = "vlc.desktop";
@@ -891,6 +942,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [
+    strata               # default file manager; packaged in the let block
     mlGpu
     dockerVm
     unrar               # Extract RAR archives from the command line.
