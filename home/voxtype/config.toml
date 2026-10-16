@@ -1,3 +1,9 @@
+# Engine pilot (2026-10-15): Parakeet on the RTX 3060 via CUDA onnxruntime.
+# Back to Whisper is this one line: engine = "whisper". Both engines are in
+# the binary; only the selected one is loaded, which matters -- the 3060 does
+# not have room for both alongside the desktop (CUBLAS_STATUS_ALLOC_FAILED).
+engine = "parakeet"
+
 # voxtype - see /nix/store/.../share/voxtype/default-config.toml for all keys.
 state_file = "auto"
 
@@ -39,8 +45,18 @@ enabled = true
 # ggml-silero-vad.bin in ~/.local/share/voxtype/models (scripts/03-apply-home.sh
 # fetches it). backend = "whisper" uses that model; "energy" is the
 # model-free fallback and is markedly less accurate with background noise.
+# Energy it is anyway: the whisper backend runs Silero on the CPU, and under
+# a build (load ~50) it took up to 2.4s per clip, five times the GPU
+# transcription. Push-to-talk only asks VAD "was anything said at all", which
+# a loudness check answers well enough.
 enabled = true
-backend = "whisper"
+backend = "energy"
+# The default 0.5 maps to an RMS floor of 0.01 (0.001 * 100^t), which this
+# mic's normal speech fell under: every clip was dropped as silence, logged
+# only at debug level. Measured speech here averages ~0.0027 RMS (Wave:3 at
+# its current gain), so 0.2 (~0.0025) only just passed; 0.1 is ~0.0016. Safe
+# with Parakeet, which does not hallucinate text from noise as Whisper does.
+threshold = 0.1
 
 [audio]
 # You have three capture devices (Cam Link 4K, Scarlett 2i2, Elgato Wave:3).
@@ -106,3 +122,12 @@ volume = 0.7
 on_recording_start = true
 on_recording_stop = true
 on_transcription = true
+
+[parakeet]
+# Batch, not streaming: voxtype's streaming mode forces toggle activation
+# (press to start, press again to stop) and, under push-to-talk, drops the
+# final flush on release, losing the last words. Batch keeps hold-to-talk.
+# nvidia/parakeet-tdt-0.6b-v2 (English), ONNX from istupakov/parakeet-tdt-0.6b-v2-onnx,
+# in ~/.local/share/voxtype/models/.
+model = "parakeet-tdt-0.6b-v2"
+streaming = false

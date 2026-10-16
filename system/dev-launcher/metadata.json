@@ -1,0 +1,11 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.niteris.dev-launcher",
+    "Name": "Dev",
+    "Description": "Development application launcher that opens on hover",
+    "Icon": "vscode",
+    "Category": "Utilities",
+    "Version": "1.0"
+  }
+}

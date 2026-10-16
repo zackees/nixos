@@ -12,7 +12,7 @@ PlasmoidItem {
         { name: "Photon Studio", icon: "photon-studio", desktop: "photon-studio.desktop" },
         { name: "Kdenlive", icon: "org.kde.kdenlive", desktop: "org.kde.kdenlive.desktop" },
         { name: "HandBrake", icon: "fr.handbrake.ghb", desktop: "fr.handbrake.ghb.desktop" },
-        { name: "OBS Studio", icon: "com.obsproject.Studio", desktop: "com.obsproject.Studio.desktop" },
+        { name: "OBS Studio (Rust)", icon: "obs-studio-rust", desktop: "obs-studio-rust.desktop" },
         { name: "LosslessCut", icon: "losslesscut", desktop: "losslesscut.desktop" },
         { name: "Glaxnimate", icon: "org.kde.glaxnimate", desktop: "org.kde.glaxnimate.desktop" },
         { name: "VLC", icon: "vlc", desktop: "vlc.desktop" }

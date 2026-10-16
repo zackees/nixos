@@ -87,6 +87,47 @@ let
     '';
   };
 
+  # OBS-Studio-Rust, the obs-rust port, from its pinned release AppImage.
+  # Upstream reuses stock OBS's desktop ID and icon name (com.obsproject.Studio),
+  # so both are renamed here; stock OBS stays installed alongside it.
+  obsRustVersion = "0.1.0-beta.20261014";
+  obsRustSrc = pkgs.fetchurl {
+    url = "https://github.com/obs-rust/obs-studio/releases/download/obs-studio-rust-v${obsRustVersion}/OBS-Studio-Rust-${obsRustVersion}-linux-x86_64.AppImage";
+    hash = "sha256-zUVopBQoTizS4jXn1g1ym1Vcd4R/2/UXlUHajKwLAtI=";
+  };
+  obsRustExtracted = pkgs.appimageTools.extract {
+    pname = "obs-studio-rust";
+    version = obsRustVersion;
+    src = obsRustSrc;
+  };
+  obsRust = pkgs.appimageTools.wrapType2 {
+    pname = "obs-studio-rust";
+    version = obsRustVersion;
+    src = obsRustSrc;
+    # NixOS keeps NVIDIA's EGL Wayland platform configs under /run/opengl-driver,
+    # not /usr/share/egl. Without this, libEGL_nvidia can't claim the Wayland
+    # display and OBS silently renders on Mesa llvmpipe (CPU, ~10 fps).
+    # Upstream AppRun does this itself since obs-rust/obs-studio#722; drop
+    # this once obsRustVersion includes it.
+    profile = ''
+      if [ -z "''${__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS:-}" ] && [ -d /run/opengl-driver/share/egl/egl_external_platform.d ]; then
+        export __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS=/run/opengl-driver/share/egl/egl_external_platform.d
+      fi
+    '';
+    extraInstallCommands = ''
+      install -Dm444 ${obsRustExtracted}/com.obsproject.Studio.desktop \
+        $out/share/applications/obs-studio-rust.desktop
+      substituteInPlace $out/share/applications/obs-studio-rust.desktop \
+        --replace-fail 'Exec=obs' 'Exec=obs-studio-rust' \
+        --replace-fail 'Icon=com.obsproject.Studio' 'Icon=obs-studio-rust' \
+        --replace-fail 'Name=OBS Studio' 'Name=OBS Studio (Rust)'
+      install -Dm444 ${obsRustExtracted}/usr/share/icons/hicolor/512x512/apps/com.obsproject.Studio.png \
+        $out/share/icons/hicolor/512x512/apps/obs-studio-rust.png
+      install -Dm444 ${obsRustExtracted}/usr/share/icons/hicolor/scalable/apps/com.obsproject.Studio.svg \
+        $out/share/icons/hicolor/scalable/apps/obs-studio-rust.svg
+    '';
+  };
+
   # Hermes Agent, from the flake input pinned in flake.nix. `bin/hermes` is a
   # wrapper that carries its own sealed uv2nix venv and runtime tools (node,
   # git, ripgrep, ffmpeg) on PATH, so the units below do not need VIRTUAL_ENV
@@ -227,7 +268,13 @@ let
   # desktopScript below, and RollOverDesktops=false in kwinrc is what makes
   # them stop at the ends instead of wrapping.
   stepDesktop = pkgs.callPackage ./pkgs/step-desktop { };
-  dockerVm = inputs.docker-vm.packages.${pkgs.stdenv.hostPlatform.system}.docker-vm;
+  # docker-vm builds through `soldr cargo`. Build it with the soldr release
+  # pinned in ../soldr.json, which scripts/apply.sh refreshes to soldr's
+  # newest GitHub release before every build (0.9.15 SIGTERMed rustc under
+  # load, soldr#2781).
+  dockerVm = inputs.docker-vm.packages.${pkgs.stdenv.hostPlatform.system}.docker-vm.override {
+    soldr = inputs.docker-vm.lib.mkSoldr (builtins.fromJSON (builtins.readFile ../soldr.json));
+  };
 
   # ── Reorder virtual desktops live ──
   # KWin's D-Bus API can create, remove and rename desktops but not move
@@ -367,6 +414,10 @@ let
     mkdir -p $out
     cp -r ${./media-launcher}/. $out/
   '';
+  devLauncherApplet = pkgs.runCommand "dev-launcher-applet" { } ''
+    mkdir -p $out
+    cp -r ${./dev-launcher}/. $out/
+  '';
   dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
     "systemsettings.desktop"
     "org.kde.dolphin.desktop"
@@ -383,14 +434,8 @@ let
     "podman-desktop.desktop"
     "docker-vm.desktop"
     "com.feaneron.Boatswain.desktop"
-  ] ++ [
-    # Hermes is a pyweb-view app whose .desktop lives in the user's own
-    # applications dir, not the system one, so it cannot share the prefix
-    # above. It used to be pinned by hand onto the window strip, and the
-    # panel rebuild for the previews change ate it -- the same way it once
-    # ate the desktop icon (see programs.plasma.desktop.widgets below).
-    "file:///home/niteris/.local/share/applications/pyweb-view.hermes.desktop"
   ];
+  # Hermes moved from this strip into the Dev group (system/dev-launcher).
 
   # ── The user's writable Python ──
   # Pinned here because this version number has to appear in three places
@@ -895,6 +940,7 @@ in
     dockerVm
     unrar               # Extract RAR archives from the command line.
     photon              # pinned Photon Studio AppImage; see let-block above
+    obsRust             # pinned OBS-Studio-Rust AppImage; see let-block above
     tmog                # tmog.org AppImage; see let-block above
     python3
     # Newest Node the pinned nixpkgs carries (26.x), npm included. Global
@@ -935,6 +981,8 @@ in
     zoom-us             # meetings; unfree. Screen share and camera go through
                         # PipeWire and xdg-desktop-portal-kde, as OBS's do
     dbeaver-bin         # SQL client; binary release, unfree
+    vscode.fhs          # `code`; the FHS variant so extensions that ship
+                        # their own binaries (language servers, debuggers) run
     # FHS sandbox for prebuilt binaries that outgrow nix-ld. Playwright's
     # downloaded Chromium runs through nix-ld directly (foreignBinaryLibraries
     # carries libgbm for it); this stays as the fallback for anything that
@@ -1363,7 +1411,16 @@ in
         });
       })
     (final: prev: {
-      voxtype = prev.voxtype.overrideAttrs (old: {
+      # onnxSupport brings the Parakeet engine alongside Whisper in the one
+      # binary, so the engine is a config.toml choice and switching back is
+      # one line, not a rebuild. Its onnxruntime must be the CUDA build or
+      # Parakeet silently runs on the CPU -- exactly where it starves under
+      # a compile. That build is ~600 MB from cache.nixos-cuda.org (see
+      # nix.settings); without the substituter it compiles for an hour.
+      voxtype = (prev.voxtype.override {
+        onnxSupport = true;
+        onnxruntime = prev.onnxruntime.override { cudaSupport = true; };
+      }).overrideAttrs (old: {
         # ModelManager.evict_idle_models() exempts the primary model from
         # cold_model_timeout_secs -- upstream's use case is freeing a
         # secondary model reached via a hotkey modifier, and the primary is
@@ -1379,7 +1436,7 @@ in
         # Viable only since the card moved to the proprietary driver: nouveau
         # exposes no CUDA at all.
         cargoBuildFeatures =
-          (old.cargoBuildFeatures or [ ]) ++ [ "osd-gtk4" "gpu-cuda" ];
+          (old.cargoBuildFeatures or [ ]) ++ [ "osd-gtk4" "gpu-cuda" "parakeet-cuda" ];
         # Checks stay off the GPU feature: cargo test would need a working
         # CUDA device inside the build sandbox, which it does not have.
         cargoCheckFeatures = (old.cargoCheckFeatures or [ ]) ++ [ "osd-gtk4" ];
@@ -1642,8 +1699,25 @@ in
       # the systemd max (default is 100); voxtype's CPU use is brief and
       # bursty, so this does not meaningfully starve the build in return.
       CPUWeight = 10000;
+
+      # CPUWeight only arbitrates between cgroup siblings, and inside the
+      # cgroup the daemon's threads still queue behind every runnable task
+      # on a saturated core. That is what loses a button release: the evdev
+      # reader thread doesn't get scheduled before the kernel's per-client
+      # buffer overflows (SYN_DROPPED), and the key-up is simply gone. A
+      # negative nice gets the thread onto a CPU ahead of the build. It
+      # needs LimitNICE raised on user@.service (below), and only takes
+      # effect after the user manager restarts, i.e. at next login.
+      Nice = -10;
+      IOSchedulingClass = "best-effort";
+      IOSchedulingPriority = 0;
     };
   };
+
+  # Lets this user's services ask for nice values down to -10. The user
+  # manager inherits RLIMIT_NICE from this unit, and the default of 0 is
+  # why `Nice` in a user unit used to be silently ineffective.
+  systemd.services."user@".serviceConfig.LimitNICE = "-10";
 
   # ── Screen capture and streaming ─────────────────────────────
   # OBS. Screen capture on this machine goes through xdg-desktop-portal-kde
@@ -1796,6 +1870,18 @@ in
   # is podman-desktop, in systemPackages above -- despite the name it drives a
   # plain Docker socket, so it is the containers/images/volumes UI without the
   # VM.
+  # Low-priority home for every container Bosn creates (zackees/bosn#645).
+  # Bosn joins it with --cgroup-parent=bosn.slice when this weight is below
+  # the default 100; at CPUWeight 10 its builds sit beside user.slice and
+  # yield to the desktop under contention, yet still use idle CPUs fully.
+  systemd.slices.bosn = {
+    description = "Bosn containers (low priority)";
+    sliceConfig = {
+      CPUWeight = 10;
+      IOWeight = 10;
+    };
+  };
+
   virtualisation.docker = {
     enable = true;
 
@@ -2433,6 +2519,15 @@ in
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # The NixOS CUDA team's cache. CUDA is unfree, so cache.nixos.org never
+  # carries it, and anything built with cudaSupport otherwise compiles
+  # locally -- onnxruntime alone is about an hour. Key checked against a
+  # live narinfo signature before adding it.
+  nix.settings.substituters = [ "https://cache.nixos-cuda.org" ];
+  nix.settings.trusted-public-keys = [
+    "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+  ];
+
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   # environment.systemPackages = with pkgs; [
@@ -2483,6 +2578,8 @@ in
       home.stateVersion = "26.05";
       home.file.".local/share/plasma/plasmoids/org.niteris.media-launcher".source =
         mediaLauncherApplet;
+      home.file.".local/share/plasma/plasmoids/org.niteris.dev-launcher".source =
+        devLauncherApplet;
 
       programs.plasma = {
         enable = true;
@@ -2889,6 +2986,8 @@ in
                 config.General.launcherUrls = lib.concatStringsSep "," dockLaunchers;
               }
               "org.niteris.media-launcher"
+              # VS Code and Hermes, one hover-open group like Media Apps.
+              "org.niteris.dev-launcher"
 
               # An expanding spacer either side is what centres the window
               # list. fill = false below is the other half: a task manager
