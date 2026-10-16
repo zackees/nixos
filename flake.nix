@@ -44,10 +44,10 @@
     # the nixpkgs pin above. Bump it deliberately, then restart the units.
     hermes-agent.url = "github:NousResearch/hermes-agent/fcaa65c905ceacdd52db914b44b2a2b541a8a9ad";
 
-    # The private-desktop application is built from this immutable source
-    # revision.  flake.lock records the corresponding source NAR hash.
+    # The private-desktop application tracks main (with its noVNC submodule);
+    # flake.lock pins the exact revision, and scripts/apply.sh advances it.
     docker-vm = {
-      url = "github:zackees/docker-vm/bc2a6fc";
+      url = "git+https://github.com/zackees/docker-vm?ref=main&submodules=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

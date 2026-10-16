@@ -7,18 +7,20 @@
         ]
       },
       "locked": {
-        "lastModified": 1789319229,
-        "narHash": "sha256-/ANGWss2hZGi2vPMIit4xP2N3sR5zOxIGAJdeeQZ74s=",
-        "owner": "zackees",
-        "repo": "docker-vm",
-        "rev": "bc2a6fc7a1a06b0fd2026f6bca794eafe1a965ef",
-        "type": "github"
+        "lastModified": 1792134079,
+        "narHash": "sha256-+RZJX9J7a52CPn4/cjYxRymPa84qiPwh/bO1KXtGLEU=",
+        "ref": "main",
+        "rev": "c1bfb04c6f8b28340c2f16da3f9afeb5f0974fcd",
+        "revCount": 11,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/zackees/docker-vm"
       },
       "original": {
-        "owner": "zackees",
-        "ref": "bc2a6fc",
-        "repo": "docker-vm",
-        "type": "github"
+        "ref": "main",
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/zackees/docker-vm"
       }
     },
     "flake-parts": {
