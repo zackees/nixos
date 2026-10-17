@@ -975,7 +975,23 @@ in
       ];
     }))
     brave
-    telegram-desktop
+    # Native Wayland became sluggish in this dual-NVIDIA session despite
+    # rendering on the RTX 3060. Relaunching with xcb fixed scrolling and
+    # typing. Wrap Telegram alone; this also covers its D-Bus launcher.
+    # https://github.com/telegramdesktop/tdesktop/issues/28670
+    (pkgs.symlinkJoin {
+      name = "telegram-desktop-xwayland";
+      paths = [ telegram-desktop ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram "$out/bin/Telegram" --set QT_QPA_PLATFORM xcb
+        # D-Bus activation uses an absolute path, bypassing PATH lookup.
+        service="$out/share/dbus-1/services/org.telegram.desktop.service"
+        substitute "$service" "$service.tmp" \
+          --replace-fail "${telegram-desktop}/bin/Telegram" "$out/bin/Telegram"
+        mv "$service.tmp" "$service"
+      '';
+    })
     signal-desktop
     slack               # unfree; allowUnfree below covers it
     zoom-us             # meetings; unfree. Screen share and camera go through
