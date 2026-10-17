@@ -491,3 +491,4 @@ RollOverDesktops=false
 
 [Xwayland]
 Scale=1.95
+XwaylandEisNoPromptApps=test_x11_hotkey_layout

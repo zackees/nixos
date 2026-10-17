@@ -1,4 +1,5 @@
 [Annotations]
+annotationToolType=3
 freehandStrokeWidth=5
 highlighterStrokeColor=170,0,0
 highlighterStrokeWidth=10
@@ -15,4 +16,4 @@ translatedScreencastsFolder=Screencasts
 
 [ViewerWindow]
 3 screens: Height=1037
-3 screens: Width=862
+3 screens: Width=949
