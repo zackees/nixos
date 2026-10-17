@@ -164,6 +164,10 @@ else
 fi
 
 say "user-level CLI tools"
+# Keep the npm CLI in the writable user prefix already included on PATH.
+# Pin the installed release so a restore gets the same local preview tool.
+npm install --global --prefix "$HOME/.npm-global" live-server@1.2.2
+
 # uv itself comes from the nix profile, not configuration.nix, because the
 # pinned nixpkgs lags behind and these tools track PyPI.
 #
