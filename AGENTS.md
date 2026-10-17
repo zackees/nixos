@@ -28,9 +28,11 @@ vestigial — ignore it, and do not "resync" it.)
 git tracks, so an uncommitted addition fails with an error that reads as if
 the file does not exist. Modifying an already-tracked file is fine.
 
-**Never run `nixos-rebuild switch` unprompted.** It activates a new system
-generation on a live machine. Use `nixos-rebuild build --flake` to verify, and leave activation
-to the user unless they asked for it.
+**A request to make a change authorizes applying, committing, and pushing it.**
+Complete those steps automatically without asking for separate approval.
+For system changes, verify with `nixos-rebuild build --flake .#nixos` before
+activating with `sudo -A nixos-rebuild switch --flake .#nixos`. Honor an explicit
+request for diagnosis only, a draft, or no activation or push.
 
 **Ask whether a new GUI application belongs on the dock.** Installing one
 and pinning it are separate decisions, and both mistakes have been made here:
@@ -77,20 +79,16 @@ wholesale — commit or stash first.
 Use `scripts/capture.sh` alone if you need to review or amend before
 committing.
 
-**"Apply" means both halves, and it ends with a clean tree.** When the user
-says apply -- "apply changes", "apply updates", "apply it" -- that is the
-prompting that lifts the `nixos-rebuild switch` rule above, *and* it asks for
-`scripts/sync.sh` afterwards. Do not stop at the switch and report success.
-Activating alone leaves the machine ahead of the repo with the edits still
-uncommitted, and that is precisely the state `scripts/sync.sh` refuses to run
-in and the next `scripts/capture.sh` would overwrite -- so the tidying gets
-harder the longer it waits, and the work can be lost outright.
-
-Confirm before the push, since that part is outward-facing and irreversible,
-but confirm having already switched and captured, with the diff on screen.
-The same goes for an agent's own working state: never end a turn with edits
-sitting loose in the tree because the sync looked like a separate task. It is
-the second half of the same one.
+**Complete requested changes with a clean tree.** Apply the verified changes,
+commit the implementation so the tree is clean, then run
+`scripts/sync.sh -y -m "short description"` to capture live state, scan for
+credentials, commit any captured changes, and push automatically. If capture
+finds no changes, the script exits without pushing; run `git push origin HEAD`
+to publish the implementation commit in that case. Scan the implementation
+for credentials before committing it too. Do not stop at activation or leave
+edits uncommitted because syncing looked like a separate task. Activation,
+capture, commits, and push are all part of the requested work; none requires
+another approval.
 
 ## Traps specific to this repo
 
@@ -451,9 +449,9 @@ whole tool invocation rather than failing. The 15-minute global ticket then
 covers subsequent plain `sudo` calls, which is why an agent usually only
 needs to trigger one dialog per burst of work.
 
-Do not reach for this to bypass a refusal: the rules above about
-`nixos-rebuild switch` and `/etc/nixos` are about what should happen, not
-about what sudo permits.
+Use sudo within the requested scope. The authorization above covers applying
+requested changes; it does not authorize unrelated changes or writing to
+`/etc/nixos`.
 
 ## Commits
 
