@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792290299,
-        "narHash": "sha256-RdwVLdFpSNlaD5xdcsgeLJ0s5XyM7Px1Cd7wbbRMPbg=",
+        "lastModified": 1792303605,
+        "narHash": "sha256-8v2XxH5teDl1rxOynTJeg+C2Q6viTUNkO4eZPBCozWA=",
         "ref": "main",
-        "rev": "d79a2859ce0cfc0f58f81902b39bff1f7e5a922d",
-        "revCount": 40,
+        "rev": "9e7c0e3c43e42424da830460c97b4554518d26cf",
+        "revCount": 41,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/zackees/docker-vm"
