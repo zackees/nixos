@@ -1,8 +1,9 @@
 [Added Associations]
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
-x-scheme-handler/tg=org.telegram.desktop.desktop;
-x-scheme-handler/tonsite=org.telegram.desktop.desktop;
+x-scheme-handler/tg=org.telegram.desktop.desktop;org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop;
+x-scheme-handler/tonsite=org.telegram.desktop.desktop;org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop;
 x-scheme-handler/slack=slack.desktop;
+x-scheme-handler/ton=org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop;
 
 [Default Applications]
 text/html=brave-browser.desktop
@@ -12,6 +13,7 @@ x-scheme-handler/https=brave-browser.desktop
 x-scheme-handler/about=brave-browser.desktop
 x-scheme-handler/unknown=brave-browser.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
-x-scheme-handler/tg=org.telegram.desktop.desktop
-x-scheme-handler/tonsite=org.telegram.desktop.desktop
+x-scheme-handler/tg=org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop
+x-scheme-handler/tonsite=org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop
 x-scheme-handler/slack=slack.desktop
+x-scheme-handler/ton=org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop
