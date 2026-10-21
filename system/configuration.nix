@@ -687,6 +687,7 @@ in
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./calendar.nix
+      ./voxtype-popups.nix
     ];
 
   # Use the systemd-boot EFI boot loader.

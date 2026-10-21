@@ -102,6 +102,13 @@ every minute. Check `journalctl --user -u calendar-sync` for connection failures
 
 ### Dictation playback ducking
 
+Voxtype's recording and transcription notifications use a separate popup in the
+lower-right corner of the main (largest) monitor. `voxtype-popup.service` owns
+one replaceable popup; text is plain, scrollable, and dismissible. Its private
+`notify-send` replacement is confined to the Voxtype daemon, so Telegram and
+other Plasma notifications retain their upper-right placement. The microphone
+waveform overlay is configured separately in `home/voxtype/config.toml`.
+
 While Voxtype is recording push-to-talk dictation, `voxtype-ducking.service`
 reduces every physical playback device by 12 dB. Audio keeps playing and
 returns to its previous level when capture ends, before transcription.
