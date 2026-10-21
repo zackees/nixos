@@ -2,7 +2,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from datetime import datetime, timedelta, timezone
 
 from icalendar import Calendar
@@ -25,6 +25,19 @@ def event(**overrides):
 
 
 class CalendarSyncTests(unittest.TestCase):
+    def test_invitation_popup_requests_one_hour_and_escapes_markup(self):
+        interface = Mock()
+        with patch.object(sync.dbus, "SessionBus"), patch.object(
+            sync.dbus, "Interface", return_value=interface
+        ):
+            sync.notify(event(summary="Meeting <test>", attendees=[
+                {"self": True, "responseStatus": "needsAction"}
+            ]))
+        args = interface.Notify.call_args.args
+        self.assertEqual(args[-1], 60 * 60 * 1000)
+        self.assertEqual(args[3], "New calendar invitation")
+        self.assertIn("Meeting &lt;test&gt;", args[4])
+
     def test_resource_detection_handles_kconfig_home_expansion(self):
         path = Path.home() / ".local/share/calendar-sync/google.ics"
         for value in (str(path), path.as_uri(),

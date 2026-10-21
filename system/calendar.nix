@@ -1,5 +1,11 @@
 { pkgs, ... }:
 let
+  # KDE has no per-reminder duration setting: its popups otherwise disappear
+  # when a short event ends or remain indefinitely. Patch only the daemon we
+  # launch, avoiding a rebuild of every application using its calendar library.
+  calendarReminders = pkgs.kdePackages.akonadi-calendar.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ./patches/calendar-reminder-hour.patch ];
+  });
   python = pkgs.python3.withPackages (p: [
     p.google-auth p.requests p.icalendar p.dbus-python
   ]);
@@ -32,7 +38,7 @@ in {
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
-    serviceConfig.ExecStart = "${pkgs.kdePackages.akonadi-calendar}/bin/kalendarac";
+    serviceConfig.ExecStart = "${calendarReminders}/bin/kalendarac";
     serviceConfig.Restart = "on-failure";
     serviceConfig.RestartSec = 10;
   };

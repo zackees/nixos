@@ -129,7 +129,7 @@ def notify(item):
         "KOrganizer", 0, "org.kde.korganizer",
         "New calendar invitation" if invitation else "New calendar event",
         body, dbus.Array([], signature="s"),
-        {"desktop-entry": "org.kde.korganizer", "urgency": dbus.Byte(1)}, 18000,
+        {"desktop-entry": "org.kde.korganizer", "urgency": dbus.Byte(1)}, 3600000,
     )
 
 

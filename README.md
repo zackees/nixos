@@ -77,7 +77,9 @@ every minute into a read-only local calendar: yesterday through the next 90 days
 including recurring instances and pending invitations. Timed events have popup
 reminders ten minutes before and at the start; all-day events have no midnight
 alarm. KDE's Calendar Reminders runs at login and provides persistent popups with
-snooze, dismiss and view actions even with KOrganizer closed. New future events
+snooze, dismiss and view actions even with KOrganizer closed. Calendar popups
+remain visible for up to one hour unless dismissed or snoozed, including when
+a short event has already ended. New future events
 and invitations get a separate notification after the first, quiet sync.
 
 This connection does not edit Google events or accept invitations. Use the event's
