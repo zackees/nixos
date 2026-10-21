@@ -1,19 +1,23 @@
 """Run using kitty +runpy with runpy.run_path("scripts/test-kitty-title-cache.py")."""
 import runpy
+import os
 import tempfile
 import unittest
 from collections import defaultdict
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import kitty.child as child
 import kitty.tab_bar as tabs
 
 tabs.config_dir = str(Path(__file__).resolve().parents[1] / 'home' / 'kitty')
 tabs.clear_caches()
-module = tabs.load_custom_draw_tab_module()
-pane = runpy.run_path(tabs.config_dir + '/window_title_bar.py')
+# The optional launch-origin bridge installs a native event-loop timer in a
+# real terminal. This headless +runpy process has no Kitty UI/event loop.
+with patch.dict(os.environ, XDG_RUNTIME_DIR=''):
+    module = tabs.load_custom_draw_tab_module()
+    pane = runpy.run_path(tabs.config_dir + '/window_title_bar.py')
 
 
 class Window:
@@ -104,6 +108,69 @@ class CacheTests(unittest.TestCase):
             self.assertIn('claude', label)
 
 
-result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(CacheTests))
+class BranchRefreshTests(unittest.TestCase):
+    def setUp(self):
+        module['_foreground_cache'].clear()
+
+    def test_constant_title_refreshes_after_external_branch_switch_only_when_changed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / '.git').mkdir()
+            head = root / '.git/HEAD'
+            head.write_text('ref: refs/heads/feature\n')
+            w = Window(900)
+            w.screen.last_reported_cwd = 'file://' + directory
+            w.show_title_bar = w.is_visible_in_layout = True
+            labels = []
+            data = SimpleNamespace(window_id=w.id, title='constant-agent-title')
+            tab = SimpleNamespace(windows=[w])
+            tab.update_window_title_bars = Mock(side_effect=lambda: labels.append(pane['draw_window_title'](data)))
+            boss = SimpleNamespace(window_id_map={w.id: w},
+                                   os_window_map={1: SimpleNamespace(active_tab=tab)})
+            colors = SimpleNamespace(fg=SimpleNamespace(_fdbc4b='', window=''))
+            install = pane.get('install_branch_refresh')
+            self.assertTrue(callable(install), 'pane headers need an independent refresh timer')
+            with patch.dict(pane['draw_window_title'].__globals__, get_boss=lambda: boss,
+                            WindowTitleFormatter=colors), \
+                    patch('kitty.fast_data_types.add_timer', return_value=7) as add, \
+                    patch('kitty.fast_data_types.remove_timer') as remove, \
+                    patch('kitty.fast_data_types.mark_os_window_dirty'):
+                labels.append(pane['draw_window_title'](data))
+                install()
+                refresh = add.call_args.args[0]
+                refresh(7)
+                self.assertEqual(tab.update_window_title_bars.call_count, 0)
+                stamp = head.stat().st_mtime_ns + 1_000_000_000
+                head.write_text('ref: refs/heads/main\n')
+                os.utime(head, ns=(stamp, stamp))
+                refresh(7)
+                self.assertIn('main', labels[-1])
+                self.assertNotIn('feature', labels[-1])
+                refresh(7)
+                self.assertEqual(tab.update_window_title_bars.call_count, 1)
+                install()
+                self.assertEqual(add.call_count, 2)
+                remove.assert_called_once_with(7)
+
+    def test_worktree_detached_head_and_non_repository(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            worktree = root / 'worktree'
+            worktree.mkdir()
+            gitdir = root / 'metadata'
+            gitdir.mkdir()
+            (worktree / '.git').write_text('gitdir: ../metadata\n')
+            (gitdir / 'HEAD').write_text('ref: refs/heads/linked\n')
+            self.assertEqual(pane['_branch'](str(worktree)), 'linked')
+            stamp = (gitdir / 'HEAD').stat().st_mtime_ns + 1_000_000_000
+            (gitdir / 'HEAD').write_text('0123456789abcdef\n')
+            os.utime(gitdir / 'HEAD', ns=(stamp, stamp))
+            self.assertEqual(pane['_branch'](str(worktree)), '0123456')
+            self.assertEqual(pane['_branch'](str(root)), '')
+
+
+suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(cls)
+                           for cls in (CacheTests, BranchRefreshTests))
+result = unittest.TextTestRunner(verbosity=2).run(suite)
 if not result.wasSuccessful():
     raise SystemExit(1)

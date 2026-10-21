@@ -46,6 +46,50 @@ BRANCH_MAX = 22
 # rebuilding an entry costs two stats.
 _branch_cache = {}
 BRANCH_CACHE_MAX = 64
+# Caption identity at its last render. A TUI can keep OSC 2 unchanged while
+# its agent switches Git branches, so ordinary title events are insufficient.
+_rendered_branches = {}
+BRANCH_REFRESH_INTERVAL = 0.5
+
+
+def _refresh_branch_titles(_timer_id):
+    from kitty.fast_data_types import mark_os_window_dirty
+
+    boss = get_boss()
+    if boss is None:
+        return
+    for os_id, manager in boss.os_window_map.items():
+        tab = manager.active_tab
+        if tab is None:
+            continue
+        for window in tab.windows:
+            if not window.is_visible_in_layout or not window.show_title_bar:
+                continue
+            wd = _pane_wd(window)
+            identity = (wd, _branch(wd) if wd else '')
+            if _rendered_branches.get(window.id) != identity:
+                # This uses Kitty's own focus/group handling and retains the
+                # caption's activity, progress and attention indicators.
+                tab.update_window_title_bars()
+                mark_os_window_dirty(os_id)
+                break
+    for identifier in tuple(_rendered_branches):
+        if identifier not in boss.window_id_map:
+            del _rendered_branches[identifier]
+
+
+def install_branch_refresh():
+    from kitty.fast_data_types import add_timer, remove_timer
+
+    boss = get_boss()
+    if boss is None:  # Also permits headless +runpy unit tests.
+        return
+    old = getattr(boss, 'pane_branch_refresh_timer', None)
+    if old is not None:
+        remove_timer(old)
+    # Keep all Kitty window access on its UI thread. Store the handle on the
+    # boss so reloading this module replaces, rather than duplicates, it.
+    boss.pane_branch_refresh_timer = add_timer(_refresh_branch_titles, BRANCH_REFRESH_INTERVAL, True)
 
 
 def _git_head(wd):
@@ -145,12 +189,14 @@ def draw_window_title(data):
     # process's: a transient `wl-copy` from Claude Code runs with cwd `/` and
     # used to relabel the pane `/ · wl-copy`. See _pane_wd in tab_bar.py.
     wd = _pane_wd(w)
+    branch = _branch(wd) if wd else ''
+    _rendered_branches[data.window_id] = (wd, branch)
     if not wd:
         # ssh, a `launch`ed pager, any child that never reported a directory.
         return ' %s' % (data.title or '…')
 
     out = [' ', _short_wd(wd)]
-    if branch := _branch(wd):
+    if branch:
         # fmt.fg.window is the bar's own foreground for this pane's focus
         # state; kitty sets that up immediately before calling this function,
         # so it is the correct way back to normal after the amber.
@@ -161,3 +207,6 @@ def draw_window_title(data):
     if exe and exe not in SHELLS:
         out.append(' · %s' % exe)
     return ''.join(out)
+
+
+install_branch_refresh()
