@@ -1,6 +1,6 @@
 {
   "backend": {
-    "default": "claude"
+    "default": "codex"
   },
   "cache": {
     "max_bytes": 34359738368,
