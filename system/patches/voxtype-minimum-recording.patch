@@ -1,0 +1,13 @@
+--- a/src/daemon.rs
++++ b/src/daemon.rs
+@@ -1600,8 +1600,8 @@
+                     let audio_duration = samples.len() as f32 / 16000.0;
+ 
+                     // Skip if too short (likely accidental press)
+-                    if audio_duration < 0.3 {
+-                        tracing::debug!("Recording too short ({:.2}s), ignoring", audio_duration);
++                    if samples.len() < 8_000 {
++                        tracing::info!("Discarding recording shorter than 500 ms ({:.2}s)", audio_duration);
+                         self.reset_to_idle(state).await;
+                         return false;
+                     }

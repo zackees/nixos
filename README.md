@@ -109,6 +109,10 @@ one replaceable popup; text is plain, scrollable, and dismissible. Its private
 other Plasma notifications retain their upper-right placement. The microphone
 waveform overlay is configured separately in `home/voxtype/config.toml`.
 
+Recordings shorter than 500 ms of captured audio are discarded immediately,
+before voice detection or transcription. Startup cue time does not count toward
+this minimum; a clip of exactly 500 ms is accepted for normal processing.
+
 Before Voxtype opens the microphone, a synchronous `--prepare` hook reduces
 every physical playback device by 12 dB. The start cue plays to completion,
 then capture waits another 75 ms for its acoustic tail. The local Voxtype patch

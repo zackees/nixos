@@ -1450,6 +1450,8 @@ in
         patches = (old.patches or [ ]) ++ [
           ./patches/voxtype-primary-idle-evict.patch
           ./patches/voxtype-cues-outside-capture.patch
+          # Reject accidental taps before VAD/model inference (16 kHz: 8000 samples).
+          ./patches/voxtype-minimum-recording.patch
         ];
 
         # gpu-cuda maps to whisper-rs/cuda, which builds ggml's CUDA backend.
