@@ -109,8 +109,15 @@ one replaceable popup; text is plain, scrollable, and dismissible. Its private
 other Plasma notifications retain their upper-right placement. The microphone
 waveform overlay is configured separately in `home/voxtype/config.toml`.
 
-While Voxtype is recording push-to-talk dictation, `voxtype-ducking.service`
-reduces every physical playback device by 12 dB. Audio keeps playing and
+Before Voxtype opens the microphone, a synchronous `--prepare` hook reduces
+every physical playback device by 12 dB. The start cue plays to completion,
+then capture waits another 75 ms for its acoustic tail. The local Voxtype patch
+moves `pre_recording_command` before capture (upstream calls it afterwards)
+and plays the stop cue only after capture closes, keeping both cues out of
+transcription. `voxtype-ducking.service` holds attenuation throughout the
+`preparing` and `recording` states; it shares a locked recovery journal with
+the preparation hook so overlapping updates cannot double-duck the volume.
+Audio keeps playing and
 returns to its previous level when capture ends, before transcription.
 Microphone levels, per-app volumes and the virtual OBS mix are unaffected.
 Manual output-volume changes during dictation take precedence over restoration.

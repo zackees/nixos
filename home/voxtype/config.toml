@@ -99,6 +99,9 @@ context_window_optimization = false
 # key events for long dictations. Shift+Insert uses this machine's clipboard
 # paste binding in kitty and the standard paste shortcut in GUI text fields.
 mode = "paste"
+# The local capture-timing patch runs this synchronously before the start cue
+# and before opening the microphone. Upstream runs this hook after capture.
+pre_recording_command = "/run/current-system/sw/bin/python3 /home/niteris/.local/libexec/voxtype-ducking.py --prepare"
 paste_keys = "shift+insert"
 # Borrow the clipboard for insertion, then restore its previous content.
 restore_clipboard = true

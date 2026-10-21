@@ -1449,6 +1449,7 @@ in
         # One-line patch: drop the is_primary exemption in that one filter.
         patches = (old.patches or [ ]) ++ [
           ./patches/voxtype-primary-idle-evict.patch
+          ./patches/voxtype-cues-outside-capture.patch
         ];
 
         # gpu-cuda maps to whisper-rs/cuda, which builds ggml's CUDA backend.
@@ -1683,7 +1684,8 @@ in
     # display by spawning bare `voxtype-osd`, so a PATH without its own
     # package yields "Failed to spawn `voxtype-osd`: No such file or
     # directory" and dictation runs blind.
-    path = [ pkgs.voxtype pkgs.ydotool pkgs.wl-clipboard ];
+    # Voxtype runs the synchronous pre-capture hook through bare `sh`.
+    path = [ pkgs.voxtype pkgs.ydotool pkgs.wl-clipboard pkgs.bash ];
     environment.YDOTOOL_SOCKET = config.environment.variables.YDOTOOL_SOCKET;
     # CUDA's default performance ordering puts the 2080 Ti before the 3060,
     # unlike nvidia-smi's indices. Voxtype is compiled for sm_86 only, so

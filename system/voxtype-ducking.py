@@ -5,6 +5,7 @@ mixes and application volumes stay under their existing controls. The journal
 is saved before changing gains so ExecStopPost can recover after a crash.
 """
 import argparse
+import fcntl
 import json
 import math
 import os
@@ -18,7 +19,9 @@ GAIN = 0.25  # -12.04 dB in PipeWire's linear amplitude units.
 
 
 def run(*args):
-    return subprocess.run(args, check=True, capture_output=True, text=True, timeout=3).stdout
+    command = str(Path('/run/current-system/sw/bin') / args[0])
+    return subprocess.run((command, *args[1:]), check=True, capture_output=True,
+                          text=True, timeout=3).stdout
 
 
 def playback_devices():
@@ -47,6 +50,13 @@ def same_levels(a, b):
                                    for x, y in zip(a, b))
 
 
+def watcher_running():
+    return subprocess.run(['/run/current-system/sw/bin/systemctl', '--user',
+                           'is-active', '--quiet', 'voxtype-ducking.service'],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                          timeout=3).returncode == 0
+
+
 class Ducker:
     def __init__(self, journal, snapshot=playback_devices, change=set_volumes):
         self.journal = journal
@@ -58,6 +68,9 @@ class Ducker:
         temporary = self.journal.with_suffix('.next')
         temporary.write_text(json.dumps(self.saved))
         temporary.replace(self.journal)
+
+    def reload(self):
+        self.saved = json.loads(self.journal.read_text()) if self.journal.exists() else {}
 
     def update(self, recording):
         devices = self.snapshot()
@@ -85,6 +98,8 @@ class Ducker:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--restore', action='store_true')
+    parser.add_argument('--prepare', action='store_true',
+                        help='Synchronously duck before the start cue and capture')
     parser.add_argument('--state', type=Path)
     parser.add_argument('--journal', type=Path)
     args = parser.parse_args()
@@ -93,9 +108,23 @@ def main():
     journal = args.journal or runtime / 'voxtype-ducking/levels.json'
     journal.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     ducker = Ducker(journal)
-    if args.restore:
-        ducker.update(False)
-        return
+    # The synchronous start hook and state watcher share one recovery journal.
+    # Lock both the read and write so they cannot double-duck or lose originals.
+    with journal.with_suffix('.lock').open('a') as lock:
+        if args.restore or args.prepare:
+            if args.prepare and not args.restore and not watcher_running():
+                return  # Preserve the user's explicit "stop ducking" override.
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            ducker.reload()
+            ducker.update(args.prepare and not args.restore)
+            if args.prepare and not args.restore:
+                try:
+                    if not watcher_running():
+                        ducker.update(False)
+                except Exception:
+                    ducker.update(False)
+                    raise
+            return
     stopped = threading.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: stopped.set())
@@ -103,20 +132,26 @@ def main():
     refresh_at = 0
     try:
         while not stopped.is_set():
-            try:
-                recording = state.read_text().strip() == 'recording'
-            except FileNotFoundError:
-                recording = False
-            now = time.monotonic()
-            if recording != previous or (now >= refresh_at and (recording or ducker.saved)):
-                ducker.update(recording)
-                if recording != previous:
-                    print('Playback ducked by 12 dB' if recording else 'Playback restored', flush=True)
-                previous = recording
-                refresh_at = now + 0.5
+            with journal.with_suffix('.lock').open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                try:
+                    recording = state.read_text().strip() in ('preparing', 'recording')
+                except FileNotFoundError:
+                    recording = False
+                ducker.reload()
+                now = time.monotonic()
+                if recording != previous or (now >= refresh_at and (recording or ducker.saved)):
+                    ducker.update(recording)
+                    if recording != previous:
+                        print('Playback ducked by 12 dB' if recording else 'Playback restored', flush=True)
+                    previous = recording
+                    refresh_at = now + 0.5
             stopped.wait(0.05)
     finally:
-        ducker.update(False)
+        with journal.with_suffix('.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            ducker.reload()
+            ducker.update(False)
 
 
 if __name__ == '__main__':
