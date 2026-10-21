@@ -70,6 +70,20 @@ model size or a later request for VRAM.
 
 ## Layout
 
+### Dictation playback ducking
+
+While Voxtype is recording push-to-talk dictation, `voxtype-ducking.service`
+reduces every physical playback device by 12 dB. Audio keeps playing and
+returns to its previous level when capture ends, before transcription.
+Microphone levels, per-app volumes and the virtual OBS mix are unaffected.
+Manual output-volume changes during dictation take precedence over restoration.
+The helper also restores saved levels on shutdown or crash recovery.
+
+Temporarily stop ducking with `systemctl --user stop voxtype-ducking`.
+It starts with Voxtype again at login or when Voxtype restarts.
+
+### Files
+
     flake.nix                    inputs: nixpkgs, home-manager, plasma-manager
     flake.lock                   their exact revisions; the reproducibility
 

@@ -45,6 +45,12 @@ say "voxtype dictation"
 mkdir -p "$HOME/.config/voxtype" "$HOME/.local/share/applications"
 keep "$HOME/.config/voxtype/config.toml"
 cp "$REPO/home/voxtype/config.toml" "$HOME/.config/voxtype/config.toml"
+# User-session audio policy needs no privileged audio restart. This unit is
+# managed here, not duplicated in system/configuration.nix.
+install -Dm644 "$REPO/system/voxtype-ducking.py" "$HOME/.local/libexec/voxtype-ducking.py"
+install -Dm644 "$REPO/home/voxtype/voxtype-ducking.service" "$HOME/.config/systemd/user/voxtype-ducking.service"
+systemctl --user daemon-reload
+systemctl --user enable --now voxtype-ducking.service
 # Meta+H is NOT bound to this entry any more -- push-to-talk needs a key
 # release event, which KGlobalAccel does not have, so the hotkey moved into
 # voxtype's own evdev reader (see [hotkey] in config.toml). The entry stays
