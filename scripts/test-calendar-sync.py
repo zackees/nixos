@@ -34,6 +34,9 @@ class CalendarSyncTests(unittest.TestCase):
                 {"self": True, "responseStatus": "needsAction"}
             ]))
         args = interface.Notify.call_args.args
+        # The desktop ID differs from the installed icon's theme name.
+        self.assertEqual(args[2], "korganizer")
+        self.assertEqual(args[-2]["desktop-entry"], "org.kde.korganizer")
         self.assertEqual(args[-1], 60 * 60 * 1000)
         self.assertEqual(args[3], "New calendar invitation")
         self.assertIn("Meeting &lt;test&gt;", args[4])

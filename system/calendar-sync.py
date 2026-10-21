@@ -126,7 +126,7 @@ def notify(item):
     if item.get("htmlLink"):
         body += '\n<a href="' + html.escape(item["htmlLink"], quote=True) + '">Open event</a>'
     interface.Notify(
-        "KOrganizer", 0, "org.kde.korganizer",
+        "KOrganizer", 0, "korganizer",
         "New calendar invitation" if invitation else "New calendar event",
         body, dbus.Array([], signature="s"),
         {"desktop-entry": "org.kde.korganizer", "urgency": dbus.Byte(1)}, 3600000,
