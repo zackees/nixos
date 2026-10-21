@@ -111,6 +111,7 @@ class CacheTests(unittest.TestCase):
 class BranchRefreshTests(unittest.TestCase):
     def setUp(self):
         module['_foreground_cache'].clear()
+        self.now = 100.0
 
     def test_constant_title_refreshes_after_external_branch_switch_only_when_changed(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -131,7 +132,7 @@ class BranchRefreshTests(unittest.TestCase):
             install = pane.get('install_branch_refresh')
             self.assertTrue(callable(install), 'pane headers need an independent refresh timer')
             with patch.dict(pane['draw_window_title'].__globals__, get_boss=lambda: boss,
-                            WindowTitleFormatter=colors), \
+                            WindowTitleFormatter=colors, monotonic=lambda: self.now), \
                     patch('kitty.fast_data_types.add_timer', return_value=7) as add, \
                     patch('kitty.fast_data_types.remove_timer') as remove, \
                     patch('kitty.fast_data_types.mark_os_window_dirty'):
@@ -140,17 +141,101 @@ class BranchRefreshTests(unittest.TestCase):
                 refresh = add.call_args.args[0]
                 refresh(7)
                 self.assertEqual(tab.update_window_title_bars.call_count, 0)
+                lookup = Mock(wraps=pane['_pane_wd'])
+                with patch.dict(pane['draw_window_title'].__globals__, _pane_wd=lookup):
+                    refresh(7)
+                lookup.assert_not_called()  # No filesystem/foreground scan on an idle notification tick.
                 stamp = head.stat().st_mtime_ns + 1_000_000_000
                 head.write_text('ref: refs/heads/main\n')
                 os.utime(head, ns=(stamp, stamp))
+                refresh(7)
+                self.assertIn('feature', labels[-1])  # Let settings settle before repainting.
+                self.now += 0.1
+                head.write_text('ref: refs/heads/main\n')
+                refresh(7)  # A repeated event extends the quiet period.
+                self.now += 0.15
+                refresh(7)
+                self.assertEqual(tab.update_window_title_bars.call_count, 0)
+                self.now += 0.1
                 refresh(7)
                 self.assertIn('main', labels[-1])
                 self.assertNotIn('feature', labels[-1])
                 refresh(7)
                 self.assertEqual(tab.update_window_title_bars.call_count, 1)
+                # Simulate a missing notification: the slow catch-up still
+                # discovers the next branch and restores its subscription.
+                head.write_text('ref: refs/heads/catchup\n')
+                with patch.object(boss.pane_branch_notifications, 'changed', return_value=False):
+                    self.now += 31
+                    refresh(7)
+                self.assertIn('catchup', labels[-1])
+                old = boss.pane_branch_notifications
                 install()
+                self.assertEqual(old.fd, -1)
                 self.assertEqual(add.call_count, 2)
                 remove.assert_called_once_with(7)
+                boss.pane_branch_notifications.close()
+
+    def test_notifications_filter_noise_survive_atomic_replacement_and_report_overflow(self):
+        import struct
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            head = root / 'HEAD'
+            head.write_text('before')
+            events = pane['GitHeadNotifications']()
+            self.addCleanup(events.close)
+            events.subscribe(str(root), 'HEAD')
+            (root / 'index').write_text('unrelated Git activity')
+            self.assertFalse(events.changed())
+            (root / 'HEAD.lock').write_text('after')
+            (root / 'HEAD.lock').replace(head)
+            self.assertTrue(events.changed())
+            head.write_text('again')
+            self.assertTrue(events.changed())
+            with patch('os.read', return_value=struct.pack('iIII', -1, 0x4000, 0, 0)):
+                self.assertTrue(events.changed())
+
+    def test_event_burst_has_a_bounded_settling_delay(self):
+        scan = Mock()
+        with patch.dict(pane['_refresh_branch_titles'].__globals__,
+                        _branch_notifications=SimpleNamespace(changed=lambda: True),
+                        _next_branch_scan=130.0, _branch_pending_since=None, _branch_pending_until=None,
+                        _scan_branch_titles=scan, monotonic=lambda: self.now):
+            for tick in range(10):
+                self.now = 100.0 + tick / 10
+                pane['_refresh_branch_titles'](7)
+            scan.assert_not_called()
+            self.now = 101.01
+            pane['_refresh_branch_titles'](7)
+            scan.assert_called_once()
+
+    def test_slow_catchup_without_notification_support(self):
+        scan = Mock()
+        with patch.dict(pane['_refresh_branch_titles'].__globals__,
+                        _branch_notifications=None, _next_branch_scan=101.0,
+                        _branch_pending_since=None, _branch_pending_until=None,
+                        _scan_branch_titles=scan, monotonic=lambda: self.now):
+            pane['_refresh_branch_titles'](7)
+            scan.assert_not_called()
+            self.now = 101.1
+            pane['_refresh_branch_titles'](7)
+            scan.assert_called_once()
+            self.now = 102.0
+            pane['_refresh_branch_titles'](7)
+            scan.assert_called_once()
+
+    def test_moved_directory_releases_kernel_subscription(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            metadata = root / 'metadata'
+            metadata.mkdir()
+            events = pane['GitHeadNotifications']()
+            self.addCleanup(events.close)
+            events.subscribe(str(metadata), 'HEAD')
+            metadata.rename(root / 'moved')
+            self.assertTrue(events.changed())
+            self.assertEqual(events.watches, {})
+            self.assertNotIn('inotify wd:', Path(f'/proc/self/fdinfo/{events.fd}').read_text())
 
     def test_worktree_detached_head_and_non_repository(self):
         with tempfile.TemporaryDirectory() as directory:
