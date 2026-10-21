@@ -44,7 +44,7 @@
     }
   },
   "launcher": {
-    "last_harness": "claude"
+    "last_harness": "codex"
   },
   "providers": {
     "openrouter": {

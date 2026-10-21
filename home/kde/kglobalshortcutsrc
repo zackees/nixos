@@ -267,10 +267,6 @@ switch to next activity=none,none,Switch to Next Activity
 switch to previous activity=none,none,Switch to Previous Activity
 toggle do not disturb=none,none,Toggle do not disturb
 
-[services][org.kde.spectacle.desktop]
-CurrentMonitorScreenShot=none
-OpenWithoutScreenshot=none
-
 [services][plasma-manager-commands.desktop]
 desktop-move-left=Meta+Ctrl+Alt+Left
 desktop-move-right=Meta+Ctrl+Alt+Right
