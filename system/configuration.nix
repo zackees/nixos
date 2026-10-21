@@ -426,6 +426,7 @@ let
     "signal.desktop"
     "slack.desktop"
     "Zoom.desktop"
+    "org.kde.korganizer.desktop"
     "dbeaver.desktop"
     "kitty.desktop"
     "sublime_text.desktop"
@@ -685,6 +686,7 @@ in
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./calendar.nix
     ];
 
   # Use the systemd-boot EFI boot loader.

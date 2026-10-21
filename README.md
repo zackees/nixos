@@ -70,6 +70,34 @@ model size or a later request for VRAM.
 
 ## Layout
 
+### Calendar reminders
+
+KOrganizer is pinned to the dock. `calendar-sync.service` reads Google Calendar
+every minute into a read-only local calendar: yesterday through the next 90 days,
+including recurring instances and pending invitations. Timed events have popup
+reminders ten minutes before and at the start; all-day events have no midnight
+alarm. KDE's Calendar Reminders runs at login and provides persistent popups with
+snooze, dismiss and view actions even with KOrganizer closed. New future events
+and invitations get a separate notification after the first, quiet sync.
+
+This connection does not edit Google events or accept invitations. Use the event's
+Google Calendar link to edit or respond. Only calendars shared with the service
+account are accessible; invitations must be visible on that calendar.
+
+After restoring, provision `~/.config/calendar-sync/service-account.json` from the
+private booking project's Google service account key, and create
+`~/.config/calendar-sync/config.json` with `credentials` (the absolute key path)
+and `calendar_id` (the shared Google calendar ID). Keep the directory mode 0700
+and both files 0600. Neither file belongs in this repo or the Nix store. Then:
+
+```bash
+systemctl --user start calendar-sync app-org.kde.kalendarac@autostart
+```
+
+The sync creates its Akonadi calendar resource automatically. An API outage leaves
+the last calendar intact, with existing reminders still available; sync retries
+every minute. Check `journalctl --user -u calendar-sync` for connection failures.
+
 ### Dictation playback ducking
 
 While Voxtype is recording push-to-talk dictation, `voxtype-ducking.service`
