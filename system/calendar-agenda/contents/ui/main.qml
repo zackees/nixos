@@ -16,7 +16,7 @@ PlasmoidItem {
 
     Timer {
         id: closeTimer
-        interval: 450
+        interval: 0
         onTriggered: root.expanded = false
     }
 
