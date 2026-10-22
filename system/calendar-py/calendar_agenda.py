@@ -22,6 +22,8 @@ HOUR_MINUTES = 60
 # While a meeting runs, the tab also shows one that starts before it ends or
 # within this long after: the back-to-back case worth seeing at a glance.
 FOLLOWING_WINDOW = timedelta(hours=1)
+# Finished meetings stay in the agenda this long, then drop out of it.
+PAST_RETENTION = timedelta(hours=2)
 
 
 class Status(StrEnum):
@@ -204,6 +206,8 @@ def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
     """Build today's feed at `now`, which must be timezone-aware."""
     day = now.astimezone().date()
     rows = [row for event in events if not event.cancelled and (row := _row(event, day, now))]
+    cutoff = (now - PAST_RETENTION).timestamp()
+    rows = [row for row in rows if row.status is not Status.PAST or row.end >= cutoff]
     rows.sort(key=lambda row: (not row.all_day, row.start, row.title))
     chosen = select_next(rows)
     if chosen is None:

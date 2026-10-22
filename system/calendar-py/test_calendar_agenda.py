@@ -122,6 +122,14 @@ class AgendaTests(unittest.TestCase):
         self.assertEqual(chosen(today_agenda(events, at(18, 15))), "Long")
         self.assertEqual(chosen(today_agenda(events, at(18, 30))), "Overlap")
 
+    def test_past_events_leave_the_agenda_two_hours_after_ending(self) -> None:
+        titles = [row.title for row in today_agenda(ics(*DAY), at(20)).events]  # 1:00 PM
+        self.assertEqual(titles, ["Focus block", "Standup", "Hold", "Noon call", "One o'clock"])
+        titles = [row.title for row in today_agenda(ics(*DAY), at(20, 1)).events]
+        self.assertEqual(titles, ["Focus block", "Hold", "Noon call", "One o'clock"])
+        titles = [row.title for row in today_agenda(ics(*DAY), at(22, 1)).events]
+        self.assertEqual(titles, ["One o'clock"])
+
     def test_expired_events_are_never_selected(self) -> None:
         feed = today_agenda(ics(*DAY), at(21))
         self.assertIsNone(feed.next)
