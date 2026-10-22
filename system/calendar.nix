@@ -58,7 +58,7 @@ in {
     after = [ "graphical-session.target" ];
     unitConfig.ConditionPathExists = "%h/.config/calendar-sync/config.json";
     serviceConfig = {
-      ExecStart = "${python}/bin/python ${./calendar-sync.py}";
+      ExecStart = "${python}/bin/python ${calendarPy}/calendar_sync.py";
       Restart = "on-failure";
       RestartSec = 30;
       UMask = "0077";
