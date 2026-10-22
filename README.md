@@ -104,6 +104,18 @@ The sync creates its Akonadi calendar resource automatically. An API outage leav
 the last calendar intact, with existing reminders still available; sync retries
 every minute. Check `journalctl --user -u calendar-sync` for connection failures.
 
+### KDE Shader Wallpaper
+
+KDE Shader Wallpaper is installed system-wide and selected for Plasma's lock
+screen, using Nimitz's animated aurora shader at 30 FPS on every display.
+Choose another shader under System Settings → Screen Locking → Configure
+Appearance → Shader Wallpaper. Its gallery includes Shadertoy imports and
+multi-pass effects. The plugin is built against the same Qt and Plasma
+packages as the desktop; update its pinned source in `flake.nix` deliberately.
+The package is declared in `system/kde-shader-wallpaper.nix`, with settings in
+`system/shader-wallpaper.nix`. Selecting this background does not change the
+password-lock timer below.
+
 ### Three-monitor screensaver
 
 After ten idle minutes, Hyprsaver fills every connected monitor with animated

@@ -33,9 +33,14 @@
       inputs.home-manager.follows = "home-manager";
     };
 
-    # Source only: build with the system toolchain and pin the shader collection.
     hyprsaver-src = {
       url = "github:maravexa/hyprsaver/f33a4fdf46f9fe9e96db465480f32e3e04ab1c42";
+      flake = false;
+    };
+
+    # Compile the wallpaper plugin against the same Qt/KDE as Plasma.
+    kde-shader-wallpaper-src = {
+      url = "github:y4my4my4m/kde-shader-wallpaper/d672455302ce7053bb7cc873b9e6225615063bef";
       flake = false;
     };
 

@@ -128,6 +128,23 @@
         "type": "github"
       }
     },
+    "kde-shader-wallpaper-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791268045,
+        "narHash": "sha256-tEwBjuxtDIRD95BlWIeBcA2tbrwu4lLMFCbBuhBXnAw=",
+        "owner": "y4my4my4m",
+        "repo": "kde-shader-wallpaper",
+        "rev": "d672455302ce7053bb7cc873b9e6225615063bef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "y4my4my4m",
+        "repo": "kde-shader-wallpaper",
+        "rev": "d672455302ce7053bb7cc873b9e6225615063bef",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1785318670,
@@ -276,6 +293,7 @@
         "hermes-agent": "hermes-agent",
         "home-manager": "home-manager_2",
         "hyprsaver-src": "hyprsaver-src",
+        "kde-shader-wallpaper-src": "kde-shader-wallpaper-src",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "plasma-manager": "plasma-manager"
