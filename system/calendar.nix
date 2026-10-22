@@ -9,10 +9,31 @@ let
   python = pkgs.python3.withPackages (p: [
     p.google-auth p.requests p.icalendar p.dbus-python
   ]);
+  # The calendar scripts, copied to the store only once they pass Ruff,
+  # basedpyright (see calendar-py/pyproject.toml) and their tests. A lint or
+  # type error therefore fails `nixos-rebuild build` instead of shipping.
+  calendarPy = pkgs.runCommand "calendar-py" {
+    nativeBuildInputs = [
+      (pkgs.python3.withPackages (p: [
+        p.google-auth p.requests p.icalendar p.dbus-python p.types-requests
+      ]))
+      pkgs.ruff pkgs.basedpyright
+    ];
+    TZDIR = "${pkgs.tzdata}/share/zoneinfo";
+  } ''
+    cp -r ${./calendar-py} src && chmod -R u+w src && cd src
+    export HOME=$TMPDIR
+    ruff check --no-cache .
+    ruff format --check --no-cache .
+    basedpyright
+    python -m unittest -v
+    rm -rf __pycache__ test_*.py
+    cp -r . $out
+  '';
   agenda = pkgs.writeShellApplication {
     name = "calendar-agenda";
     text = ''
-      exec ${python}/bin/python ${./calendar-agenda.py}
+      exec ${python}/bin/python ${calendarPy}/calendar_agenda.py
     '';
   };
   agendaApplet = pkgs.runCommand "calendar-agenda-applet" { } ''

@@ -9,7 +9,7 @@ import org.kde.plasma.plasmoid
 PlasmoidItem {
     id: root
     preferredRepresentation: compactRepresentation
-    property var agenda: ({events: [], next: null, nextLabel: "Calendar", countdown: "Loading…", error: ""})
+    property var agenda: ({events: [], next: null, next_label: "Calendar", countdown: "Loading…", error: ""})
     readonly property string title: agenda.next ? agenda.next.title : agenda.countdown
     toolTipMainText: ""
     toolTipSubText: ""
@@ -54,10 +54,10 @@ PlasmoidItem {
 
     compactRepresentation: MouseArea {
         id: tab
-        Layout.minimumWidth: 96
-        Layout.preferredWidth: 96
-        Layout.maximumWidth: 96
-        Accessible.name: root.agenda.nextLabel + ": " + root.title
+        Layout.minimumWidth: 108
+        Layout.preferredWidth: 108
+        Layout.maximumWidth: 108
+        Accessible.name: root.agenda.next_label + ": " + root.title
         Accessible.role: Accessible.Button
 
         Rectangle {
@@ -70,7 +70,7 @@ PlasmoidItem {
         }
         RowLayout {
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 5
             Kirigami.Icon {
                 source: "view-calendar-agenda"
                 Layout.preferredWidth: 16
@@ -80,6 +80,14 @@ PlasmoidItem {
                 text: root.agenda.next ? Qt.formatDateTime(new Date(root.agenda.next.start * 1000), "h:mm AP") : "—"
                 font.pixelSize: 12
                 font.bold: true
+            }
+            // The selected meeting is happening now; it stays until it ends.
+            Rectangle {
+                visible: root.agenda.live === true
+                Layout.preferredWidth: 7
+                Layout.preferredHeight: 7
+                radius: 3.5
+                color: "#e5322d"
             }
         }
         // Include the panel padding so the hover region reaches the popup.
@@ -137,7 +145,7 @@ PlasmoidItem {
             PlasmaComponents.Label {
                 visible: root.agenda.next !== null
                 Layout.fillWidth: true
-                text: root.agenda.nextLabel + " · " + root.agenda.countdown + " · " + root.title
+                text: root.agenda.next_label + " · " + root.agenda.countdown + " · " + root.title
                 textFormat: Text.PlainText
                 wrapMode: Text.WordWrap
                 color: Kirigami.Theme.linkColor
@@ -190,9 +198,9 @@ PlasmoidItem {
                                     font.pixelSize: 14
                                 }
                                 PlasmaComponents.Label {
-                                    visible: meeting.modelData.linkKind !== "" || meeting.modelData.location !== ""
+                                    visible: meeting.modelData.link_kind !== "" || meeting.modelData.location !== ""
                                     Layout.fillWidth: true
-                                    text: meeting.modelData.linkKind === "Zoom" ? "Zoom · Click to join" : meeting.modelData.location || "Open calendar event"
+                                    text: meeting.modelData.link_kind === "Zoom" ? "Zoom · Click to join" : meeting.modelData.location || "Open calendar event"
                                     textFormat: Text.PlainText
                                     wrapMode: Text.WordWrap
                                     opacity: 0.7

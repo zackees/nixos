@@ -80,7 +80,7 @@ meeting to join it, or another event to open its calendar page; the calendar
 button opens KOrganizer. The tab refreshes every 30 seconds from the existing
 private local calendar, without another Google connection. No meeting data or
 joining links are stored in this repository. The widget and reader live in
-`system/calendar-agenda/` and `system/calendar-agenda.py`.
+`system/calendar-agenda/` and `system/calendar-py/calendar_agenda.py`.
 
 KOrganizer is pinned to the dock. `calendar-sync.service` reads Google Calendar
 every minute into a read-only local calendar: yesterday through the next 90 days,

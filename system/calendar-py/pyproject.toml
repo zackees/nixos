@@ -1,0 +1,33 @@
+# Lint and type-check configuration for the calendar scripts. calendar.nix
+# runs every check below while building, so a violation fails the rebuild.
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "COM812",  # conflicts with the formatter
+    "D203",    # incompatible with D211
+    "D213",    # incompatible with D212
+    "INP001",  # standalone scripts, not an importable package
+    "PT009",   # tests use unittest, which has no bare-assert idiom
+    "PT027",   # same
+]
+
+# The agenda labels time ranges with an en dash on purpose.
+allowed-confusables = ["–"]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["D101", "D102", "PLR2004"]
+
+[tool.basedpyright]
+typeCheckingMode = "recommended"
+pythonVersion = "3.13"
+# Warnings include reportAny: untyped values (json.loads, untyped libraries)
+# must be parsed into dataclasses at the boundary before use.
+failOnWarnings = true
+stubPath = "typings"
+# Ruff's ISC rules already govern string concatenation, and the two disagree.
+reportImplicitStringConcatenation = false
