@@ -9,7 +9,20 @@ let
   python = pkgs.python3.withPackages (p: [
     p.google-auth p.requests p.icalendar p.dbus-python
   ]);
+  agenda = pkgs.writeShellApplication {
+    name = "calendar-agenda";
+    text = ''
+      exec ${python}/bin/python ${./calendar-agenda.py}
+    '';
+  };
+  agendaApplet = pkgs.runCommand "calendar-agenda-applet" { } ''
+    mkdir -p $out
+    cp -r ${./calendar-agenda}/. $out/
+    substituteInPlace $out/contents/ui/main.qml \
+      --replace-fail '@AGENDA@' '${agenda}/bin/calendar-agenda'
+  '';
 in {
+  home-manager.users.niteris.home.file.".local/share/plasma/plasmoids/org.niteris.calendar-agenda".source = agendaApplet;
   environment.systemPackages = with pkgs.kdePackages; [
     korganizer akonadi-calendar akonadi-calendar-tools kdepim-runtime
   ];

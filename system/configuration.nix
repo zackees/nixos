@@ -2994,6 +2994,7 @@ in
                   timeZone.format = "city";
                 };
               }
+              "org.niteris.calendar-agenda"
             ];
           }
           {
