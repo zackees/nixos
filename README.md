@@ -104,6 +104,21 @@ The sync creates its Akonadi calendar resource automatically. An API outage leav
 the last calendar intact, with existing reminders still available; sync retries
 every minute. Check `journalctl --user -u calendar-sync` for connection failures.
 
+### Three-monitor screensaver
+
+After ten idle minutes, Hyprsaver fills every connected monitor with animated
+GPU shaders: auroras, starfields, fractals, liquid marble and planetary scenes.
+Scenes change every three minutes with coordinated color palettes changing
+every minute. Mouse movement or a key dismisses it. Video playback idle
+inhibitors are respected. Plasma still turns displays off after 30 minutes
+and locks after four hours; the screensaver stops before display power-off
+and when the session locks. It is a visual effect, not a password lock.
+
+Preview immediately with `systemctl --user start cinematic-screensaver`;
+stop with `systemctl --user stop cinematic-screensaver`. The idle watcher is
+`screensaver-idle.service`. Settings and the pinned package are declared in
+`system/screensaver.nix` and `flake.nix`.
+
 ### Dictation playback ducking
 
 Voxtype's recording and transcription notifications use a separate popup in the

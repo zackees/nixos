@@ -33,6 +33,12 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    # Source only: build with the system toolchain and pin the shader collection.
+    hyprsaver-src = {
+      url = "github:maravexa/hyprsaver/f33a4fdf46f9fe9e96db465480f32e3e04ab1c42";
+      flake = false;
+    };
+
     # Hermes Agent -- the messaging gateway and dashboard this machine runs.
     # Previously installed ad-hoc with `nix profile install`, which left the
     # three hand-written systemd user units pointing at a /nix/store path that

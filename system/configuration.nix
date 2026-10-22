@@ -687,6 +687,7 @@ in
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./calendar.nix
+      ./screensaver.nix
       ./voxtype-popups.nix
     ];
 

@@ -111,6 +111,23 @@
         "type": "github"
       }
     },
+    "hyprsaver-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792627304,
+        "narHash": "sha256-13B9r5UC49UpvwhIZKohjfgoz9YXErzVRhBKDEa5RBw=",
+        "owner": "maravexa",
+        "repo": "hyprsaver",
+        "rev": "f33a4fdf46f9fe9e96db465480f32e3e04ab1c42",
+        "type": "github"
+      },
+      "original": {
+        "owner": "maravexa",
+        "repo": "hyprsaver",
+        "rev": "f33a4fdf46f9fe9e96db465480f32e3e04ab1c42",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1785318670,
@@ -258,6 +275,7 @@
         "docker-vm": "docker-vm",
         "hermes-agent": "hermes-agent",
         "home-manager": "home-manager_2",
+        "hyprsaver-src": "hyprsaver-src",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "plasma-manager": "plasma-manager"
