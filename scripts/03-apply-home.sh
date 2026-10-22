@@ -187,9 +187,14 @@ npm install --global --prefix "$HOME/.npm-global" live-server@1.2.2
 # that puts uv on PATH -- a systemPackages entry added in good faith, a stray
 # shim -- satisfies a PATH test, skips this install, and silently leaves the
 # machine on whatever older uv it found. That has happened once already.
-if [ ! -x "$HOME/.nix-profile/bin/uv" ]; then
-  nix profile add "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz#uv"
+#
+# An existing copy is refreshed by remove + add, never `nix profile upgrade
+# uv`: upgrade re-resolves through the same registry and lands on the pinned
+# uv, which once downgraded 0.12.5 to 0.11.21.
+if [ -x "$HOME/.nix-profile/bin/uv" ]; then
+  nix profile remove uv
 fi
+nix profile add "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz#uv"
 export PATH="$HOME/.local/bin:$PATH"
 # clud is pip-managed in ~/.venv (the declared user venv); the uv-tool install
 # was removed because it shadowed pip's binary with a stale pinned version.
