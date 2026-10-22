@@ -1,0 +1,385 @@
+{
+  "audit_date": "2026-10-21",
+  "membership_discovery": "Authenticated REST user/memberships/orgs; repository inventories from orgs/{org}/repos?type=all, fully paginated. GitHub connector organization listing returned no memberships, so authenticated gh CLI supplied the complete visible membership list.",
+  "current_memberships": [
+    {
+      "organization": "FastLED",
+      "role": "admin",
+      "state": "active",
+      "accessible_repositories": 21,
+      "repositories": [
+        "FastLED/FastLED",
+        "FastLED/fastled-fastled.github.io",
+        "FastLED/blog",
+        "FastLED/WiLi",
+        "FastLED/PlatformIO-Starter",
+        "FastLED/cli",
+        "FastLED/assets",
+        "FastLED/fbuild",
+        "FastLED/fastled-playground",
+        "FastLED/.github",
+        "FastLED/framework-arduino-lpc8xx",
+        "FastLED/platform-nxp-lpc8xx",
+        "FastLED/boards",
+        "FastLED/registry",
+        "FastLED/datasheets",
+        "FastLED/soundwave",
+        "FastLED/fbuild-ide",
+        "FastLED/secrets",
+        "FastLED/license",
+        "FastLED/dashboard",
+        "FastLED/dox"
+      ]
+    },
+    {
+      "organization": "ZackeesInc",
+      "role": "member",
+      "state": "active",
+      "accessible_repositories": 3,
+      "repositories": [
+        "ZackeesInc/EZBlueSmirfUART",
+        "ZackeesInc/FashionGlowJewelry.com",
+        "ZackeesInc/landing.zackees.com"
+      ]
+    },
+    {
+      "organization": "TechWatchProject",
+      "role": "admin",
+      "state": "active",
+      "accessible_repositories": 76,
+      "repositories": [
+        "TechWatchProject/androidmonitor-client",
+        "TechWatchProject/androidmonitor-backend",
+        "TechWatchProject/personalassistantmonitor-sensor",
+        "TechWatchProject/personalassistantmonitor-collector",
+        "TechWatchProject/my-test-app",
+        "TechWatchProject/AmericasDigitalShield.com",
+        "TechWatchProject/StatsDashPrivate",
+        "TechWatchProject/StatsDashPublicGraphsOnly",
+        "TechWatchProject/androidmonitor-download",
+        "TechWatchProject/extension_backend_logging",
+        "TechWatchProject/americas-digital-shield-preview",
+        "TechWatchProject/org",
+        "TechWatchProject/americanflag",
+        "TechWatchProject/feedthewatchdogs.org",
+        "TechWatchProject/meeting-notes",
+        "TechWatchProject/backup",
+        "TechWatchProject/extension",
+        "TechWatchProject/kumquat",
+        "TechWatchProject/AgentDetails",
+        "TechWatchProject/AgentPayments",
+        "TechWatchProject/twdb",
+        "TechWatchProject/child-extension",
+        "TechWatchProject/ChildTWDB",
+        "TechWatchProject/tw_aws",
+        "TechWatchProject/ads_dashboard_archive",
+        "TechWatchProject/ads_dashboard",
+        "TechWatchProject/donation-crm",
+        "TechWatchProject/youtube-html-parser",
+        "TechWatchProject/.github",
+        "TechWatchProject/odoo-crm",
+        "TechWatchProject/bias.kumquat.link",
+        "TechWatchProject/donor-reports",
+        "TechWatchProject/secrets",
+        "TechWatchProject/kumquat-python-jobs",
+        "TechWatchProject/ec2-python.310",
+        "TechWatchProject/give-butter-report",
+        "TechWatchProject/aws_lambdas",
+        "TechWatchProject/test-docker-lambda",
+        "TechWatchProject/Digital-Ocean-Functions",
+        "TechWatchProject/docker-process-search-results",
+        "TechWatchProject/jobs.kumquat.live",
+        "TechWatchProject/analytics.techwatchproject.org",
+        "TechWatchProject/rclone-data-lake",
+        "TechWatchProject/organize-s3-prod-seaches",
+        "TechWatchProject/jobs",
+        "TechWatchProject/blueprint",
+        "TechWatchProject/jobs-organize-searches",
+        "TechWatchProject/kumquat-batch",
+        "TechWatchProject/presign-url.kumquat.link",
+        "TechWatchProject/capture-html.kumquat.link",
+        "TechWatchProject/process-search-results.kumquat.link",
+        "TechWatchProject/textract.kumquat.link",
+        "TechWatchProject/upload.kumquat.link",
+        "TechWatchProject/dev-upload-html",
+        "TechWatchProject/dev_process-search-results",
+        "TechWatchProject/dev-capture-html",
+        "TechWatchProject/dev-textract",
+        "TechWatchProject/upload-gz.kumquat.link",
+        "TechWatchProject/reddit-parser",
+        "TechWatchProject/reddit-parser.kumquat.link",
+        "TechWatchProject/x-parser.kumqaut.live",
+        "TechWatchProject/prod-reddit-parser",
+        "TechWatchProject/google-news.kumquat.link",
+        "TechWatchProject/search-index",
+        "TechWatchProject/sentiment",
+        "TechWatchProject/datalake",
+        "TechWatchProject/datalake-core",
+        "TechWatchProject/twp",
+        "TechWatchProject/dashboard",
+        "TechWatchProject/.github-private",
+        "TechWatchProject/logging",
+        "TechWatchProject/QA",
+        "TechWatchProject/recruiter",
+        "TechWatchProject/e2e",
+        "TechWatchProject/extension2",
+        "TechWatchProject/go-vote"
+      ]
+    },
+    {
+      "organization": "CWC-data-science",
+      "role": "member",
+      "state": "active",
+      "accessible_repositories": 39,
+      "repositories": [
+        "CWC-data-science/LLM-2024-V01",
+        "CWC-data-science/site-demo",
+        "CWC-data-science/ingest-media",
+        "CWC-data-science/chunker",
+        "CWC-data-science/python_command_server",
+        "CWC-data-science/transcription_labeler",
+        "CWC-data-science/Neo-V0-1",
+        "CWC-data-science/cleaner",
+        "CWC-data-science/web-crawler",
+        "CWC-data-science/mp3-fetcher",
+        "CWC-data-science/news-summary-generator",
+        "CWC-data-science/lm-server",
+        "CWC-data-science/cwclab-speech-to-speech",
+        "CWC-data-science/lm-worker",
+        "CWC-data-science/lm-writer",
+        "CWC-data-science/cwclab-chat",
+        "CWC-data-science/lm-monitor",
+        "CWC-data-science/Neo-EXE-base",
+        "CWC-data-science/CWC-Keyword-Finder",
+        "CWC-data-science/multi-book-summarizer",
+        "CWC-data-science/CWC-In-House-Search-Tool",
+        "CWC-data-science/CWC-LM-Writer-Web-Based",
+        "CWC-data-science/CWC-LLMs-Server",
+        "CWC-data-science/CWC-Writer-Webseed",
+        "CWC-data-science/CWC-Deepseek-Code-Reviewer",
+        "CWC-data-science/Enoch-comsumerwellness-be",
+        "CWC-data-science/Enoch-comsumerwellness-fe",
+        "CWC-data-science/Brighteon-AI-BE",
+        "CWC-data-science/Brighteon-AI-FE",
+        "CWC-data-science/ws-ssot-bi",
+        "CWC-data-science/Enoch-Internal",
+        "CWC-data-science/Brighteon-AI-HelmChart",
+        "CWC-data-science/Enoch-Internal-BE",
+        "CWC-data-science/Enoch-Internal-FE",
+        "CWC-data-science/ws_dashboarding",
+        "CWC-data-science/Enoch_System_Prompts",
+        "CWC-data-science/FineTuning-Mistral",
+        "CWC-data-science/Internal-AI-API-Relay",
+        "CWC-data-science/blaipaly"
+      ]
+    },
+    {
+      "organization": "Open-Range-Consulting",
+      "role": "member",
+      "state": "active",
+      "accessible_repositories": 35,
+      "repositories": [
+        "Open-Range-Consulting/generational-regression",
+        "Open-Range-Consulting/deep-learning-accuracy",
+        "Open-Range-Consulting/footprint-mercator",
+        "Open-Range-Consulting/indices_stack_predict_toolbox",
+        "Open-Range-Consulting/create-imagery-polygon-grids",
+        "Open-Range-Consulting/Batch_Deep_Learning_Classifier_v5",
+        "Open-Range-Consulting/BatchCV",
+        "Open-Range-Consulting/crown-splitting-archive",
+        "Open-Range-Consulting/crown-splitting",
+        "Open-Range-Consulting/fit-rasters-to-polygons",
+        "Open-Range-Consulting/orc-analysis-ready-naip",
+        "Open-Range-Consulting/sagebrush-block-balancer",
+        "Open-Range-Consulting/erics",
+        "Open-Range-Consulting/ORC_workflow",
+        "Open-Range-Consulting/create_continuous_cover_training_points",
+        "Open-Range-Consulting/image_sort",
+        "Open-Range-Consulting/photo_metadata",
+        "Open-Range-Consulting/piosphere_tool",
+        "Open-Range-Consulting/lansat-tools",
+        "Open-Range-Consulting/deep-learning-tools",
+        "Open-Range-Consulting/generate-derived-indices",
+        "Open-Range-Consulting/normalize-for-sun",
+        "Open-Range-Consulting/sentinel-tools",
+        "Open-Range-Consulting/master-data-machine-learning",
+        "Open-Range-Consulting/policy",
+        "Open-Range-Consulting/secrets",
+        "Open-Range-Consulting/3D-Fire-Model",
+        "Open-Range-Consulting/.github-private",
+        "Open-Range-Consulting/create-grid-points",
+        "Open-Range-Consulting/Shared-Custom-Tools",
+        "Open-Range-Consulting/historic_data_normalization",
+        "Open-Range-Consulting/infra-local-ai",
+        "Open-Range-Consulting/image2image",
+        "Open-Range-Consulting/prithvi-rangeland-pilot",
+        "Open-Range-Consulting/TreeDetector"
+      ]
+    },
+    {
+      "organization": "Omnix-Linux",
+      "role": "admin",
+      "state": "active",
+      "accessible_repositories": 6,
+      "repositories": [
+        "Omnix-Linux/Omnix",
+        "Omnix-Linux/Autarchy",
+        "Omnix-Linux/Atrium",
+        "Omnix-Linux/.github",
+        "Omnix-Linux/omnix-linux.github.io",
+        "Omnix-Linux/docker-vm"
+      ]
+    },
+    {
+      "organization": "omnix-apps",
+      "role": "admin",
+      "state": "active",
+      "accessible_repositories": 1,
+      "repositories": [
+        "omnix-apps/obs-studio"
+      ]
+    },
+    {
+      "organization": "obs-rust",
+      "role": "admin",
+      "state": "active",
+      "accessible_repositories": 28,
+      "repositories": [
+        "obs-rust/obscommits",
+        "obs-rust/obs-studio",
+        "obs-rust/libdshowcapture",
+        "obs-rust/obs-browser",
+        "obs-rust/obs-amd-encoder",
+        "obs-rust/obs-websocket",
+        "obs-rust/obs-vst",
+        "obs-rust/loganalyzer",
+        "obs-rust/obs-plugintemplate",
+        "obs-rust/.github",
+        "obs-rust/obs-deps",
+        "obs-rust/rfcs",
+        "obs-rust/obs-bot",
+        "obs-rust/obs-oauth-cf",
+        "obs-rust/obs-crowdin-sync",
+        "obs-rust/FFmpeg",
+        "obs-rust/cef",
+        "obs-rust/bouf",
+        "obs-rust/homebrew-tools",
+        "obs-rust/design",
+        "obs-rust/obs-deps-buildstream",
+        "obs-rust/obs-studio-rs",
+        "obs-rust/constitution",
+        "obs-rust/obs-smoke",
+        "obs-rust/propaganda",
+        "obs-rust/obs-studio-libs",
+        "obs-rust/isocast",
+        "obs-rust/obs-studio-ghsa-pqf9-xppr-m7x6"
+      ]
+    },
+    {
+      "organization": "SmallRig-AI",
+      "role": "admin",
+      "state": "active",
+      "accessible_repositories": 0,
+      "repositories": []
+    }
+  ],
+  "membership_repositories_total": 209,
+  "contribution_history": {
+    "start_year": 2014,
+    "end": "2026-10-22 UTC",
+    "method": "GraphQL commit and pull-request contribution repositories, annual 2014\u20132025 and monthly 2026 to avoid API timeouts. Up to 100 repositories per contribution kind/window; no window reached the cap.",
+    "windows_reporting_restricted_contributions": 18,
+    "distinct_repositories_returned": 261
+  },
+  "external_contribution_organizations": {
+    "adafruit": [
+      "adafruit/Adafruit_DotStar"
+    ],
+    "Aider-AI": [
+      "Aider-AI/aider"
+    ],
+    "Android-Tutorials-Hub": [
+      "Android-Tutorials-Hub/screenshot-programmatically-android-tutorial"
+    ],
+    "bmcreations": [
+      "bmcreations/scrcast"
+    ],
+    "brave": [
+      "brave/brave-core"
+    ],
+    "espressif": [
+      "espressif/idf-extra-components"
+    ],
+    "fjall-rs": [
+      "fjall-rs/fjall"
+    ],
+    "iv-org": [
+      "iv-org/youtube-trusted-session-generator"
+    ],
+    "microsoft": [
+      "microsoft/mimalloc"
+    ],
+    "obsproject": [
+      "obsproject/obs-studio"
+    ],
+    "openai": [
+      "openai/whisper"
+    ],
+    "platformio": [
+      "platformio/platformio-docs",
+      "platformio/platformio-core"
+    ],
+    "PlummersSoftwareLLC": [
+      "PlummersSoftwareLLC/NightDriverStrip"
+    ],
+    "pypa": [
+      "pypa/pip"
+    ],
+    "python": [
+      "python/cpython"
+    ],
+    "rclone": [
+      "rclone/rclone"
+    ],
+    "SEDenmarkLab": [
+      "SEDenmarkLab/Lucid_Somnambulist"
+    ],
+    "SiliconLabsSoftware": [
+      "SiliconLabsSoftware/arduino"
+    ],
+    "tauri-apps": [
+      "tauri-apps/wry",
+      "tauri-apps/tauri"
+    ],
+    "webtorrent": [
+      "webtorrent/instant.io",
+      "webtorrent/webtorrent-hybrid",
+      "webtorrent/bittorrent-tracker",
+      "webtorrent/webtorrent-cli"
+    ],
+    "wezterm": [
+      "wezterm/wezterm"
+    ],
+    "wild-linker": [
+      "wild-linker/wild"
+    ]
+  },
+  "external_contributed_repositories_scanned": 27,
+  "collaborator_repositories_outside_memberships": [
+    "chucks13/lb3",
+    "futuretechlab/Z12_Firmware",
+    "hoffie/FastLED-Security",
+    "rosevo/thetruthaboutivermectin.com",
+    "techwatch2/extension",
+    "techwatch2/twdb",
+    "thewatermagister/spamverify",
+    "thewatermagister/spamverifybackend"
+  ],
+  "scope_notes": [
+    "All accessible repositories in all nine current membership organizations were inventoried, including private, forked and archived repositories. SmallRig-AI exposes no repositories to this account.",
+    "For the 22 external contribution organizations, only the 27 contributed repositories were scanned; other repositories in those organizations were not audited.",
+    "Restricted, deleted, unattributed, or issue/comment-only contributions can leave undiscoverable organization relationships. This is not proof of every organization ever associated with the account.",
+    "Eight additional collaborator repositories belong to individual user accounts, not organizations.",
+    "See nginx-repository-inventory-2026-10.json for the cumulative 545-repository source inventory and file-level coverage limits."
+  ]
+}

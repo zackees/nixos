@@ -1,31 +1,70 @@
 {
   "audit_date": "2026-10-21",
   "summary": {
-    "repositories": 380,
+    "repositories": 545,
     "owners": {
+      "adafruit": 1,
+      "Aider-AI": 1,
+      "Android-Tutorials-Hub": 1,
+      "bmcreations": 1,
+      "brave": 1,
+      "chucks13": 1,
+      "CWC-data-science": 39,
+      "espressif": 1,
+      "FastLED": 21,
+      "fjall-rs": 1,
+      "futuretechlab": 1,
+      "hoffie": 1,
+      "iv-org": 1,
+      "microsoft": 1,
+      "obs-rust": 28,
+      "obsproject": 1,
+      "omnix-apps": 1,
+      "Omnix-Linux": 6,
+      "Open-Range-Consulting": 35,
+      "openai": 1,
+      "platformio": 2,
+      "PlummersSoftwareLLC": 1,
+      "pypa": 1,
+      "python": 1,
+      "rclone": 1,
+      "rosevo": 1,
+      "SEDenmarkLab": 1,
+      "SiliconLabsSoftware": 1,
+      "tauri-apps": 2,
+      "techwatch2": 2,
       "TechWatchProject": 76,
+      "thewatermagister": 2,
+      "webtorrent": 4,
+      "wezterm": 1,
+      "wild-linker": 1,
       "zackees": 301,
       "ZackeesInc": 3
     },
-    "private": 146,
-    "forks": 83,
-    "archived": 12,
-    "source_matches": 40,
+    "private": 234,
+    "forks": 89,
+    "archived": 14,
+    "source_matches": 64,
     "scan_modes": {
-      "archive": 363,
-      "tree-infrastructure-fallback": 13,
-      "empty": 4
+      "archive": 520,
+      "git-tree-infrastructure-fallback": 5,
+      "empty": 7,
+      "tree-infrastructure-fallback": 13
     },
     "unresolved_tree_truncations": 0,
-    "candidate_fetch_failures": 0
+    "candidate_fetch_failures": 0,
+    "new_repositories_in_organization_audit": 165,
+    "organization_memberships": 9,
+    "external_contribution_organizations": 22
   },
-  "scope": "Accessible default-branch snapshots. Source matches include NGINX/OpenResty/Tengine/Angie; not every match installs a server. Snapshots precede some remediation merges.",
+  "scope": "Cumulative audit: prior 380 repositories plus 165 newly scanned organization, collaborator and historical-contribution repositories. Accessible default branches only; no guarantee about deployed packages. See nginx-organization-inventory-2026-10.json for affiliation scope.",
   "limits": [
     "Files larger than 4 MiB and Git LFS contents were not searched.",
     "Binary content is not comprehensively inspected.",
     "Fallback scans fetch deployment candidates, not every source file.",
     "Historical branches, submodule contents and all third-party container layers are not covered.",
-    "No source match does not establish absence of NGINX in inherited images."
+    "No source match does not establish absence of NGINX in inherited images.",
+    "Public archives in the organization extension are identified by branch/date; immutable commit IDs were not captured for those archives. Git-tree fallbacks have exact commit IDs."
   ],
   "additional_image_findings": [
     {
@@ -43,6 +82,2611 @@
     }
   ],
   "repositories": [
+    {
+      "name": "adafruit/Adafruit_DotStar",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "Aider-AI/aider",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 5,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 163,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Android-Tutorials-Hub/screenshot-programmatically-android-tutorial",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 12,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "bmcreations/scrcast",
+      "default_branch": "trunk",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 13,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/trunk"
+    },
+    {
+      "name": "brave/brave-core",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "git-tree-infrastructure-fallback",
+      "snapshot": "ac488bd5d822bedb58819183d5d4597147929b6a",
+      "matched_paths": [
+        "tools/crates/vendor/rouille/README.md",
+        "tools/crates/vendor/rustls/README.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 38,
+        "tree_complete": true,
+        "deployment_candidates": 3783,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: RuntimeError"
+        ]
+      }
+    },
+    {
+      "name": "chucks13/lb3",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5d49b6b4389923c86c6e28e8cf119c2ca7126b5a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 10
+      }
+    },
+    {
+      "name": "CWC-data-science/blaipaly",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d216fbe21d54f4b86d4837a212bf1606d1f3eccf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "CWC-data-science/Brighteon-AI-BE",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7996351490e63962c44a0ed9dbc38bb184c55067",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "CWC-data-science/Brighteon-AI-FE",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "defd54d04727f18e3c4383b8bd687f361d419af1",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml",
+        "Dockerfile",
+        "nginx.conf",
+        "prod.Dockerfile"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 61
+      }
+    },
+    {
+      "name": "CWC-data-science/Brighteon-AI-HelmChart",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3ac186a69a772cd394afaea157d7a7f54c32b294",
+      "matched_paths": [
+        "values.yaml"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "CWC-data-science/chunker",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "86d8c143c60154146268a973d9e45ddfcb524750",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/cleaner",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cf55f76b299eeed3c0c1ceb0250907fe1f45021d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/CWC-Deepseek-Code-Reviewer",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a5756b4025f9a155c00647844f6220e89d42a403",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 11
+      }
+    },
+    {
+      "name": "CWC-data-science/CWC-In-House-Search-Tool",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4dec3a2135b51d79ee1fc90b67f200efedebcc35",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/CWC-Keyword-Finder",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9812ba3bddb7714323a4983f8e89f34c5ec7b03e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/CWC-LLMs-Server",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0dc545c7bc0d2eb957fcfb2c8bbef344c71409a9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/CWC-LM-Writer-Web-Based",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "06e2a74d5593e2ecf4a661187c53542724b369eb",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/CWC-Writer-Webseed",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0e7e77eeb9c503c6eed785efa21a80d4e9fbbcf4",
+      "matched_paths": [
+        "CLAUDE.md",
+        "Dockerfile",
+        "entrypoint.sh",
+        "nginx.conf",
+        "src/cwc_writer/fastapi_server_no_proxy.py",
+        "src/cwc_writer/utils/chat_function.py",
+        "start_unified_server.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "CWC-data-science/cwclab-chat",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "988680201935af4bf6b8c97545fe886ac29d09ba",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "CWC-data-science/cwclab-speech-to-speech",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bf8aca9c49dbeff9d9c44a6d96da1710566358ae",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/Enoch-comsumerwellness-be",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2ca2e95a20de61efa71fd342e0739dd2753259c5",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml",
+        "natural-news-vip-login/app/asset/BTS.csv",
+        "natural-news-vip-login/app/asset/HRS.csv"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 39
+      }
+    },
+    {
+      "name": "CWC-data-science/Enoch-comsumerwellness-fe",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fe167400fe56a37b1d59d12f22ece0c66003b227",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml",
+        "frontend.dockerfile",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 57
+      }
+    },
+    {
+      "name": "CWC-data-science/Enoch-Internal",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "295369aae551c97194f82f5c7da5aff0512b3f28",
+      "matched_paths": [
+        "frontend/Dockerfile"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5
+      }
+    },
+    {
+      "name": "CWC-data-science/Enoch-Internal-BE",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "133733d602671ed3ebaeb9ecaf1577a35d14ff44",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5
+      }
+    },
+    {
+      "name": "CWC-data-science/Enoch-Internal-FE",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9845f4625fe28345f37052e5e27fcbb68efc3fb6",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml",
+        "Dockerfile",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "CWC-data-science/Enoch_System_Prompts",
+      "default_branch": "staging",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f8b7ef89ef489801f9ee114c753fdaec10d4ff6f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/FineTuning-Mistral",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7779862222606c3cb37706cf191025e8e06d3a58",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 8,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "CWC-data-science/ingest-media",
+      "default_branch": "main",
+      "private": true,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "344494eb2aba80bcbeaec77be92429ac9104292e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "CWC-data-science/Internal-AI-API-Relay",
+      "default_branch": "9708",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "666d470345869e897a7c910c7b81def96f3a0bab",
+      "matched_paths": [
+        ".helm/values-production.yaml",
+        ".helm/values-staging.yaml"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "CWC-data-science/LLM-2024-V01",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/lm-monitor",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "28aa10a15c21646c4bd92834c9a01f44f1ba7649",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "CWC-data-science/lm-server",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e5d85b77ee1607c3a0e4f9c9daa08c57cb1ce2c1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "CWC-data-science/lm-worker",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6f5528cf1e479ad68fde45ece777ea9fc0dee577",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "CWC-data-science/lm-writer",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f0f6f0e3ddcb9a76f8db64cc3f8a393b316632e1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/mp3-fetcher",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ebb306ebe0b2b8fbf0448ad2e1b62de8f32601d2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/multi-book-summarizer",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "06f025e851b6685ba45c0a9d8dc13193089cc11e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "CWC-data-science/Neo-EXE-base",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a64761eeffc20b6fd613a2e02f6a6392053e83fb",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/Neo-V0-1",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ca60274bac010ed08cb7236e2504b94c46de8859",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "CWC-data-science/news-summary-generator",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b13e5c0cfd9a506a9060eb74ceead823f76560ec",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/python_command_server",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "192756d31a4ec35fbc4f5b7e3622345971059085",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/site-demo",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "CWC-data-science/transcription_labeler",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9d7b3fed768d2b4aca92490a27b90dc9d9a0342d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/web-crawler",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fd5e35f906c66d0a8da04a211dbe47cf4cb2621d",
+      "matched_paths": [
+        "neo/config/environments/production.rb"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/ws-ssot-bi",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4370e9ad7c23591ba4366a4e03708b2e37eac7c6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "CWC-data-science/ws_dashboarding",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9a781e9ce5ac707618dc70c7d5919d9324aba313",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "espressif/idf-extra-components",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 28,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "FastLED/.github",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "FastLED/assets",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "git-tree-infrastructure-fallback",
+      "snapshot": "8795dcc5af23078a82c922747bcfd246c7c571d7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4,
+        "tree_complete": true,
+        "deployment_candidates": 3,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "FastLED/blog",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "61dc4f087bb14feaad021bfbcfe6ca472db0d752",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 92
+      }
+    },
+    {
+      "name": "FastLED/boards",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/cli",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "src/fastled/frontend/vendor/three/build/three.cjs",
+        "src/fastled/frontend/vendor/three/build/three.module.js",
+        "src/fastled/frontend/vendor/three/build/three.webgpu.js",
+        "src/fastled/frontend/vendor/three/build/three.webgpu.nodes.js"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/dashboard",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "git-tree-infrastructure-fallback",
+      "snapshot": "c42f39a9deb63b92de8b88287884e8c4092bfb65",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 199,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2,
+        "tree_complete": true,
+        "deployment_candidates": 7,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "FastLED/datasheets",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 166,
+        "binary_files_not_text_searched": 8,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/dox",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/FastLED",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "src/platforms/wasm/compiler/vendor/three/build/three.module.js",
+        "src/platforms/wasm/compiler/vendor/three/three.module.js",
+        "tests/fl/stl/asio/http/http_parser.cpp"
+      ],
+      "coverage": {
+        "large_files_skipped": 3,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 48,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "FastLED/fastled-fastled.github.io",
+      "default_branch": "gh-pages",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 129,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/gh-pages"
+    },
+    {
+      "name": "FastLED/fastled-playground",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/fbuild",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/fbuild-ide",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ef98f14d3cd1cb86c9bb973171f273c73fbaa183",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 51
+      }
+    },
+    {
+      "name": "FastLED/framework-arduino-lpc8xx",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/license",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/platform-nxp-lpc8xx",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/PlatformIO-Starter",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "FastLED/registry",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c0ac5e614cf3949b8fa739e00e55d01a6d072cd1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "FastLED/secrets",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "910bfe0ef1d37d973a67c6dddb2ef93cbf5293e0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "FastLED/soundwave",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bdf1ef96b8a3b3d049eef0dda7b1439793592af8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "FastLED/WiLi",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2d8f83786e956ccb35693b67b9127f65df290d75",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "fjall-rs/fjall",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 55,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "futuretechlab/Z12_Firmware",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cf21683e737fb848e22f32cbf4eeba31de654d48",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 15
+      }
+    },
+    {
+      "name": "hoffie/FastLED-Security",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "iv-org/youtube-trusted-session-generator",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "microsoft/mimalloc",
+      "default_branch": "main3",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 47,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main3"
+    },
+    {
+      "name": "obs-rust/.github",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/bouf",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/cef",
+      "default_branch": "6533-fix-stutter-and-osr-extra-info",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 15,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/6533-fix-stutter-and-osr-extra-info"
+    },
+    {
+      "name": "obs-rust/constitution",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/design",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 9,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/FFmpeg",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "libavformat/flvdec.c"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/homebrew-tools",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/isocast",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "crates/isocast-vp8/libvpx/AUTHORS"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 27,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/libdshowcapture",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/loganalyzer",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-amd-encoder",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-bot",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "README.md",
+        "data/nginx.example.conf",
+        "obsbot/cogs/public/webhooks.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-browser",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-crowdin-sync",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "download/dist.js",
+        "upload/dist.js"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/obs-deps",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "licenses/aom/AUTHORS",
+        "licenses/libvpx/AUTHORS"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-deps-buildstream",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-oauth-cf",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-plugintemplate",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-smoke",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/obs-studio",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 136,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-studio-ghsa-pqf9-xppr-m7x6",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e5a0f4fc5e32799ff9a6a2176a78b316a2c39c51",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 134
+      }
+    },
+    {
+      "name": "obs-rust/obs-studio-libs",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/obs-studio-rs",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/obs-vst",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obs-websocket",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/obscommits",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obs-rust/propaganda",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 1,
+        "binary_files_not_text_searched": 2,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "obs-rust/rfcs",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "obsproject/obs-studio",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 118,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "omnix-apps/obs-studio",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 118,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "Omnix-Linux/.github",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Omnix-Linux/Atrium",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Omnix-Linux/Autarchy",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Omnix-Linux/docker-vm",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Omnix-Linux/Omnix",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Omnix-Linux/omnix-linux.github.io",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 64,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "Open-Range-Consulting/.github-private",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ad78b6ebcf2c28206967ca75863639ad96643c3b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/3D-Fire-Model",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0fbbccd7fe2b573bb51c1ce1594ae6a31dd78868",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/Batch_Deep_Learning_Classifier_v5",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "92f863459a5be8eff90732fa3e7492ff9940bbf5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/BatchCV",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "45ac6a8a341c17d1def8d06b7b597ad890970d04",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/create-grid-points",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0a4eddea5ee994bf720e5c847fa1898222f264ec",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/create-imagery-polygon-grids",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "57875fcfb20321091ecb16aea9d7347d2f74c28e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/create_continuous_cover_training_points",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9bc46d594ad3c96ec89b5ef45d6658a5735be2ef",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 209
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/crown-splitting",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "87305c5dbc14f29b2a00434b74d0c8c293a19f65",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/crown-splitting-archive",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "d7c195045d07283266eeb6f0b5cfb7d73a11d7de",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/deep-learning-accuracy",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9a4d8e449a1b01b2a128acac0bb4f1e2c1dd2e30",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/deep-learning-tools",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d671e4d5ac0e3e35bdba16e2ae3d52aff2f6a1df",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/erics",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "408c3cf59d6c51b2314384161c41761be6e66863",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/fit-rasters-to-polygons",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d0a05635e44e4ab5cb5c11e59ed16906bcda1812",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/footprint-mercator",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ac984607a4bc2449e7a124bea09b2c329b56e6b1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/generate-derived-indices",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ae203c941fe6f40b1e49dde49660ca5cd34a5da0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/generational-regression",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8b14fe91fdf3a2424102a9a1b50bbdb59190965b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/historic_data_normalization",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3df83dde1f91a28ff2f1fdaf6a3dd5f6b56ffbd4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/image2image",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d3754b141f6dd70be2990ccae2a6715eae5b4776",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/image_sort",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c99266eeca02b37ce10138c9b42edbd4ec07c5c4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/indices_stack_predict_toolbox",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ed902ae1b3efaa5c4d47ed1eceeae83718d6c7b0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/infra-local-ai",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7115f1df77bbc9f4d9eb825bae1eb7c82d16d148",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/lansat-tools",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2c3724cc9ad06998736402e379b3b167d4af072d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/master-data-machine-learning",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "599b0e48d9a80cbcde861d67f062946d336a5bcc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/normalize-for-sun",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c923922ba6aecb0c16d7a012a1adb95475b88475",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/orc-analysis-ready-naip",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a53eff3b0efe9e1d7cd398e35a4cd5a437b47914",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/ORC_workflow",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fe323c8e643f2b5678aa7bb8402fa4e8bcf31c45",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/photo_metadata",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9f4720683ecf1ccc54072e6ca49c39c1fb3cdfac",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/piosphere_tool",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e9e2ae9b6d87e1ad6640f003b219a6409d6a99d5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/policy",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fffcf5b66f056d606013b3d13cb708795c169886",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/prithvi-rangeland-pilot",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d42a16edb929c7b38cbc5b728b451016b8d4ec2a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/sagebrush-block-balancer",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "70381779cf19557c34b5447e8b3d3fa44bce340b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/secrets",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6ffb19df417f84b21292ae81a64674cab0f475d2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/sentinel-tools",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ddd4950d079b22cb9dd235be28616739a9f1ae93",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/Shared-Custom-Tools",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e602091c82c28c57e818bb045d36b2ceb7990e19",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "Open-Range-Consulting/TreeDetector",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "093ce106b1fe538f4e5442535dc351fd8bac4b3c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "openai/whisper",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "platformio/platformio-core",
+      "default_branch": "develop",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/develop"
+    },
+    {
+      "name": "platformio/platformio-docs",
+      "default_branch": "develop",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 187,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/develop"
+    },
+    {
+      "name": "PlummersSoftwareLLC/NightDriverStrip",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "git-tree-infrastructure-fallback",
+      "snapshot": "4d79c2908deba7c611103b06d5823668db603105",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "tree_complete": true,
+        "deployment_candidates": 42,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: RuntimeError"
+        ]
+      }
+    },
+    {
+      "name": "pypa/pip",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "src/pip/_vendor/pygments/lexers/_mapping.py",
+        "tests/lib/server.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 95,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "python/cpython",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "Doc/library/ssl.rst",
+        "Lib/asyncio/constants.py",
+        "Lib/test/test_httplib.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 146,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "rclone/rclone",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "MANUAL.html",
+        "MANUAL.md",
+        "MANUAL.txt",
+        "backend/http/http_internal_test.go",
+        "backend/http/test/index_files/nginx.html",
+        "cmd/index/index.md",
+        "docs/content/http.md",
+        "rclone.1"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 79,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "rosevo/thetruthaboutivermectin.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "963daab2d1fb79e8dbcdc7d8ac495d26d347a46a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 36
+      }
+    },
+    {
+      "name": "SEDenmarkLab/Lucid_Somnambulist",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "SiliconLabsSoftware/arduino",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "git-tree-infrastructure-fallback",
+      "snapshot": "74f6af53dcc6fd55db38a26e9b123b2a62305362",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 12,
+        "lfs_pointers_not_fetched": 10,
+        "binary_files_not_text_searched": 86,
+        "tree_complete": true,
+        "deployment_candidates": 210,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "tauri-apps/tauri",
+      "default_branch": "dev",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 102,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/dev"
+    },
+    {
+      "name": "tauri-apps/wry",
+      "default_branch": "dev",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/dev"
+    },
+    {
+      "name": "techwatch2/extension",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d764e199b96fed912de4120b9124d656287245a0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "techwatch2/twdb",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3eb455a09f6a9708f3c9676e9504cac78e2a9aa2",
+      "matched_paths": [
+        "application/vendor/aws/Aws/data/compute-optimizer/2019-11-01/api-2.json.php",
+        "system/core/URI.php",
+        "system___/core/URI.php"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1486
+      }
+    },
     {
       "name": "TechWatchProject/.github",
       "default_branch": "main",
@@ -1282,6 +3926,141 @@
         "lfs_pointers_not_fetched": 0,
         "binary_files_not_text_searched": 1
       }
+    },
+    {
+      "name": "thewatermagister/spamverify",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4ec9a648ad274f39be6a5dfb1c0632f7325003dc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "thewatermagister/spamverifybackend",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "75e0386d145bab546205c853a3ce19094af9ab2c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "webtorrent/bittorrent-tracker",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "webtorrent/instant.io",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [
+        "nginx.conf",
+        "server/index.js"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "webtorrent/webtorrent-cli",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "webtorrent/webtorrent-hybrid",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/master"
+    },
+    {
+      "name": "wezterm/wezterm",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 9,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 67,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
+    },
+    {
+      "name": "wild-linker/wild",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "immutable_archive_commit_not_captured": true
+      },
+      "snapshot_reference": "refs/heads/main"
     },
     {
       "name": "zackees/act2",

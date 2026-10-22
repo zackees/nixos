@@ -42,7 +42,7 @@ Brave's truncated GitHub tree was completed using a filtered Git clone; all
 501 additional deployment candidates were fetched. No tree truncations or
 candidate fetch failures remain. NGINX, OpenResty, Tengine and Angie names were searched. The accompanying
 [repository inventory](nginx-repository-inventory-2026-10.json) records each
-snapshot, matched paths and coverage limits. A source match is evidence to
+scanned branch, commit where captured, matched paths and coverage limits. A source match is evidence to
 investigate, not proof of a vulnerable deployed service.
 
 The source scan does not cover every historical branch, Git LFS object, large
@@ -51,6 +51,87 @@ inherited container images were inspected separately; this is not a complete
 SBOM audit of every third-party image. Git-tree fallbacks scan deployment
 candidates rather than every source file. These limitations remain explicit in
 the inventory.
+
+## Organization and contribution expansion
+
+The next pass enumerated every accessible repository in **all nine current
+GitHub membership organizations**, including the specifically requested
+obs-rust and Omnix-Linux. Memberships and repositories were fully paginated.
+
+| Current organization | Accessible repositories |
+|---|---:|
+| FastLED | 21 |
+| ZackeesInc | 3 |
+| TechWatchProject | 76 |
+| CWC-data-science | 39 |
+| Open-Range-Consulting | 35 |
+| Omnix-Linux | 6 |
+| omnix-apps | 1 |
+| obs-rust | 28 |
+| SmallRig-AI | 0 |
+| **Total** | **209** |
+
+Commit and pull-request contribution history from 2014 through October 2026
+identified **22 additional external organizations**: Aider-AI,
+Android-Tutorials-Hub, PlummersSoftwareLLC, SEDenmarkLab, SiliconLabsSoftware,
+adafruit, bmcreations, brave, espressif, fjall-rs, iv-org, microsoft,
+obsproject, openai, platformio, pypa, python, rclone, tauri-apps, webtorrent,
+wezterm and wild-linker. Their **27 contributed repositories** were scanned;
+other repositories in those external organizations were outside the audit.
+Eight additional collaborator repositories belong to individual accounts.
+
+This adds **165 source scans** to the earlier 380, bringing the cumulative
+inventory to **545 repositories**: 301 personal, 209 in membership
+organizations, eight external collaborator repositories and 27 external
+contributed repositories. There are **234 private repositories, 89 forks,
+14 archived repositories and 64 repositories with source name matches**;
+these categories overlap. The new scans completed 157 archives and five
+complete-Git-tree deployment fallbacks; three repositories were empty. No
+candidate fetch failures or unresolved tree truncations remain.
+
+The [organization inventory](nginx-organization-inventory-2026-10.json)
+records all affiliations, repository lists and discovery limits. Contribution
+windows did not reach the API's 100-repository cap, but GitHub reported
+restricted contributions in 18 windows. Deleted, unattributed, restricted or
+issue/comment-only activity can conceal additional relationships. The scope
+is **31 visible organization identities**, not proof of every organization
+this account has ever interacted with. Public archives in this extension
+are identified by branch/date; exact commit IDs were captured for Git-tree
+fallbacks. The scan is not an atomic snapshot of all branches.
+
+### Remaining gaps found in this pass
+
+| Repository or component | Finding | Action and current state |
+|---|---|---|
+| CWC-data-science/CWC-Writer-Webseed | Floating Python/Debian base installs NGINX without enforcing Debian's fixed package revision. | [PR #68](https://github.com/CWC-data-science/CWC-Writer-Webseed/pull/68) explicitly selects Trixie and requires 1.26.3-3+deb13u10. **Open for approval**, as required by that repository's CLAUDE.md; automatic merge is disabled. Actual package-install layer builds, nginx -t passes, and isolated dummy backends verify /health and / route to the correct upstream while forwarding the session cookie. The complete application/dataset build was not run. |
+| CWC-data-science/Brighteon-AI-FE | Dockerfile and prod.Dockerfile select floating nginx:alpine. | Account has **read-only** access. [Prepared patch](nginx-patches/Brighteon-AI-FE.patch) pins the verified stable image digest; git apply --check and the repository nginx.conf pass with that image. Source remains unchanged upstream. |
+| CWC-data-science/Enoch-Internal-FE | Dockerfile selects floating nginx:alpine. | Account has **read-only** access. [Prepared patch](nginx-patches/Enoch-Internal-FE.patch) passes patch application and nginx configuration checks. Source remains unchanged upstream. |
+| CWC-data-science/Enoch-comsumerwellness-fe | frontend.dockerfile selects floating nginx:alpine. | Account has **read-only** access. [Prepared patch](nginx-patches/Enoch-comsumerwellness-fe.patch) passes patch application and nginx configuration checks. Source remains unchanged upstream. |
+| CWC-data-science Kubernetes ingress | Eight repositories reference an external NGINX ingress class/controller without inventorying its deployed image/package. | Controller versions and running cluster state remain **unverified**. These references do not establish that the application image bundles NGINX. |
+| obs-rust/obs-bot | Setup guidance and nginx.example.conf expect a host reverse proxy for webhooks. | Host package version and deployment remain **unverified**. No pinned vulnerable NGINX installation was found in the repository. |
+
+The four application-build findings above are **version-enforcement gaps**.
+A fresh pull of `nginx:alpine` during this pass reports **1.31.8**, above the
+upstream fixed floor. Cached images and running hosts were not inspected;
+the floating tag alone is not evidence of an installed vulnerable version.
+The Writer test installs the fixed Debian backport. No production containers
+were redeployed as part of this organization scan.
+
+No direct NGINX package/image dependency was found in the six Omnix-Linux
+repositories or omnix-apps/obs-studio. Within obs-rust, the other matches are
+vendor libraries, license authors and protocol/comment strings. Other new
+reference-only matches include FastLED/FastLED, FastLED/cli,
+CWC-data-science/Enoch-Internal (commented-out NGINX stage),
+CWC-data-science/web-crawler, techwatch2/twdb, brave/brave-core, pypa/pip,
+python/cpython and rclone/rclone. webtorrent/instant.io provides host proxy
+configuration whose installed server version is outside the source inventory.
+Inherited third-party images still require their own package/SBOM inventory;
+absence of a source match does not certify their contents.
+
+The eight ingress-reference repositories are CWC-data-science/
+Brighteon-AI-FE, Brighteon-AI-BE, Brighteon-AI-HelmChart,
+Enoch-Internal-FE, Enoch-Internal-BE, Enoch-comsumerwellness-fe,
+Enoch-comsumerwellness-be and Internal-AI-API-Relay.
 
 ## Repository fixes
 
