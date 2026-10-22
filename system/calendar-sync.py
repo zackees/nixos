@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import subprocess
 import time
+import uuid
 from datetime import date, datetime, timedelta, timezone
 from urllib.parse import quote, unquote, urlparse
 
@@ -112,11 +113,33 @@ def fetch(session, calendar_id, now):
         params["pageToken"] = payload["nextPageToken"]
 
 
-def notify(item):
-    proxy = dbus.SessionBus().get_object(
-        "org.freedesktop.Notifications", "/org/freedesktop/Notifications"
+def notifications():
+    bus = dbus.SessionBus()
+    # Bind to this server instance: notification IDs can be reused after Plasma
+    # restarts, so an old timer must never close a new server's notification.
+    owner = bus.get_name_owner("org.freedesktop.Notifications")
+    proxy = bus.get_object(
+        owner, "/org/freedesktop/Notifications"
     )
-    interface = dbus.Interface(proxy, "org.freedesktop.Notifications")
+    return owner, dbus.Interface(proxy, "org.freedesktop.Notifications")
+
+
+def schedule_close(owner, notification_id, lifetime=3600):
+    # A calendar timer survives this sync process restarting, and wall time
+    # includes suspend. Leave one second for systemd's scheduling accuracy.
+    deadline = int(time.time() + lifetime - 1)
+    subprocess.run([
+        "systemd-run", "--user", "--quiet", "--collect",
+        "--unit=calendar-popup-" + uuid.uuid4().hex,
+        "--on-calendar=@" + str(deadline), "--timer-property=AccuracySec=1s",
+        "busctl", "--user", "call", str(owner),
+        "/org/freedesktop/Notifications", "org.freedesktop.Notifications",
+        "CloseNotification", "u", str(notification_id),
+    ], check=True, timeout=10)
+
+
+def notify(item):
+    owner, interface = notifications()
     start = parse_time(item["start"])
     when = (start.astimezone().strftime("%a %b %d, %I:%M %p")
             if isinstance(start, datetime) else start.isoformat())
@@ -125,12 +148,18 @@ def notify(item):
     body = html.escape(item.get("summary", "Calendar event")) + "\n" + when
     if item.get("htmlLink"):
         body += '\n<a href="' + html.escape(item["htmlLink"], quote=True) + '">Open event</a>'
-    interface.Notify(
+    notification_id = interface.Notify(
         "KOrganizer", 0, "korganizer",
         "New calendar invitation" if invitation else "New calendar event",
         body, dbus.Array([], signature="s"),
         {"desktop-entry": "org.kde.korganizer", "urgency": dbus.Byte(1)}, 3600000,
     )
+    try:
+        schedule_close(owner, notification_id)
+    except Exception:
+        # Do not leave an unbounded popup if the independent timer cannot start.
+        interface.CloseNotification(notification_id)
+        raise
 
 
 def sync(session, calendar_id):

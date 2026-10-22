@@ -81,6 +81,10 @@ snooze, dismiss and view actions even with KOrganizer closed. Calendar popups
 remain visible for up to one hour unless dismissed or snoozed, including when
 a short event has already ended. New future events
 and invitations get a separate notification after the first, quiet sync.
+Each new-event popup also gets an independent systemd wall-clock timer that
+explicitly closes it within one hour, even if Plasma pauses its popup timeout
+or calendar sync restarts. The timer targets the original notification server
+instance so a Plasma restart cannot make it close an unrelated popup.
 
 This connection does not edit Google events or accept invitations. Use the event's
 Google Calendar link to edit or respond. Only calendars shared with the service

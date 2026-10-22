@@ -29,7 +29,7 @@ in {
       RestartSec = 30;
       UMask = "0077";
     };
-    path = [ pkgs.kdePackages.akonadi-calendar-tools ];
+    path = [ pkgs.kdePackages.akonadi-calendar-tools pkgs.systemd ];
   };
 
   # Use KDE's existing autostart unit so only one reminder daemon owns alarms.

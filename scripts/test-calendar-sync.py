@@ -27,8 +27,8 @@ def event(**overrides):
 class CalendarSyncTests(unittest.TestCase):
     def test_invitation_popup_requests_one_hour_and_escapes_markup(self):
         interface = Mock()
-        with patch.object(sync.dbus, "SessionBus"), patch.object(
-            sync.dbus, "Interface", return_value=interface
+        with patch.object(sync, "notifications", return_value=(":1.42", interface)), patch.object(
+            sync, "schedule_close"
         ):
             sync.notify(event(summary="Meeting <test>", attendees=[
                 {"self": True, "responseStatus": "needsAction"}
@@ -40,6 +40,25 @@ class CalendarSyncTests(unittest.TestCase):
         self.assertEqual(args[-1], 60 * 60 * 1000)
         self.assertEqual(args[3], "New calendar invitation")
         self.assertIn("Meeting &lt;test&gt;", args[4])
+
+    def test_expiry_uses_wall_time_and_original_server_instance(self):
+        with patch.object(sync.time, "time", return_value=1000), patch.object(
+            sync.subprocess, "run"
+        ) as run:
+            sync.schedule_close(":1.42", 123)
+        args = run.call_args.args[0]
+        self.assertIn("--on-calendar=@4599", args)
+        self.assertEqual(args[-6:], [":1.42", "/org/freedesktop/Notifications",
+                                    "org.freedesktop.Notifications", "CloseNotification", "u", "123"])
+
+    def test_timer_failure_closes_popup_immediately(self):
+        interface = Mock()
+        interface.Notify.return_value = 123
+        with patch.object(sync, "notifications", return_value=(":1.42", interface)), patch.object(
+            sync, "schedule_close", side_effect=RuntimeError("timer failed")
+        ), self.assertRaises(RuntimeError):
+            sync.notify(event())
+        interface.CloseNotification.assert_called_once_with(123)
 
     def test_resource_detection_handles_kconfig_home_expansion(self):
         path = Path.home() / ".local/share/calendar-sync/google.ics"
