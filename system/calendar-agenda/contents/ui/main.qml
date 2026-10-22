@@ -54,9 +54,12 @@ PlasmoidItem {
 
     compactRepresentation: MouseArea {
         id: tab
-        Layout.minimumWidth: 108
-        Layout.preferredWidth: 108
-        Layout.maximumWidth: 108
+        // One slot is roughly the clock's width; a close follow-on meeting
+        // doubles the tab rather than squeezing a second time into it.
+        readonly property int tabWidth: root.agenda.following ? 224 : 112
+        Layout.minimumWidth: tabWidth
+        Layout.preferredWidth: tabWidth
+        Layout.maximumWidth: tabWidth
         Accessible.name: root.agenda.next_label + ": " + root.title
         Accessible.role: Accessible.Button
 
@@ -76,11 +79,6 @@ PlasmoidItem {
                 Layout.preferredWidth: 16
                 Layout.preferredHeight: 16
             }
-            PlasmaComponents.Label {
-                text: root.agenda.next ? Qt.formatDateTime(new Date(root.agenda.next.start * 1000), "h:mm AP") : "—"
-                font.pixelSize: 12
-                font.bold: true
-            }
             // The selected meeting is happening now; it stays until it ends.
             Rectangle {
                 visible: root.agenda.live === true
@@ -88,6 +86,27 @@ PlasmoidItem {
                 Layout.preferredHeight: 7
                 radius: 3.5
                 color: "#e5322d"
+            }
+            PlasmaComponents.Label {
+                text: root.agenda.live ? "In progress"
+                    : root.agenda.next ? Qt.formatDateTime(new Date(root.agenda.next.start * 1000), "h:mm AP") : "—"
+                font.pixelSize: 12
+                font.bold: true
+            }
+            // The back-to-back meeting after the live one.
+            Rectangle {
+                visible: !!root.agenda.following
+                Layout.preferredWidth: 1
+                Layout.preferredHeight: 16
+                Layout.leftMargin: 6
+                Layout.rightMargin: 6
+                color: Qt.alpha(Kirigami.Theme.textColor, 0.35)
+            }
+            PlasmaComponents.Label {
+                visible: !!root.agenda.following
+                text: root.agenda.following ? "Next " + Qt.formatDateTime(new Date(root.agenda.following.start * 1000), "h:mm AP") : ""
+                font.pixelSize: 12
+                font.bold: true
             }
         }
         // Include the panel padding so the hover region reaches the popup.

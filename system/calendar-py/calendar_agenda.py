@@ -19,6 +19,9 @@ URL_PATTERN = re.compile(r"https?://[^\s<>\"']+")
 # Google event types that describe the user's time rather than a meeting.
 BLOCK_EVENT_TYPES = frozenset({"focusTime", "outOfOffice", "workingLocation"})
 HOUR_MINUTES = 60
+# While a meeting runs, the tab also shows one that starts before it ends or
+# within this long after: the back-to-back case worth seeing at a glance.
+FOLLOWING_WINDOW = timedelta(hours=1)
 
 
 class Status(StrEnum):
@@ -75,6 +78,8 @@ class Feed:
     next: Row | None
     # True while `next` is in progress: the tab shows a red dot.
     live: bool
+    # The meeting after a live `next`, when it is close; a second tab slot.
+    following: Row | None
     next_label: str
     countdown: str
     error: str
@@ -170,6 +175,22 @@ def select_next(rows: list[Row]) -> Row | None:
     return min(current or pool, key=lambda row: (row.start, row.end, row.title), default=None)
 
 
+def select_following(rows: list[Row], chosen: Row | None) -> Row | None:
+    """Choose the meeting after a live one, if it starts soon enough to matter."""
+    if chosen is None or chosen.status is not Status.CURRENT:
+        return None
+    horizon = chosen.end + FOLLOWING_WINDOW.total_seconds()
+    soon = [
+        row
+        for row in rows
+        if row is not chosen
+        and row.status is Status.UPCOMING
+        and row.meeting == chosen.meeting
+        and row.start < horizon
+    ]
+    return min(soon, key=lambda row: (row.start, row.end, row.title), default=None)
+
+
 def _countdown(row: Row, now: datetime) -> str:
     if row.status is Status.CURRENT:
         return "In progress"
@@ -200,6 +221,7 @@ def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
         events=rows,
         next=chosen,
         live=chosen is not None and chosen.status is Status.CURRENT,
+        following=select_following(rows, chosen),
         next_label=label,
         countdown=countdown,
         error="",
@@ -212,6 +234,7 @@ def _failure(countdown: str, error: str) -> Feed:
         events=[],
         next=None,
         live=False,
+        following=None,
         next_label="Calendar",
         countdown=countdown,
         error=error,

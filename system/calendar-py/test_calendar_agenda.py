@@ -97,6 +97,23 @@ class AgendaTests(unittest.TestCase):
         self.assertEqual(chosen(feed), "Noon call")
         self.assertTrue(feed.live)
 
+    def test_live_meeting_shows_the_back_to_back_one(self) -> None:
+        feed = today_agenda(ics(*DAY), at(19, 30))  # 12:30, in the noon call
+        self.assertTrue(feed.live)
+        self.assertEqual(chosen(feed), "Noon call")
+        assert feed.following is not None  # noqa: S101 -- narrows for the type checker
+        self.assertEqual(feed.following.title, "One o'clock")
+
+    def test_following_needs_a_live_meeting_and_a_near_start(self) -> None:
+        self.assertIsNone(today_agenda(ics(*DAY), at(18, 30)).following)  # nothing live
+        far = ics(
+            "DTSTART:20261022T170000Z\nDTEND:20261022T180000Z\nSUMMARY:Call" + ZOOM,
+            "DTSTART:20261022T190000Z\nDTEND:20261022T200000Z\nSUMMARY:Later" + ZOOM,
+            "DTSTART:20261022T173000Z\nDTEND:20261022T183000Z\nSUMMARY:Block",
+        )
+        # Later starts exactly an hour after Call ends; a block never counts.
+        self.assertIsNone(today_agenda(far, at(17, 45)).following)
+
     def test_overlapping_meetings_keep_the_first_until_it_ends(self) -> None:
         events = ics(
             "DTSTART:20261022T170000Z\nDTEND:20261022T183000Z\nSUMMARY:Long" + ZOOM,
