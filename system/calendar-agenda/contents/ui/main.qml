@@ -14,10 +14,24 @@ PlasmoidItem {
     toolTipMainText: ""
     toolTipSubText: ""
 
+    property bool tabHovered: false
+    property bool agendaHovered: false
+
+    function updateHover() {
+        if (tabHovered || agendaHovered) {
+            closeTimer.stop();
+            root.expanded = true;
+        } else {
+            closeTimer.restart();
+        }
+    }
+
     Timer {
         id: closeTimer
         interval: 0
-        onTriggered: root.expanded = false
+        onTriggered: {
+            if (!root.tabHovered && !root.agendaHovered) root.expanded = false;
+        }
     }
 
     Plasma5Support.DataSource {
@@ -40,7 +54,6 @@ PlasmoidItem {
 
     compactRepresentation: MouseArea {
         id: tab
-        hoverEnabled: true
         Layout.minimumWidth: 96
         Layout.preferredWidth: 96
         Layout.maximumWidth: 96
@@ -69,17 +82,27 @@ PlasmoidItem {
                 font.bold: true
             }
         }
-        onEntered: { closeTimer.stop(); root.expanded = true; }
-        onExited: closeTimer.restart()
+        // Include the panel padding so the hover region reaches the popup.
+        HoverHandler {
+            margin: 12
+            onHoveredChanged: {
+                root.tabHovered = hovered;
+                root.updateHover();
+            }
+        }
         onClicked: { closeTimer.stop(); root.expanded = !root.expanded; }
     }
 
     fullRepresentation: Item {
         implicitWidth: 440
         implicitHeight: Math.min(520, content.implicitHeight + 24)
+        // Include the popup's frame, not just its inner content. Together
+        // with the tab's margin this creates a continuous hover handoff.
         HoverHandler {
+            margin: 12
             onHoveredChanged: {
-                if (hovered) closeTimer.stop(); else closeTimer.restart();
+                root.agendaHovered = hovered;
+                root.updateHover();
             }
         }
         ColumnLayout {
