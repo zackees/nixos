@@ -763,6 +763,17 @@ in
   };
   services.nginx = {
     enable = true;
+    # The system nixpkgs pin carries 1.30.4. Keep the stable security release
+    # without moving unrelated system packages; remove once the pin catches up.
+    # https://nginx.org/en/security_advisories.html
+    package = pkgs.nginx.overrideAttrs (_: {
+      version = "1.30.6";
+      nginxVersion = "1.30.6";
+      src = pkgs.fetchurl {
+        url = "https://nginx.org/download/nginx-1.30.6.tar.gz";
+        hash = "sha256-PPRvXtdQTUYBJYZre+qZ+zV/MdiH4uY7NVAzEOm4tsg=";
+      };
+    });
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
     virtualHosts."go" = {
