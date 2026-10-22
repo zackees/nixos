@@ -72,9 +72,9 @@ model size or a later request for VRAM.
 
 ### Calendar reminders
 
-The **Today's Meetings** tab beside the top-panel clock shows the next meeting's
-title, start time and countdown, or the meeting currently in progress. Hover
-or click to open today's full agenda, including all-day and completed events.
+The compact **Today** tab beside the top-panel clock is roughly the clock's
+width. Hover or click for the next meeting's title, start time and countdown,
+and today's full agenda, including all-day and completed events.
 Current meetings are highlighted and completed meetings dimmed. Click a Zoom
 meeting to join it, or another event to open its calendar page; the calendar
 button opens KOrganizer. The tab refreshes every 30 seconds from the existing

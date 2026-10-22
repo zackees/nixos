@@ -41,9 +41,9 @@ PlasmoidItem {
     compactRepresentation: MouseArea {
         id: tab
         hoverEnabled: true
-        Layout.minimumWidth: 240
-        Layout.preferredWidth: 310
-        Layout.maximumWidth: 360
+        Layout.minimumWidth: 96
+        Layout.preferredWidth: 96
+        Layout.maximumWidth: 96
         Accessible.name: root.agenda.nextLabel + ": " + root.title
         Accessible.role: Accessible.Button
 
@@ -56,34 +56,16 @@ PlasmoidItem {
             border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
         }
         RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 11
-            anchors.rightMargin: 11
-            spacing: 8
+            anchors.centerIn: parent
+            spacing: 6
             Kirigami.Icon {
                 source: "view-calendar-agenda"
-                Layout.preferredWidth: 22
-                Layout.preferredHeight: 22
+                Layout.preferredWidth: 20
+                Layout.preferredHeight: 20
             }
-            ColumnLayout {
-                spacing: 0
-                Layout.fillWidth: true
-                PlasmaComponents.Label {
-                    Layout.fillWidth: true
-                    text: root.agenda.nextLabel + (root.agenda.next ? " · " + root.agenda.countdown : " · Meetings")
-                    textFormat: Text.PlainText
-                    font.pixelSize: 10
-                    font.bold: true
-                    color: Kirigami.Theme.linkColor
-                    elide: Text.ElideRight
-                }
-                PlasmaComponents.Label {
-                    Layout.fillWidth: true
-                    text: root.title
-                    textFormat: Text.PlainText
-                    font.pixelSize: 12
-                    elide: Text.ElideRight
-                }
+            PlasmaComponents.Label {
+                text: "Today"
+                font.pixelSize: 12
             }
         }
         onEntered: { closeTimer.stop(); root.expanded = true; }
@@ -127,6 +109,14 @@ PlasmoidItem {
                     display: QQC2.AbstractButton.IconOnly
                     onClicked: launcher.connectSource("/run/current-system/sw/bin/kioclient exec /run/current-system/sw/share/applications/org.kde.korganizer.desktop")
                 }
+            }
+            PlasmaComponents.Label {
+                visible: root.agenda.next !== null
+                Layout.fillWidth: true
+                text: root.agenda.nextLabel + " · " + root.agenda.countdown + " · " + root.title
+                textFormat: Text.PlainText
+                wrapMode: Text.WordWrap
+                color: Kirigami.Theme.linkColor
             }
             PlasmaComponents.Label {
                 visible: root.agenda.events.length === 0
