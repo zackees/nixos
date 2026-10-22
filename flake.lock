@@ -111,23 +111,6 @@
         "type": "github"
       }
     },
-    "hyprsaver-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792627304,
-        "narHash": "sha256-13B9r5UC49UpvwhIZKohjfgoz9YXErzVRhBKDEa5RBw=",
-        "owner": "maravexa",
-        "repo": "hyprsaver",
-        "rev": "f33a4fdf46f9fe9e96db465480f32e3e04ab1c42",
-        "type": "github"
-      },
-      "original": {
-        "owner": "maravexa",
-        "repo": "hyprsaver",
-        "rev": "f33a4fdf46f9fe9e96db465480f32e3e04ab1c42",
-        "type": "github"
-      }
-    },
     "kde-shader-wallpaper-src": {
       "flake": false,
       "locked": {
@@ -292,7 +275,6 @@
         "docker-vm": "docker-vm",
         "hermes-agent": "hermes-agent",
         "home-manager": "home-manager_2",
-        "hyprsaver-src": "hyprsaver-src",
         "kde-shader-wallpaper-src": "kde-shader-wallpaper-src",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",

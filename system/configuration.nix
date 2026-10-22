@@ -688,7 +688,6 @@ in
       ./hardware-configuration.nix
       ./calendar.nix
       ./shader-wallpaper.nix
-      ./screensaver.nix
       ./voxtype-popups.nix
     ];
 
@@ -2786,25 +2785,17 @@ in
         };
 
         # ── Idle behaviour ──
-        # Stock Plasma dims at 5 minutes, blanks at 10 and locks at 5, which
-        # is far too eager for a desktop that sits in one room. Nothing now
-        # touches the screen for half an hour, and the session stays unlocked
-        # for four.
-        #
-        # Note what that combination means: from 30 minutes the screen is
-        # dark but the session is still open, and any keypress before the
-        # four-hour mark lands straight on the desktop with no password. That
-        # is the ask, and it is the right trade for a machine at home; it
-        # would not be on a laptop that leaves the house.
+        # Lock after ten idle minutes to display KDE Shader Wallpaper's
+        # aurora on all monitors. Displays power off after thirty minutes.
         kscreenlocker = {
           autoLock = true;
-          timeout = 240;    # minutes -- 4 hours, and KDE's own ceiling
+          timeout = 10;  # minutes
+          passwordRequired = true;
+          passwordRequiredDelay = 0;
         };
 
         powerdevil.AC = {
-          # seconds here, minutes above: powerdevil and kscreenlocker
-          # genuinely disagree about units, so 1800 and 240 are 30 minutes
-          # and 4 hours respectively, not a typo in either direction.
+          # PowerDevil uses seconds; kscreenlocker above uses minutes.
           turnOffDisplay.idleTimeout = 1800;
 
           # Dimming is off rather than merely postponed. Left enabled it

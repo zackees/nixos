@@ -113,23 +113,11 @@ Appearance → Shader Wallpaper. Its gallery includes Shadertoy imports and
 multi-pass effects. The plugin is built against the same Qt and Plasma
 packages as the desktop; update its pinned source in `flake.nix` deliberately.
 The package is declared in `system/kde-shader-wallpaper.nix`, with settings in
-`system/shader-wallpaper.nix`. Selecting this background does not change the
-password-lock timer below.
-
-### Three-monitor screensaver
-
-After ten idle minutes, Hyprsaver fills every connected monitor with animated
-GPU shaders: auroras, starfields, fractals, liquid marble and planetary scenes.
-Scenes change every three minutes with coordinated color palettes changing
-every minute. Mouse movement or a key dismisses it. Video playback idle
-inhibitors are respected. Plasma still turns displays off after 30 minutes
-and locks after four hours; the screensaver stops before display power-off
-and when the session locks. It is a visual effect, not a password lock.
-
-Preview immediately with `systemctl --user start cinematic-screensaver`;
-stop with `systemctl --user stop cinematic-screensaver`. The idle watcher is
-`screensaver-idle.service`. Settings and the pinned package are declared in
-`system/screensaver.nix` and `flake.nix`.
+`system/shader-wallpaper.nix`. Plasma locks after **ten idle minutes** and shows
+the shader on all three monitors. A password is required to resume. Display
+power-off remains at 30 idle minutes; automatic suspend is disabled. Plasma
+handles playback inhibitors and locking directly; no separate screensaver
+daemon is needed. Press `Meta+L` to show the shader and lock immediately.
 
 ### Dictation playback ducking
 
