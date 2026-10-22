@@ -60,12 +60,13 @@ PlasmoidItem {
             spacing: 6
             Kirigami.Icon {
                 source: "view-calendar-agenda"
-                Layout.preferredWidth: 20
-                Layout.preferredHeight: 20
+                Layout.preferredWidth: 16
+                Layout.preferredHeight: 16
             }
             PlasmaComponents.Label {
-                text: "Today"
+                text: root.agenda.next ? Qt.formatDateTime(new Date(root.agenda.next.start * 1000), "h:mm AP") : "—"
                 font.pixelSize: 12
+                font.bold: true
             }
         }
         onEntered: { closeTimer.stop(); root.expanded = true; }
