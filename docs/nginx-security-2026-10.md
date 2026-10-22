@@ -26,13 +26,31 @@ Sources: [NGINX release notes](https://nginx.org/en/CHANGES-1.30),
 [upstream advisories](https://nginx.org/en/security_advisories.html),
 [Debian security tracker](https://security-tracker.debian.org/tracker/source-package/nginx).
 
-Searches covered tracked local checkouts and GitHub-indexed default-branch
-code for zackees and all nine organizations returned by the authenticated
-account: FastLED, ZackeesInc, TechWatchProject, CWC-data-science,
-Open-Range-Consulting, Omnix-Linux, omnix-apps, obs-rust, SmallRig-AI.
-Both normal and fork searches were used. GitHub returned **31 matching
-repositories**. Unindexed files, inaccessible repositories and deployed
-artifacts outside these repositories are not covered by that count.
+The initial search covered local checkouts and GitHub-indexed code across the
+account's organizations, returning 31 repositories with matches. The expanded
+search enumerated **all 380 accessible repositories** belonging to **zackees
+(301), TechWatchProject (76), and ZackeesInc (3)** using authenticated repository
+listing: **146 private, 83 forks, and 12 archived repositories**. Those categories
+overlap. Archived repositories and forks were included in the source scan.
+
+Default-branch snapshots were scanned directly, avoiding GitHub code indexing
+limits. Large or timed-out archives used the complete Git tree to fetch
+candidate Docker, Compose, Nix, shell, installation, deployment and configuration
+files. **363 repositories completed archive scans, 13 used the deployment-file
+fallback, and four were empty. Forty repositories contained name matches.**
+Brave's truncated GitHub tree was completed using a filtered Git clone; all
+501 additional deployment candidates were fetched. No tree truncations or
+candidate fetch failures remain. NGINX, OpenResty, Tengine and Angie names were searched. The accompanying
+[repository inventory](nginx-repository-inventory-2026-10.json) records each
+snapshot, matched paths and coverage limits. A source match is evidence to
+investigate, not proof of a vulnerable deployed service.
+
+The source scan does not cover every historical branch, Git LFS object, large
+file, embedded binary, submodule checkout or external image layer. Selected
+inherited container images were inspected separately; this is not a complete
+SBOM audit of every third-party image. Git-tree fallbacks scan deployment
+candidates rather than every source file. These limitations remain explicit in
+the inventory.
 
 ## Repository fixes
 
@@ -67,7 +85,7 @@ No unrelated nixpkgs packages were updated.
 - **zackees/act2**: go test ./pkg/model passed; the pinned official NGINX image reports version 1.30.6.
 - **zackees/aquatic**: Both shell scripts passed bash -n. A stubbed profiling-tool pipeline produced the local SVG without a web server or privileged output directory.
 
-All eleven repository fixes are on their default branches. Act2's six CI checks
+All eleven initial repository fixes are on their default branches. Act2's six CI checks
 (including Linux, macOS, Windows and snapshot) ultimately all passed.
 
 All implementation diffs passed credential scanning. The official Debian and
@@ -82,6 +100,37 @@ executes it directly. The focused template tests pass. No required checks
 are configured there; the security fix was merged with those existing
 failures documented in its PR.
 
+## Additional findings from the complete repository inventory
+
+| Repository | Missed instance | Fix and verification |
+|---|---|---|
+| zackees/magic-wormhole-transit-relay-docker | The relay image installed NGINX from Debian Bullseye. | [PR #1](https://github.com/zackees/magic-wormhole-transit-relay-docker/pull/1), merged: retain Python 3.10 on Trixie and enforce Debian's fixed package floor. Full image build and normal entrypoint passed; health returned HTTP 200/OK and the relay accepted a connection on port 4001. Installed package: 1.26.3-3+deb13u10. |
+| TechWatchProject/jobs.kumquat.live | Archived jobs gateway image installed NGINX from Bookworm. | [PR #1](https://github.com/TechWatchProject/jobs.kumquat.live/pull/1), merged: use Trixie, explicitly install adduser, enforce 1.26.3-3+deb13u10. Runtime layer builds; nginx -t passes; health HTTP 200/healthy, UI HTTP 401, root HTTP 301. No jobs or database started; the full Go application image was not built. Temporarily unarchived with user approval, merged commit 65771bafad37908ba1607dc3fdffb3120b8d40cf, and verified archived again. |
+| zackees/nix | Four isolated NixOS test VM servers selected NGINX 1.30.4 through the pinned nixpkgs input. | [PR #1](https://github.com/zackees/nix/pull/1), merged: shared fixture default selects checksum-verified 1.30.6 without moving compatibility inputs. Evaluation against the fork's own pin reproduced 1.30.4 before and 1.30.6 after; the selected package builds. All enabled fixture servers also evaluate to 1.30.6 with the local NixOS 26.05 input. The full C++ build/VM suite was not run. |
+| zackees/rclone | Seafile integration fixtures indirectly inherit NGINX from seafileltd/seafile-mc:latest. The inspected image actually contains 1.26.2-1~jammy. | [PR #1](https://github.com/zackees/rclone/pull/1), merged: build a thin fixture image upgrading the signed upstream package to at least 1.30.6-1~jammy; rebuild before both Seafile fixture starts. Built image reports the fixed version, nginx -t passes, and the custom nginx.conf hash is unchanged. Shell syntax and Compose validation pass; complete database-backed integration tests were not run. |
+
+The Nix and rclone findings affect test infrastructure, not the application
+binaries shipped by those projects. Rclone's original text-only classification
+missed this inherited image dependency. Its ordinary and encrypted Seafile
+fixtures are patched; its separate obsolete **TestSeafileV6** image
+`seafileltd/seafile:latest` is no longer publicly pullable, so that image's
+contents and patch status remain unverified. The inspected Seafile-MC source
+image digest was
+`sha256:f1e19cc1cdd52ed8ec883de114acaa1e932941515dd6571fce0c0ff02248c4cf`.
+
+A further indirect reference needs external artifact inventory:
+**zackees/windows** copies its entire amd64 root filesystem from
+`qemux/qemu-docker:6.07` and inherits `dockurr/windows-arm:4.00` for arm64.
+The upstream QEMU project installs NGINX, but the referenced qemux image cannot
+be pulled anonymously. Its installed version is therefore **unverified**, not
+marked fixed. Its upstream source is
+[QEMU Dockerfile](https://github.com/qemus/qemu-docker/blob/master/Dockerfile).
+
+All four implementation diffs pass staged gitleaks and whitespace checks.
+Repository merges do not rebuild unknown external deployments. No active
+Render service for either new application repository was found in the
+inspected workspace; services in other workspaces/hosts were not ruled out.
+
 ## References that do not establish a vulnerable repository dependency
 
 These repositories contain NGINX text but do not pin/install its runtime in
@@ -91,7 +140,11 @@ an active application build found by the search:
   TechWatchProject/ChildTWDB, TechWatchProject/blueprint,
   TechWatchProject/kumquat, TechWatchProject/twp, zackees/docker-phpFox4,
   zackees/honeycolony, zackees/kumquat, zackees/memex, zackees/pip,
-  zackees/rclone, zackees/soldr, zackees/zccache.
+  zackees/soldr, zackees/zccache, zackees/brave-core (vendored Rust README files),
+  zackees/cpython, zackees/twdb,
+  TechWatchProject/twdb, TechWatchProject/Digital-Ocean-Functions,
+  TechWatchProject/kumquat-batch, TechWatchProject/dev-textract and
+  TechWatchProject/textract.kumquat.link.
 - **Optional proxy example:** zackees/transcribe-anything supplies an NGINX
   config example; its supplied Compose deployment uses Caddy.
 - **Host configuration or deployment references needing a separate installed

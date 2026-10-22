@@ -1,0 +1,6236 @@
+{
+  "audit_date": "2026-10-21",
+  "summary": {
+    "repositories": 380,
+    "owners": {
+      "TechWatchProject": 76,
+      "zackees": 301,
+      "ZackeesInc": 3
+    },
+    "private": 146,
+    "forks": 83,
+    "archived": 12,
+    "source_matches": 40,
+    "scan_modes": {
+      "archive": 363,
+      "tree-infrastructure-fallback": 13,
+      "empty": 4
+    },
+    "unresolved_tree_truncations": 0,
+    "candidate_fetch_failures": 0
+  },
+  "scope": "Accessible default-branch snapshots. Source matches include NGINX/OpenResty/Tengine/Angie; not every match installs a server. Snapshots precede some remediation merges.",
+  "limits": [
+    "Files larger than 4 MiB and Git LFS contents were not searched.",
+    "Binary content is not comprehensively inspected.",
+    "Fallback scans fetch deployment candidates, not every source file.",
+    "Historical branches, submodule contents and all third-party container layers are not covered.",
+    "No source match does not establish absence of NGINX in inherited images."
+  ],
+  "additional_image_findings": [
+    {
+      "repository": "zackees/rclone",
+      "image": "seafileltd/seafile-mc:latest",
+      "observed_nginx": "1.26.2-1~jammy",
+      "fix": "https://github.com/zackees/rclone/pull/1",
+      "legacy_image_unverified": "seafileltd/seafile:latest"
+    },
+    {
+      "repository": "zackees/windows",
+      "root_filesystem_source": "qemux/qemu-docker:6.07",
+      "arm64_source": "dockurr/windows-arm:4.00",
+      "status": "Referenced qemux image is not anonymously pullable; installed NGINX version unverified."
+    }
+  ],
+  "repositories": [
+    {
+      "name": "TechWatchProject/.github",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d13348b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/.github-private",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6e87b972a929d43afa1810a4edda376e255e1da9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/ads_dashboard",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "9471817cb7175e5d83a376bb7bb9cc0822406207",
+      "matched_paths": [
+        "CLAUDE.md",
+        "Dockerfile",
+        "docker/check-nginx-route.sh",
+        "docker/nginx.repo",
+        "image_src/etc/nginx/.htpasswd",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/compute-optimizer/2019-11-01/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/ecr-public/2020-10-30/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/ecr/2015-09-21/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/lightsail/2016-11-28/service-2.json",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 6,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 13,
+        "tree_complete": true,
+        "deployment_candidates": 233,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "TechWatchProject/ads_dashboard_archive",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "1dd3789ea777492f722b28b672b46237fe355b74",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/AgentDetails",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ba8e4f1abd6961abe4aedc0eb30367dde7d12d5a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/AgentPayments",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "07d0a5d1eee40117a6395c00772f336f333dfc48",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/americanflag",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "524de40",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/americas-digital-shield-preview",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ecca530189bb8b7832f767ad138dd6fb0b5be2ca",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 45
+      }
+    },
+    {
+      "name": "TechWatchProject/AmericasDigitalShield.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b4a2671f6e55f877270cb56e871fab2eedcc6c3f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 88
+      }
+    },
+    {
+      "name": "TechWatchProject/analytics.techwatchproject.org",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e10366ab1d9e97027cc01252d38c009c6fcbb264",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/androidmonitor-backend",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a8542eb64bca718637d43407a64c54dcd50fcfe3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 3,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 14
+      }
+    },
+    {
+      "name": "TechWatchProject/androidmonitor-client",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "33f63b9d80fbcbd2d982a9ce49f0ca8dd88e2429",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 38
+      }
+    },
+    {
+      "name": "TechWatchProject/androidmonitor-download",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c4c4752d88e5497bc6ad527e7f529ebfc83f23e6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "TechWatchProject/aws_lambdas",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "f282c3b656403327e2702dfbb7d02c37e5c562c2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/backup",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "34e3599f4d291da91de458fbef9c3e37df6fcfa6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/bias.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bedb327296c8c97ddcf5faef7dc9f9eec6de7785",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "TechWatchProject/blueprint",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "27f8b74b5e517909058baebfffe67dc0486feeb5",
+      "matched_paths": [
+        "incidents/2026-10-17-nexus-health-timeouts.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/capture-html.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2ef947af3f872ba0419a02eb219c655f9bad1bc8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/child-extension",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2f380367b1a572d0efac91f79205db97b573e196",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "TechWatchProject/ChildTWDB",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "09dd981c82e4c57bc03cc4b444dff91ec209d98c",
+      "matched_paths": [
+        "system/core/URI.php",
+        "system___/core/URI.php",
+        "upload/Agents_20221025.csv",
+        "upload/Agents_20221026.csv",
+        "upload/Agents_20221030.csv",
+        "upload/Agents_20221031.csv",
+        "upload/Agents_20221101.csv",
+        "upload/Agents_20221102.csv",
+        "upload/vidlist_ratings_1.csv"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1450
+      }
+    },
+    {
+      "name": "TechWatchProject/dashboard",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fa06a9bf3604cfdf704eefa529c5f03f2fa98aa6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/datalake",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cc824fd4f63b98d0baa5b670dba105daabea90b5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/datalake-core",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9b6ca35fff287ceb90bf3a8ea95ea9e139a1bff0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/dev-capture-html",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8756e033bc3c2ccfb37233e5b953285b36efa51f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/dev-textract",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "0fd07ce89640298a213283392e3d53df71637894",
+      "matched_paths": [
+        "app/test/F1724109611854.txt"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 20
+      }
+    },
+    {
+      "name": "TechWatchProject/dev-upload-html",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cf6b8758bbf280d7b4d93162e0f39b16f006eac9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/dev_process-search-results",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "62700ecc0aec7e79906f62cea5028415caf09faf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/Digital-Ocean-Functions",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a5f1b70d2d1612516ce14ac7e9cc406aa50a2c60",
+      "matched_paths": [
+        "node_modules/aws-sdk/apis/ecr-2015-09-21.examples.json",
+        "node_modules/aws-sdk/clients/computeoptimizer.d.ts",
+        "node_modules/aws-sdk/clients/ecr.d.ts",
+        "node_modules/aws-sdk/clients/ecrpublic.d.ts",
+        "node_modules/aws-sdk/clients/lightsail.d.ts"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5
+      }
+    },
+    {
+      "name": "TechWatchProject/docker-process-search-results",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "43ce85f4ff6e79f4d351923715520d8ebcbb3b52",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/donation-crm",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "b3160838016acc421d80693c38387feb1e34661f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/donor-reports",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "88de1a802ba6259e0c11edb9ee6e84844b21b005",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/e2e",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b0c44e9eb74c57935238c0aeebd1e91f50631241",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/ec2-python.310",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "808fd9e8f3b6ed80aa94cf02eeca8f1963d2c9b8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/extension",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "342e9a5dcd8aa63e303ecdb1d2b6185809aa9be5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 35
+      }
+    },
+    {
+      "name": "TechWatchProject/extension2",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "899e7fac2a941d53a9ecb2fa6998d18cb04ef6a5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "TechWatchProject/extension_backend_logging",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2f7cf6abbfe429a6f55d415f154e17bb7080aef8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/feedthewatchdogs.org",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "21c0436f0078978deb11c4b07b107c4410bad32c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 7,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 32,
+        "tree_complete": true,
+        "deployment_candidates": 25,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "TechWatchProject/give-butter-report",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "369b3c5937b160dbb452e597725fbc5c19525879",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "TechWatchProject/go-vote",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "22910fa",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/google-news.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1fb834e26b699341309a72369b31dc06913252c7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/jobs",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2ecb2e9b2a70cc241ad0c1f1056354e39918a8b1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/jobs-organize-searches",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ee38cb33d60356aeac0c3bd0b663d80a12c2caa6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/jobs.kumquat.live",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "77bdbad2605f0994ce9f4e6579601460c520aee7",
+      "matched_paths": [
+        "Dockerfile",
+        "entrypoint.sh",
+        "generate-htpasswd.sh",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/kumquat",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1ca647596080918fa413df3fe22853aec29b4ea2",
+      "matched_paths": [
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/compute-optimizer/2019-11-01/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/ecr-public/2020-10-30/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/ecr/2015-09-21/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/lightsail/2016-11-28/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/examples/ecr/create-repository.rst",
+        "image_src/home/ec2-user/aws/dist/awscli/examples/ecs/describe-tasks.rst",
+        "twdb/application/migrations/023_media_bias_new_test.sql",
+        "twdb/application/vendor/aws/Aws/data/compute-optimizer/2019-11-01/api-2.json.php",
+        "twdb/system/core/URI.php",
+        "twdb/system___/core/URI.php"
+      ],
+      "coverage": {
+        "large_files_skipped": 12,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1574
+      }
+    },
+    {
+      "name": "TechWatchProject/kumquat-batch",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "15c23d5ea5035d0f817c2bc1bc32a6f6da01126b",
+      "matched_paths": [
+        "LoadMediaBias/load_out.tmp",
+        "LoadMediaBias/media_bias_table_06302024.csv",
+        "LoadMediaBias/prod_load_out.tmp",
+        "Reports/McCormick_word-count_202410.txt",
+        "Reports/trump_content1.txt",
+        "SearchTerms/National_Fall_2024-TermsList.sql"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 9
+      }
+    },
+    {
+      "name": "TechWatchProject/kumquat-python-jobs",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5d916769f29905bed3d8559407f81c49ac57f6ef",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/logging",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4ca918d39e7307c98eb7bcefa77a59da0567b0f9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/meeting-notes",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b198786ef8e21899eb6894dc54153d14eed077e5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/my-test-app",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "37ca1570626bf85642bbef39955481b17379ca8d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/odoo-crm",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "3b408b4445cc19ccc4c2b1df01837c1e95aedc65",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/org",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "71c1915fa823776098d4332786b728f6fe0bcbae",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/organize-s3-prod-seaches",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "aa7572aa2e751b61950490bb7603931195560e69",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/personalassistantmonitor-collector",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "296ec32121beecf3b4f81b4195d4968bf1d82746",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/personalassistantmonitor-sensor",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3d96d93974139926e7239e16b4f3cfe942f859b2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/presign-url.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e276c7230888b0c426decfe8fee1b8ccab8bcf87",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/process-search-results.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f7c4e8f9267216b74e5c77e867ce2c9dad7379ae",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/prod-reddit-parser",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0712cebd3dda4555aabb3e55f2c449a82d4e66a1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/QA",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1a417dc062a73778c3a31f1b761b5c5de6744083",
+      "matched_paths": [
+        ".github/workflows/gateway.yml",
+        "Dockerfile",
+        "docs/auth-design.md",
+        "frontend/src/main.js",
+        "frontend/vite.config.js",
+        "gateway/entrypoint.sh",
+        "gateway/nginx.conf",
+        "gateway/smoke/docker-compose.yml",
+        "gateway/smoke/run.sh",
+        "gateway/smoke/static/app.js",
+        "gateway/smoke/stub.py",
+        "obs/config.alloy",
+        "obs/grafana.ini",
+        "obs/grafana/dashboards/platform-health.json",
+        "obs/prometheus.yml",
+        "qa/auth.py",
+        "qa/auth_routes.py",
+        "qa/credentials.py",
+        "qa/warehouse_cli.py",
+        "qa/web.py",
+        "tests/test_auth.py",
+        "tests/test_grafana_gateway_playwright.py",
+        "tests/test_render_packaging.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/rclone-data-lake",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "da9b8527ad1aa01e88fde2e585909de38f82520c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/recruiter",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5a16ef223880f08768968ac5f4b5f442090ad2e0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/reddit-parser",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "cfaf23641ab05225b84252572d226301d36eef09",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/reddit-parser.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "8feb525e28164e2ab2d2d53a6f9e0c4f30a348a0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/search-index",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9b3365bc9b6bc46ada88b4106eeb4a1c69c7d65d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "TechWatchProject/secrets",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "74eb7d224b0ed34881032142e9e9c46e162b65cf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/sentiment",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9fe477d9a98e79721b6dfb536af8bbaa0da63d39",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 1,
+        "binary_files_not_text_searched": 86
+      }
+    },
+    {
+      "name": "TechWatchProject/StatsDashPrivate",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a8d30399b3bab6a29a5a1055d505f3deb7569a23",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/StatsDashPublicGraphsOnly",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5e17475ac65fb7706e7feab52dd332b8b42ab5e6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "TechWatchProject/test-docker-lambda",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6e590581c753c4cddc68e4e1c538aaeb0c1be133",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/textract.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5c0eb36701d705b4f3d04c2a197a0eefe1bbb4d2",
+      "matched_paths": [
+        "app/test/F1724109611854.txt"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 19
+      }
+    },
+    {
+      "name": "TechWatchProject/tw_aws",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "a09f4b44274480024ce478d21635bff6a32c63a6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/twdb",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "73b13f8809371d9a6770e29e1ab7e0771f09a06a",
+      "matched_paths": [
+        "application/vendor/aws/Aws/data/compute-optimizer/2019-11-01/api-2.json.php",
+        "system/core/URI.php",
+        "system___/core/URI.php"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1486
+      }
+    },
+    {
+      "name": "TechWatchProject/twp",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ea1c40c8597682c1f0154a2c10ae8739f7fc4e55",
+      "matched_paths": [
+        "ci/tests/test_errors_noise_filter.py",
+        "docs/agents/scheduled-work.md",
+        "docs/agents/where-does-this-run.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/upload-gz.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "57bfd1dba19d8bf27e47b0fb232ee30f48aae963",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/upload.kumquat.link",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e20db77c0d554774aed8d2e28359bed4d8c308d1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "TechWatchProject/x-parser.kumqaut.live",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "63677875ec8850d370c3b068d12482003860bd96",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "TechWatchProject/youtube-html-parser",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f60219cc114976108d00bac2c3465f0690f35519",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 24,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/act2",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "28c9ff2",
+      "matched_paths": [
+        "cmd/root.go",
+        "pkg/model/workflow_test.go",
+        "pkg/runner/testdata/actions/node12/node_modules/@vercel/ncc/dist/ncc/index.js.cache.js",
+        "pkg/runner/testdata/actions/node16/node_modules/@vercel/ncc/dist/ncc/index.js.cache.js",
+        "pkg/runner/testdata/actions/node20/node_modules/@vercel/ncc/dist/ncc/index.js.cache.js",
+        "pkg/runner/testdata/services-host-network/push.yml",
+        "pkg/runner/testdata/services-with-container/push.yml"
+      ],
+      "coverage": {
+        "large_files_skipped": 13,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 24
+      }
+    },
+    {
+      "name": "zackees/Adafruit_DotStar",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a6384a8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/AgentGPT",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4454c33",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/ai-image-video-models",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "9ca35d02e4489a96dc59013c2e752250b6a3e99f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "tree_complete": true,
+        "deployment_candidates": 3,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/ai-tools",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bd00780",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/aibrtinfo",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5a7bde0b163c1c961cdfc9e3c49abb4ac9891a77",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/aicode",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f7d34f3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/aidb",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0c7522f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/aider",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "009c5c3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "zackees/android-tester",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "74ca3cd",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/androidemulator",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "281439d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/androidmonitor-backend",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "14dddce",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/androidstartonboot",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "aacf475e9bbf25d449e6f72abb5a757e3bc36f01",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 12
+      }
+    },
+    {
+      "name": "zackees/aquatic",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a22cdf6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "zackees/arduino-house-apps",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9d150c3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 262
+      }
+    },
+    {
+      "name": "zackees/arduino-liblame",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c4bf5e7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 20
+      }
+    },
+    {
+      "name": "zackees/arduino-tipjar",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4d0f18caeaf2a6e23c45129ece071aca2a2a4c6e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/askai",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bef6059",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/attestr",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fb9e8b15bb5feaf4a7547c0c7a1ac4f5052d79d8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/AuroraPortal",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b7ef0ac",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/axlux",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b331ced072c6e85226ca448337c2c212df49bdd7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 29
+      }
+    },
+    {
+      "name": "zackees/bittorrent-tracker",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "604c122",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/blast.video",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d0ee58e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 79
+      }
+    },
+    {
+      "name": "zackees/blast_scraper",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "89268e440044d75335f332f71457feb2124ee5e4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/blast_video_app",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "55985709fa58ca06f91f3101617e92c80f6450ca",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 77
+      }
+    },
+    {
+      "name": "zackees/blast_video_react",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f984900f5543320bcdb8a52073e76d49aaf7bfa6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "zackees/bosn",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a11280a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/brave-core",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "fa1c45b0737a95d9b8b5c442041e3dcacb591243",
+      "matched_paths": [
+        "tools/crates/vendor/rouille/README.md",
+        "tools/crates/vendor/rustls/README.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 5,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1642,
+        "tree_complete": true,
+        "deployment_candidates": 2813,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ],
+        "tree_source": "complete git ls-tree; missing candidates fetched from raw commit URLs"
+      }
+    },
+    {
+      "name": "zackees/brazr",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "70e7d9d810115fb8e274a70dbe3c5ca0be263d8b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/bug-fastapi-multipart",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fd02be1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/cakemail-addcontact",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d7a41a35c91714ff45fcbe49884a344c7a9028a9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/cap-std",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b7acf8e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/capturing_process",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a101197",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/check-honey-colony",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "582b5848012909e6626dd484e1bc3a1e73763a74",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ci.yml",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6711e4e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/clang-tool-chain",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d3e9a55",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/clang-tool-chain-bins",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fdeab25",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 40,
+        "binary_files_not_text_searched": 10
+      }
+    },
+    {
+      "name": "zackees/clud",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8c21718",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5
+      }
+    },
+    {
+      "name": "zackees/clud-central",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "90d84ab",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/codeup",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3c463ff",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/countdown.js",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "679d32771fe88a2a111287cfc421d1a242a403ef",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/cpython",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7812940",
+      "matched_paths": [
+        "Doc/library/ssl.rst",
+        "Lib/asyncio/constants.py",
+        "Lib/test/test_httplib.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 142
+      }
+    },
+    {
+      "name": "zackees/create-python-cmd",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f09120d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/dancemoves",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9a8aabe",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 211
+      }
+    },
+    {
+      "name": "zackees/DeepSeek-V4-J-Space-Capability-Realization-Report",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cf945a5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/digital-ocean-cluster",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e71af5d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/disklru",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cff92bc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/diskmeter",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "57d8392",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-bittorrent-tracker",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f4f68bd",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-buildx-template",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a5ebb32",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-mac-x64",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f173a04",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-mysql-proxy",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a99a3ff",
+      "matched_paths": [
+        "Dockerfile",
+        "entrypoint",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-mysql-replica",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "02630eb",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-phpFox4",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d2a1608",
+      "matched_paths": [
+        "app/PF.Base/include/library/phpfox/request/request.class.php",
+        "app/PF.Base/vendor/fzaninotto/faker/src/Faker/Provider/en_UG/Person.php",
+        "app/PF.Base/vendor/fzaninotto/faker/src/Faker/Provider/en_US/Person.php",
+        "app/PF.Base/vendor/fzaninotto/faker/src/Faker/Provider/ms_MY/Person.php",
+        "app/PF.Base/vendor/rackspace/php-opencloud/tests/OpenCloud/Tests/_response/Auth.resp",
+        "app/PF.Base/vendor/rackspace/php-opencloud/tests/OpenCloud/Tests/_response/Auth_No_Default_Region.resp",
+        "app/PF.Base/vendor/rackspace/php-opencloud/tests/OpenCloud/Tests/_response/Auth_OpenStack.resp"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 600
+      }
+    },
+    {
+      "name": "zackees/docker-posthog-proxy",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ca4cf2d93732ed89c53c07553bdbe9ea067090c1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/docker-run-cmd",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bfdc778",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-SQS-local",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d4dcb03",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/docker-ubuntu-vnc",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8234733",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/docker-vm",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "89de91d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/docker-yt-dlp",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0666ca4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/doxygen-awesome-css",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9760c30",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "zackees/dylint",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9927ee7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/e32",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e827170",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/elasticsearch",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2c1495c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/envfs",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d5437c1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/esp-rmt-led-strip-component-idf-5-1-cpp",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "737422c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/esp32-c6-devkitc-1",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cc6bf71",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ESP32-C6-WS2812B",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6e4eb7b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/esp32-https-streaming-uploader",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2b4ad86",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ESP32-HUB75-MatrixPanel-DMA",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "99131ab",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 30
+      }
+    },
+    {
+      "name": "zackees/ESP32-TUX",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7a3b076",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 61
+      }
+    },
+    {
+      "name": "zackees/esp32-upload-download-multipart-http",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "afb0aa1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/esp32-v51-inmp441",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ffd64ed",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/face_recognition_gui",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "80ac3b3c174ed7492a6bdae580e9350e6b652847",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/fadecandy",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "79b0355",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 87
+      }
+    },
+    {
+      "name": "zackees/FastLED",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "98d2e05",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/fastled-issue-assets",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/fastled-wasm-compiler",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "85a8d4b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/fastled-wasm-server",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "554ec93",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/fastled_bug_s3_idf5x",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fb21832",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/FastNoiseLite",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6be3d6b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ffmpeg-bins2",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d6abf56",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 4,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ffmpeg_bins",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "df95abc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 3,
+        "lfs_pointers_not_fetched": 5,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/fjall",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "dc4d14e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 55
+      }
+    },
+    {
+      "name": "zackees/flask-multi-upload",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "abdf5fe",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/FluidFrames.RIFE",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b3158b4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/forge",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "87ba08b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 6,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/fp-bindgen",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "59cc490",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/gab.blast.video",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5bbdb4b4e281f6463cb4bda309d95a4c90949173",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/gabposter",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a424641",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/gen-rss",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c397de6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/georgefloyddocumentary.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2e4454e8ce903e059363288b9b84b3b8f0d10e3f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 3,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 23
+      }
+    },
+    {
+      "name": "zackees/georgefloyddocumentary.com-redirect",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cc3f9017ebf17e761ba1a80e616ad033db246b12",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/getgo",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a7c140d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/givesendgoscraper",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "84bd0aa",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/googleleaksbook.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9b428b49a11ceb2962475a7f9ee42dd92e78070a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 58
+      }
+    },
+    {
+      "name": "zackees/gptneox20b",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6a49125",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/gptrepo",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9f99b25",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/GPTs",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5f396cc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/haystack",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "51d001d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/health.blast.video",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d29b3c98b5ed044fdedb318380efa0cd01bbf0ff",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/hermes",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5c608bebf334c3869bc97f35302bb292afc9f7a3",
+      "matched_paths": [
+        "memories/MEMORY.md",
+        "skills/.curator_ledger.jsonl",
+        "skills/autonomous-ai-agents/hermes-deployment-ops/SKILL.md",
+        "skills/autonomous-ai-agents/hermes-deployment-ops/references/dashboard-url-discovery.md",
+        "skills/autonomous-ai-agents/hermes-deployment-ops/scripts/discover-dashboard-url.sh",
+        "skills/autonomous-ai-agents/hermes-docker-gateway/SKILL.md",
+        "skills/autonomous-ai-agents/hermes-docker-gateway/references/dashboard-https-ip-exposure.md",
+        "skills/autonomous-ai-agents/hermes-docker-gateway/templates/nginx-hermes-dashboard-https.conf",
+        "skills/creative/ascii-video/references/inputs.md",
+        "skills/mlops/inference/llama-cpp/SKILL.md",
+        "skills/mlops/inference/llama-cpp/references/server.md",
+        "skills/mlops/inference/serving-llms-vllm/references/server-deployment.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "zackees/hermes-chaz",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e3b4321bafe1430d0b50a801d04a5848d33c542c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/hermes-ian-trottier",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "eb2381d631a0d12dee57dcb3d4a5e14f35c88eac",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/hermes-memory-bookexpert",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/highstakestreasonbook.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d5c07ee07bb5897a70bc7bccf9dd1470fac1eefa",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 154
+      }
+    },
+    {
+      "name": "zackees/honeycolony",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "35d9fe7d851f03184073774ec516de8f99db3650",
+      "matched_paths": [
+        "sites/localhost/html/wp-admin/includes/misc.php",
+        "sites/localhost/html/wp-admin/includes/network.php",
+        "sites/localhost/html/wp-admin/includes/upgrade.php",
+        "sites/localhost/html/wp-admin/options-permalink.php",
+        "sites/localhost/html/wp-content/plugins/astra-addon/changelog.txt",
+        "sites/localhost/html/wp-content/plugins/astra-addon/classes/class-astra-theme-extension.php",
+        "sites/localhost/html/wp-content/plugins/astra-addon/classes/compatibility/class-astra-addon-nginx-helper-compatibility.php",
+        "sites/localhost/html/wp-content/plugins/cleantalk-spam-protect/inc/cleantalk-pluggable.php",
+        "sites/localhost/html/wp-content/plugins/ewww-image-optimizer/common.php",
+        "sites/localhost/html/wp-content/plugins/jetpack/_inc/lib/debugger/class-jetpack-cxn-tests.php",
+        "sites/localhost/html/wp-content/plugins/litespeed-cache/changelog.txt",
+        "sites/localhost/html/wp-content/plugins/litespeed-cache/readme.txt",
+        "sites/localhost/html/wp-content/plugins/litespeed-cache/thirdparty/litespeed-check.cls.php",
+        "sites/localhost/html/wp-content/plugins/redirection/api/api-export.php",
+        "sites/localhost/html/wp-content/plugins/redirection/api/api-group.php",
+        "sites/localhost/html/wp-content/plugins/redirection/fileio/nginx.php",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-cs_CZ.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-de_DE.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-de_DE_formal.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-el.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-en_AU.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-en_CA.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-en_GB.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-en_NZ.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-en_ZA.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-es_CO.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-es_EC.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-es_ES.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-es_MX.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-es_VE.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-fa_IR.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-fr_CA.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-fr_FR.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-gl_ES.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-hr.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-it_IT.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-ja.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-ms_MY.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-nl_NL.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-nl_NL_formal.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-pt_BR.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-ru_RU.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/json/redirection-sv_SE.json",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-cs_CZ.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-de_DE.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-de_DE_formal.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-el.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-en_AU.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-en_CA.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-en_GB.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-en_NZ.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-en_ZA.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-es_CO.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-es_EC.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-es_ES.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-es_MX.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-es_VE.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-fa_IR.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-fr_CA.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-fr_FR.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-gl_ES.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-hr.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-it_IT.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-ja.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-ms_MY.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-nl_NL.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-nl_NL_formal.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-pt_BR.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-ru_RU.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection-sv_SE.po",
+        "sites/localhost/html/wp-content/plugins/redirection/locale/redirection.pot",
+        "sites/localhost/html/wp-content/plugins/redirection/models/file-io.php",
+        "sites/localhost/html/wp-content/plugins/redirection/models/module.php",
+        "sites/localhost/html/wp-content/plugins/redirection/modules/nginx.php",
+        "sites/localhost/html/wp-content/plugins/redirection/modules/wordpress.php",
+        "sites/localhost/html/wp-content/plugins/redirection/readme.txt",
+        "sites/localhost/html/wp-content/plugins/redirection/redirection-cli.php",
+        "sites/localhost/html/wp-content/plugins/redirection/redirection-strings.php",
+        "sites/localhost/html/wp-content/plugins/redirection/redirection.js",
+        "sites/localhost/html/wp-content/plugins/webp-converter-for-media/changelog.txt",
+        "sites/localhost/html/wp-content/plugins/webp-converter-for-media/readme.txt",
+        "sites/localhost/html/wp-content/plugins/webp-converter-for-media/src/Error/Notice/BypassingApacheNotice.php",
+        "sites/localhost/html/wp-content/plugins/webp-converter-for-media/src/Error/Notice/RewritesCachedNotice.php",
+        "sites/localhost/html/wp-content/plugins/webp-converter-for-media/src/Error/Notice/RewritesNotExecutedNotice.php",
+        "sites/localhost/html/wp-content/plugins/webp-converter-for-media/src/Settings/Option/LoaderTypeOption.php",
+        "sites/localhost/html/wp-content/plugins/woocommerce/i18n/languages/woocommerce.pot",
+        "sites/localhost/html/wp-content/plugins/woocommerce/includes/admin/settings/class-wc-settings-products.php",
+        "sites/localhost/html/wp-content/plugins/woocommerce/includes/class-wc-download-handler.php",
+        "sites/localhost/html/wp-content/plugins/wordpress-seo/inc/class-wpseo-utils.php",
+        "sites/localhost/html/wp-content/plugins/wp-mail-smtp/readme.txt",
+        "sites/localhost/html/wp-content/plugins/wp-optimize/includes/class-wp-optimize-admin.php",
+        "sites/localhost/html/wp-content/plugins/wp-optimize/plugin.json",
+        "sites/localhost/html/wp-content/plugins/wp-optimize/readme.txt",
+        "sites/localhost/html/wp-content/plugins/wp-optimize/webp/class-wpo-server-info.php",
+        "sites/localhost/html/wp-content/plugins/wp-optimize/wp-optimize.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/3rd-party/3rd-party.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/3rd-party/hosting/nginx.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/3rd-party/plugins/nginx-helper.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/admin/admin.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/classes/Buffer/class-cache.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/deprecated/3.14.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/inc/functions/files.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/vendor/cloudflare/cf-ip-rewrite/readme.md",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/vendor/cloudflare/cf-ip-rewrite/src/CloudFlare/IpRewrite.php",
+        "sites/localhost/html/wp-content/plugins/wp-rocket1/vendor/cloudflare/cf-ip-rewrite/tests/RewriteTest.php"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2498,
+        "tree_complete": true,
+        "deployment_candidates": 1288,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/I2SClocklessLedDriver",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1dbccdf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 14
+      }
+    },
+    {
+      "name": "zackees/I2SClocklessVirtualLedDriver",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e7b2f0e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 3,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 10
+      }
+    },
+    {
+      "name": "zackees/idf-extra-components",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6562495",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 13
+      }
+    },
+    {
+      "name": "zackees/idf-install",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b0f8fb1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ingest-media",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fb45cc1b5b84773281a81870f0e6be31ba89ab09",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/insanely-fast-whisper",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e499ed6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/insanely-fast-whisper-cli",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8ca3a53",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/install.py",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ece0b6e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/instant.io",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f00c910",
+      "matched_paths": [
+        "nginx.conf",
+        "server/index.js"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/interstellar-parallax",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "43fc3ae",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 5,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 9
+      }
+    },
+    {
+      "name": "zackees/iso-env",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2e6a5fe",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/isolated-environment",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": true,
+      "mode": "archive",
+      "snapshot": "0f40a42",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/jennifergreene.org",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "623ecee79444edbcb087b175383792441089f27d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 11
+      }
+    },
+    {
+      "name": "zackees/jules",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "45d8f18",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/kernal-api",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3a3df82",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 6,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/keyvalue_sqlite",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6aa5703",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/keyz",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1ff3b1774417457716de7f8adde88911d5b99342",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/killing-kelly",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "98ffedf45703f0c349df1bff9674f2e7c231f031",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 23
+      }
+    },
+    {
+      "name": "zackees/kumquat",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "aa9280cbc7e6caec2f3e194d6c95eb668facd386",
+      "matched_paths": [
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/compute-optimizer/2019-11-01/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/ecr-public/2020-10-30/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/ecr/2015-09-21/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/botocore/data/lightsail/2016-11-28/service-2.json",
+        "image_src/home/ec2-user/aws/dist/awscli/examples/ecr/create-repository.rst",
+        "image_src/home/ec2-user/aws/dist/awscli/examples/ecs/describe-tasks.rst",
+        "image_src/var/www/twdb/application/vendor/aws/Aws/data/compute-optimizer/2019-11-01/api-2.json.php",
+        "twdb/application/vendor/aws/Aws/data/compute-optimizer/2019-11-01/api-2.json.php",
+        "twdb/system/core/URI.php",
+        "twdb/system___/core/URI.php"
+      ],
+      "coverage": {
+        "large_files_skipped": 11,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1554
+      }
+    },
+    {
+      "name": "zackees/led-video-display",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "ea8da37154b1a34afcc923aafe481f631b290559",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 10,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "tree_complete": true,
+        "deployment_candidates": 6,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/ledmapper",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "eb458fc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/lifestyle",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/llvm-ld",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6a886bf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/lm-worker",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2a856fa1ff50b7735da95dd9033a61c24b4b58d4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 7
+      }
+    },
+    {
+      "name": "zackees/losslesscut-bins",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5bc19da",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/Lucid_Somnambulist",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "479b072",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5
+      }
+    },
+    {
+      "name": "zackees/LVGL8-WT32-SC01-Arduino",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "06f9a7c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/macos_burn_iso",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "79dd032",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/magic-wormhole-transit-relay-docker",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "19e52c8",
+      "matched_paths": [
+        "Dockerfile",
+        "entrypoint",
+        "nginx.conf",
+        "src/tx_relay.egg-info/SOURCES.txt"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/make-fastapi-app",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "34f65c3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/manifest.json",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e255ede",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/matrix-shader-3js",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c12e0c7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/mediasearch",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9e439c0d71c1515fc51e39f11d34526ea7a5d797",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/memex",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "babce09",
+      "matched_paths": [
+        "IMPLEMENT.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/mike-adams-tx",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6f4d5481bb62e559f3c353020506dff7e80d4b53",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/mike-chat-bot",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "95c8bef4fea782c5b4bd9fa4ef3a01e12f0d14d4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/mike-sync",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e1e2f1d2911ad753b89671f63a6fac0520b11db7",
+      "matched_paths": [
+        "Dockerfile.potoken",
+        "docker/nginx.conf",
+        "docker/scripts/startup-webserver.sh"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/mimalloc-pprof",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ee3623f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 62
+      }
+    },
+    {
+      "name": "zackees/mindy-robinson",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9ceb6c2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 160
+      }
+    },
+    {
+      "name": "zackees/minimp3-fixed",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8b0c540",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 157
+      }
+    },
+    {
+      "name": "zackees/minio",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b1b3e19",
+      "matched_paths": [
+        ".github/workflows/mint/minio-compress-encrypt.yaml",
+        ".github/workflows/mint/minio-erasure.yaml",
+        ".github/workflows/mint/minio-pools.yaml",
+        ".github/workflows/mint/minio-resiliency.yaml",
+        ".github/workflows/mint/nginx-1-node.conf",
+        ".github/workflows/mint/nginx-4-node.conf",
+        ".github/workflows/mint/nginx-8-node.conf",
+        ".github/workflows/mint/nginx.conf",
+        ".github/workflows/multipart/docker-compose-site1.yaml",
+        ".github/workflows/multipart/docker-compose-site2.yaml",
+        ".github/workflows/multipart/migrate.sh",
+        ".github/workflows/multipart/nginx-site1.conf",
+        ".github/workflows/multipart/nginx-site2.conf",
+        ".github/workflows/run-mint.sh",
+        "buildscripts/minio-upgrade.sh",
+        "buildscripts/upgrade-tests/compose.yml",
+        "buildscripts/upgrade-tests/nginx.conf",
+        "cmd/api-errors.go",
+        "cmd/api-headers.go",
+        "docs/metrics/prometheus/README.md",
+        "docs/minio-limits.md",
+        "docs/multi-user/README.md",
+        "docs/orchestration/docker-compose/README.md",
+        "docs/orchestration/docker-compose/docker-compose.yaml",
+        "docs/orchestration/docker-compose/nginx.conf",
+        "docs/resiliency/docker-compose.yaml",
+        "docs/resiliency/nginx.conf",
+        "docs/tls/README.md",
+        "helm/minio/values.yaml"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 167
+      }
+    },
+    {
+      "name": "zackees/moovie.js",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a005287",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/net_image_2_movie",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "02400f4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/nginx-proxy",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "42df9a7",
+      "matched_paths": [
+        "Dockerfile",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/NiceScaler",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5406bad",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 9
+      }
+    },
+    {
+      "name": "zackees/NightDriverStrip",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "42ba82b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 43
+      }
+    },
+    {
+      "name": "zackees/nix",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f83a7f3",
+      "matched_paths": [
+        "tests/nixos/content-encoding.nix",
+        "tests/nixos/fetchers-substitute.nix",
+        "tests/nixos/fetchurl.nix",
+        "tests/nixos/nss-preload.nix"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 114
+      }
+    },
+    {
+      "name": "zackees/nixos",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7d2ae70",
+      "matched_paths": [
+        ".claude/skills/streamdeck/SKILL.md",
+        "docs/nginx-security-2026-10.md",
+        "scripts/03-apply-home.sh",
+        "system/configuration.nix"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/ObjectFLED",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "df779b4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/obs-studio",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cba17c1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 118
+      }
+    },
+    {
+      "name": "zackees/open-webdriver",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "25df2a7d9946b4fd6d8131ce1e3a991ec44f8f4a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1,
+        "tree_complete": true,
+        "deployment_candidates": 15,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/opentracker-docker",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b5d8ebc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/openwebtorrent-tracker",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "67caa5d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/p2p-media-loader",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "65bfee0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/p3-videos",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4152dbcc355a1c6177ceaaab2b7333339f0acf6e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/pdf-ingest",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4ee6580",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/peertube_ezinstall_ubuntu20LTS",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2e823aa",
+      "matched_paths": [
+        "install_demo.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/personalassistantmonitor",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "229f10b58c96e868e374bfd05e60166cba88520f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/personalassistantmonitor-collector",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7f1c7c1812ee6811d93436074f52fc2d3cbac663",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/personalassistantmonitor-sensor",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "696f4e76a89379a90e2846b7cbd721f6560dedae",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 10,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 159
+      }
+    },
+    {
+      "name": "zackees/personalassistantmonitor-sensor-gui",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fe38ce7654e60ba74a0f011401464fc9d4ded148",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 10,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 159
+      }
+    },
+    {
+      "name": "zackees/pianokeysgame.com",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0cb7835",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 10
+      }
+    },
+    {
+      "name": "zackees/pickuplinegame",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a9add4720b015c3e39e2c94df40fc58b3c62f2e0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/pio-compiler",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bbe39f1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/pip",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5f3f592",
+      "matched_paths": [
+        "src/pip/_vendor/pygments/lexers/_mapping.py",
+        "tests/lib/server.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 81
+      }
+    },
+    {
+      "name": "zackees/plandemicseries.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "af75fc8f70e9830d56b83d77d178ca537019056e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 5,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 26,
+        "tree_complete": true,
+        "deployment_candidates": 15,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/platform-espressif32",
+      "default_branch": "Arduino/IDF5",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "349aef9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/platformio-core",
+      "default_branch": "develop",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c487527",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/platformio-docs",
+      "default_branch": "develop",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "48c9af4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 186
+      }
+    },
+    {
+      "name": "zackees/playaudio",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "4860ca2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/pydeepspeech",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "68ad4fa",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/pyflutterinstall",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f30ae39",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/pyjpgclipboard",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2a01570",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/python-build-standalone",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "94de081",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/python-compile",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "abdc9f3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/python-docker-app",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "43f2048",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/python-rust-build-chain",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c513bac",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/python-subprocess-bug-spooled-temp-file",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d9fdfe2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/python3.10",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0643683",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/qtwave",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5cb9421",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/QualityScaler",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "db34ff4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/rclone",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "401cf81",
+      "matched_paths": [
+        "MANUAL.html",
+        "MANUAL.md",
+        "MANUAL.txt",
+        "backend/http/http_internal_test.go",
+        "backend/http/test/index_files/nginx.html",
+        "docs/content/http.md",
+        "rclone.1"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 76
+      }
+    },
+    {
+      "name": "zackees/rclone-api",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "dcc6962",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/RealScaler",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "720f8fb",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/reld",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "69464c3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/rss2gab",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a631a7c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/rumblevideotest",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fabf090",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/running-process",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "dee1c2c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 6,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/rust-docs",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e352073",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/s3uploader",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3392c1ddbfec60b7f724da44875b6f57c45d5721",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/sailboat-lights",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "363cc5ccea3807b3c98cc7eb4a8eb4495c0f05c8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/scott-presler",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5ebb537fae59f7cc718db63c5d6d99f6e65c9ccf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/scrcast",
+      "default_branch": "trunk",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a229aaf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 13
+      }
+    },
+    {
+      "name": "zackees/self",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "610fc4f29e2ff9433d7503a5894b362f49a32d33",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/semi-secret",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5e259e8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/setenvironment",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "eb95ed4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/setup-soldr",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6bf04d4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/sfspermdonor.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ab140129402f41b064b3a14994bce5f463a9d9be",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 37
+      }
+    },
+    {
+      "name": "zackees/shellexecute",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "816f17b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/sidebar_nav",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1f277aa",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/smart_fairy_lights",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b6d8be19a4d676b732848ce68c1817b053e36d36",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/SmoothMQ",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2716dbf",
+      "matched_paths": [
+        "Dockerfile",
+        "entrypoint.sh",
+        "generate-htpasswd.sh",
+        "nginx.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/solar-build",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "df01a59",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/soldr",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7b5047c",
+      "matched_paths": [
+        "_vender/zccache/src/cli_core/cli/commands/fetch.rs"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 15
+      }
+    },
+    {
+      "name": "zackees/soldr-maturin",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "026e1c9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 10
+      }
+    },
+    {
+      "name": "zackees/soldr-toolchain",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7fc8d64",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/soldr-toolchain-private",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "eb3fc8887101d6be9af67dcf6ca4a2e3005b61eb",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/songhoodie",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "06ff688c527f8604271565f7ccda7f5876957cd3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/songstone",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "97c18d8f0c3502a61199852e614b0e3eba8a077d",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/songstone-display-control",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "81b1a349002ab85406702c1742a77ee52c66ed4b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "zackees/soundtrack",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6e04462",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/soundwake",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "dc72408",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/spaceface",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f4469465ca52970aee76858ab072653442146338",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/spamverifybackend",
+      "default_branch": "main",
+      "private": true,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6b3a4380f93a0acde98cdaa37b9f42d6823c46a3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/sqs-legacy-adapter",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ed1b3a3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/SrtTranslator",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bd2e004",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/stable_diffusion.openvino",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "72d3ad6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/stairway-lights",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "171147ddf40ccfbe041a6d6d25ca1463d6e75890",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/static-graphviz",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0fdbf33",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/static-handbrake",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "empty",
+      "snapshot": null,
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/static-node",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "eba4b51",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/static-npm",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "cc5e49b5b21b5169add1ced05efd280b5418e4d0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 5,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "tree_complete": true,
+        "deployment_candidates": 10,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/static-sox",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7a3202b",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/static_ffmpeg",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1d859d5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/sudo-win32",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bc342e3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/sudo-win32-extras",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ccbaa23",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/svg_crossworder",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "be955d9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/T3Clud",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "25d5c7c",
+      "matched_paths": [
+        ".repos/alchemy-effect/examples/aws-ecs/test/dev.test.ts",
+        ".repos/alchemy-effect/examples/aws-eks/README.md",
+        ".repos/alchemy-effect/examples/aws-eks/alchemy.run.ts",
+        ".repos/alchemy-effect/examples/fly-app/alchemy.run.ts",
+        ".repos/alchemy-effect/examples/fly-app/test/integ.test.ts",
+        ".repos/alchemy-effect/examples/gcp-gke/README.md",
+        ".repos/alchemy-effect/examples/gcp-gke/alchemy.run.ts",
+        ".repos/alchemy-effect/examples/gcp-gke/test/integ.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/AWS/ECS/Service.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/AWS/ECS/TaskDefinition.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Cloudflare/Containers/Container.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Docker/Container.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Docker/Context.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Docker/RemoteImage.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Docker/Service.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Docker/Swarm.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Fly/Machine.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Fly/VolumeSnapshot.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/GCP/BinaryAuthorization/EvaluateGkePolicy.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Hetzner/Server.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Kubernetes/Deployment.ts",
+        ".repos/alchemy-effect/packages/alchemy/src/Kubernetes/HelmChart.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/AWS/ApplicationAutoScaling/EcsServiceScaling.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/AWS/ECS/PlatformInlineClass.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/AWS/ECS/Service.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/AWS/ECS/Task.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/AWS/ECS/TaskDefinition.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Cloudflare/Container/Container.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Cloudflare/Container/fixtures/external/context/Dockerfile",
+        ".repos/alchemy-effect/packages/alchemy/test/Cloudflare/Container/fixtures/external/object.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Docker/Container.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Docker/Registry.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Docker/RemoteImage.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Docker/Service.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Docker/Swarm.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/BlueGreen.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/IpAssignment.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/Machine.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/MachineLeaseCleanup.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/MachineLeases.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/Service.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/Volume.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/VolumeSnapshot.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/fixtures/bluegreen.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/fixtures/flycast.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Fly/fixtures/process-death.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/GCP/BinaryAuthorization/common.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Hetzner/Server.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Railway/PrivateNetwork.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Railway/Service.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Railway/Website/Cdn.test.ts",
+        ".repos/alchemy-effect/packages/alchemy/test/Railway/fixtures/local-context/Dockerfile",
+        ".repos/alchemy-effect/packages/cloudflare-runtime/src/core/test/bindings/Container.test.ts",
+        ".repos/alchemy-effect/website/src/content/docs/aws/compute/ecs.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/aws/compute/eks.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/blog/2026-07-22-beta-64.md",
+        ".repos/alchemy-effect/website/src/content/docs/docker/build-and-push.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/docker/swarm.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/fly/compute/machines.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/fly/compute/regions.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/fly/data/volumes.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/fly/index.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/fly/setup.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/hetzner/compute/servers.mdx",
+        ".repos/alchemy-effect/website/src/content/docs/kubernetes/workloads/images.mdx",
+        ".repos/effect-smol/packages/effect/src/http-api/internal/httpApiScalar.ts",
+        ".repos/effect-smol/packages/effect/src/http-api/internal/httpApiSwagger.ts",
+        "apps/web/src/markdown-links.test.ts",
+        "packages/client-runtime/src/markdownLinks.test.ts"
+      ],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 293
+      }
+    },
+    {
+      "name": "zackees/tap",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "376f1e9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/tauri",
+      "default_branch": "dev",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d0f38df",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 100
+      }
+    },
+    {
+      "name": "zackees/template-docker-fastapi-site",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f456152",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/template-fastapi-project",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6f428e5",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/template-python-cmd",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "74e8e57",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/template-python-rust-cmd",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "5f10fa4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/terminal",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "115f1d1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1096
+      }
+    },
+    {
+      "name": "zackees/test-render-com-ssh",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "14597fe",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/testfastapiapp",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "59a3c7a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/thetruthaboutivermectin.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a94c15e0f496838499599b6bc05a31495301f1ad",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 4,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 43
+      }
+    },
+    {
+      "name": "zackees/torrent-test",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7abcb9c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/torrent-worker",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3e256c405978860e7043b67baa0a4da39c55a0c1",
+      "matched_paths": [
+        "src/torrent_worker/docker_compose_template.py",
+        "tests/test_docker_compose_template.py"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/torrent-worker-coordinator",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9f0805f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/transcribe-anything",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c4a1808",
+      "matched_paths": [
+        "README.md",
+        "examples/nginx.serve.conf"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/transcribe-everything",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d809b16",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/truthaboutivermectin-redirect.com",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "bda4b820054163dbd4dce738bbaa8043cca5bc60",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/twdb",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3eb455a09f6a9708f3c9676e9504cac78e2a9aa2",
+      "matched_paths": [
+        "application/vendor/aws/Aws/data/compute-optimizer/2019-11-01/api-2.json.php",
+        "system/core/URI.php",
+        "system___/core/URI.php"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1486
+      }
+    },
+    {
+      "name": "zackees/tx",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0e8aa94",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/UsageStats",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "7cc17c0",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    },
+    {
+      "name": "zackees/USBHost_t36",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e5cd9cc",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/vidcrawler",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "2973b89",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/video-pass",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "54e2370ddf2307fab93082f236ab7946bd55796f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/video-server",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "979d1e2",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/video-subtitles",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0ae868c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/vids-db",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "301651c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/vids-db-server",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "be4bb20",
+      "matched_paths": [
+        "archive/install_droplet.sh"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/virtual-fs",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e6b2873",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/wearethene.ws",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "cef8a35e376d25f5bc12f929cc214ea12d38f61e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 48
+      }
+    },
+    {
+      "name": "zackees/webgraphviz",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "31077df",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/webseed",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "32b1ba8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/webtorrent",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "94e9313",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/webtorrent-how-to-seed-server",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1abc79e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/webtorrent-seeder-websocket-bug",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "aa16844",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/webtorrent.fixed.js",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "6745cf9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/webtorrent.io",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "8b82ef5",
+      "matched_paths": [
+        "nginx.conf",
+        "server/index.js"
+      ],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 48
+      }
+    },
+    {
+      "name": "zackees/wezterm",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a1ca3fd",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 9,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 67
+      }
+    },
+    {
+      "name": "zackees/whisper",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f37fae1",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/whisper-writer",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "86090d6",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 5
+      }
+    },
+    {
+      "name": "zackees/wild",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e2e75df",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/win-open-cmd-here-reg",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b05e51e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/windows",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3aa2f6e",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/wizard-staff",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b5ad349be34b94d8c5c73774acfb180c528fec08",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/wry",
+      "default_branch": "dev",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "792d035",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 3
+      }
+    },
+    {
+      "name": "zackees/xiao-inmp441-test",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "a185422",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/xor-cipher.js",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f870ef3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/youtube-html-parser",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "3404e8f",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 24,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/youtube-sync",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "e4f51b8",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/youtube-trusted-session-generator",
+      "default_branch": "master",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "0694481",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/YouWhisper",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ea9a1ce",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 4
+      }
+    },
+    {
+      "name": "zackees/yt-dlp-proxy",
+      "default_branch": "main",
+      "private": false,
+      "fork": true,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "f302e29",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/ytclip",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "dc7c0ac",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/ytclip-server",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d6453b3",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/z12",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d59cf2fe0a835fe39c5f89570c4dcc5d1f82dfb9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 1,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/zachvorhies.com-archive",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "929f2bf4f0c914cb739298398218ee15c8a93329",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 7,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 612,
+        "tree_complete": true,
+        "deployment_candidates": 8,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/zachvorhies.com-assets",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b35135f7f6d38dcad08503af0e1047c7d93a4c5c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 126,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/zachvorhies_com",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "dee65a24389760ee7c1abad03a3b764ee0828fe7",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 7,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 344,
+        "tree_complete": true,
+        "deployment_candidates": 18,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/zachvorhies_com_dynamic",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "10be60408185a97917eae97aeffc7e9a56a1eaf4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/zackees",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "d6157e9",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/zapio",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b38d51a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "zackees/zax.video",
+      "default_branch": "main",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fcd0a309277dd00dd4737e9e0735b07fd2e388bf",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 1
+      }
+    },
+    {
+      "name": "zackees/zaxtunes.com",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "030d6e93be81cb388bb0aa594232ae9068f18399",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 6,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0,
+        "tree_complete": true,
+        "deployment_candidates": 2,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "zackees/zccache",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "9024e75",
+      "matched_paths": [
+        "crates/zccache-cli-core/src/cli/commands/fetch.rs",
+        "docs/architecture/runtime.md"
+      ],
+      "coverage": {
+        "large_files_skipped": 2,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/zcmds",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "fe15ec4",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 2
+      }
+    },
+    {
+      "name": "zackees/zcmds_win32",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "b5e4a52",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 7,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 8
+      }
+    },
+    {
+      "name": "zackees/zlibry",
+      "default_branch": "main",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "ce70e03",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 8,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 120
+      }
+    },
+    {
+      "name": "zackees/zvfoundation_org",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "c0cf8f93b93fa739625f4f3d836dc50ad3e18482",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 56
+      }
+    },
+    {
+      "name": "ZackeesInc/EZBlueSmirfUART",
+      "default_branch": "master",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "947d31c",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 0
+      }
+    },
+    {
+      "name": "ZackeesInc/FashionGlowJewelry.com",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "tree-infrastructure-fallback",
+      "snapshot": "fc3e2b5dcadeacfc5efdd746ecb67ee917b37681",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 6,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 294,
+        "tree_complete": true,
+        "deployment_candidates": 2,
+        "fetch_failures": [],
+        "archive_fallback_reason": [
+          "Archive scan: ArchiveLimit"
+        ]
+      }
+    },
+    {
+      "name": "ZackeesInc/landing.zackees.com",
+      "default_branch": "master",
+      "private": true,
+      "fork": false,
+      "archived": false,
+      "mode": "archive",
+      "snapshot": "1f3314f790c40e0eae3cc16c3c37316b37037c3a",
+      "matched_paths": [],
+      "coverage": {
+        "large_files_skipped": 0,
+        "lfs_pointers_not_fetched": 0,
+        "binary_files_not_text_searched": 6
+      }
+    }
+  ]
+}
