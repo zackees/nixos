@@ -369,6 +369,10 @@ a restored machine silently ends up on the older channel uv. This has been
 done once already. The guard now tests `~/.nix-profile/bin/uv` rather than
 `command -v uv` so that a future PATH entry cannot defeat it again.
 
+To update that uv, rerun the script's remove + add, or do the same by hand.
+Never `nix profile upgrade uv`: upgrade re-resolves through the registry
+and downgrades to the pinned uv (it took 0.12.5 to 0.11.21 on 2026-10-22).
+
 `systemd.user.services.user-python-venv` needs no `systemPackages` entry
 either -- `path = [ pkgs.uv ]` pulls the derivation in by store path. That is
 also what makes the venv provision correctly at the very first login of a
