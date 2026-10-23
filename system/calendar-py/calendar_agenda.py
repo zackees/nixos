@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from enum import StrEnum
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 from calendar_ical import IcalEvent, parse_events
 
@@ -69,6 +69,8 @@ class Row:
     location: str
     url: str
     link_kind: LinkKind
+    # zoommtg:// URL that opens the Zoom app straight into the meeting, or "".
+    join_url: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,6 +91,28 @@ class Feed:
 
 def _is_zoom(host: str) -> bool:
     return any(host == domain or host.endswith("." + domain) for domain in ("zoom.us", "zoom.com"))
+
+
+ZOOM_MEETING_ID = re.compile(r"/(?:j|w|s)/(\d{9,11})/?$")
+
+
+def zoom_join_url(url: str) -> str:
+    """Turn a Zoom web link into the app's own join URL.
+
+    The https link opens a browser tab that then asks to launch the app;
+    zoommtg:// is the scheme the Zoom desktop entry handles, so the meeting
+    opens immediately. A link without a numeric meeting ID -- a personal
+    vanity /my/ link, say -- has no app equivalent and returns "".
+    """
+    parsed = urlparse(url)
+    match = ZOOM_MEETING_ID.search(parsed.path)
+    if match is None or not _is_zoom((parsed.hostname or "").lower()):
+        return ""
+    query = [("action", "join"), ("confno", match.group(1))]
+    passwords = parse_qs(parsed.query).get("pwd")
+    if passwords:
+        query.append(("pwd", passwords[0]))
+    return "zoommtg://zoom.us/join?" + urlencode(query)
 
 
 def event_link(event: IcalEvent) -> Link:
@@ -160,6 +184,7 @@ def _row(event: IcalEvent, day: date, now: datetime) -> Row | None:
         location=event.location,
         url=link.url,
         link_kind=link.kind,
+        join_url=zoom_join_url(link.url) if link.kind is LinkKind.ZOOM else "",
     )
 
 

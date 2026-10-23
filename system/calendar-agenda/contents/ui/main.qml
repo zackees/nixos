@@ -11,6 +11,15 @@ PlasmoidItem {
     preferredRepresentation: compactRepresentation
     property var agenda: ({events: [], next: null, next_label: "Calendar", countdown: "Loading…", error: ""})
     readonly property string title: agenda.next ? agenda.next.title : agenda.countdown
+
+    // Open a meeting: straight into the Zoom app when there is a join URL,
+    // otherwise its web link. Close the agenda so the meeting is in front.
+    function openMeeting(row) {
+        const url = row.join_url || row.url;
+        if (!url) return;
+        Qt.openUrlExternally(url);
+        root.expanded = false;
+    }
     toolTipMainText: ""
     toolTipSubText: ""
 
@@ -161,13 +170,62 @@ PlasmoidItem {
                     onClicked: launcher.connectSource("/run/current-system/sw/bin/kioclient exec /run/current-system/sw/share/applications/org.kde.korganizer.desktop")
                 }
             }
-            PlasmaComponents.Label {
+            // Headliner: the meeting the tab shows, with one big Join button.
+            Rectangle {
                 visible: root.agenda.next !== null
                 Layout.fillWidth: true
-                text: root.agenda.next_label + " · " + root.agenda.countdown + " · " + root.title
-                textFormat: Text.PlainText
-                wrapMode: Text.WordWrap
-                color: Kirigami.Theme.linkColor
+                implicitHeight: headliner.implicitHeight + 24
+                radius: 8
+                color: Qt.alpha(Kirigami.Theme.highlightColor, 0.16)
+                border.width: 1
+                border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.45)
+                ColumnLayout {
+                    id: headliner
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    spacing: 6
+                    RowLayout {
+                        spacing: 6
+                        Rectangle {
+                            visible: root.agenda.live === true
+                            Layout.preferredWidth: 8
+                            Layout.preferredHeight: 8
+                            radius: 4
+                            color: "#e5322d"
+                        }
+                        PlasmaComponents.Label {
+                            text: root.agenda.live ? "In progress" : root.agenda.next_label + " · " + root.agenda.countdown
+                            textFormat: Text.PlainText
+                            font.bold: true
+                            color: Kirigami.Theme.linkColor
+                        }
+                    }
+                    PlasmaComponents.Label {
+                        Layout.fillWidth: true
+                        text: root.title
+                        textFormat: Text.PlainText
+                        wrapMode: Text.WordWrap
+                        font.pixelSize: 20
+                        font.bold: true
+                    }
+                    PlasmaComponents.Label {
+                        Layout.fillWidth: true
+                        text: root.agenda.next ? root.agenda.next.time : ""
+                        textFormat: Text.PlainText
+                        opacity: 0.75
+                    }
+                    PlasmaComponents.Button {
+                        visible: !!root.agenda.next && root.agenda.next.link_kind === "Zoom"
+                        Layout.fillWidth: true
+                        Layout.topMargin: 4
+                        icon.name: "camera-video"
+                        text: root.agenda.live ? "Join Zoom meeting now" : "Join Zoom meeting"
+                        font.pixelSize: 15
+                        font.bold: true
+                        highlighted: true
+                        onClicked: root.openMeeting(root.agenda.next)
+                    }
+                }
             }
             PlasmaComponents.Label {
                 visible: root.agenda.events.length === 0
@@ -196,9 +254,7 @@ PlasmoidItem {
                             enabled: true
                             opacity: modelData.status === "past" ? 0.5 : 1.0
                             highlighted: modelData.status === "current"
-                            onClicked: {
-                                if (modelData.url) Qt.openUrlExternally(modelData.url);
-                            }
+                            onClicked: root.openMeeting(modelData)
                             contentItem: ColumnLayout {
                                 id: details
                                 spacing: 4

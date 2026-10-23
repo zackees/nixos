@@ -6,7 +6,15 @@ import unittest
 from datetime import UTC, datetime
 from typing import override
 
-from calendar_agenda import Feed, Link, LinkKind, Status, event_link, today_agenda
+from calendar_agenda import (
+    Feed,
+    Link,
+    LinkKind,
+    Status,
+    event_link,
+    today_agenda,
+    zoom_join_url,
+)
 from calendar_ical import IcalEvent, parse_events
 
 ZOOM = "\nLOCATION:https://example.zoom.us/j/123"
@@ -210,6 +218,26 @@ class AgendaTests(unittest.TestCase):
         self.assertEqual(len(feed.events), 2)
         self.assertEqual(chosen(feed), "Overnight")
         self.assertTrue(feed.events[0].time.startswith("Yesterday"))
+
+    def test_zoom_links_open_the_app_directly(self) -> None:
+        self.assertEqual(
+            zoom_join_url("https://us02web.zoom.us/j/12345678901?pwd=abc.1"),
+            "zoommtg://zoom.us/join?action=join&confno=12345678901&pwd=abc.1",
+        )
+        self.assertEqual(
+            zoom_join_url("https://example.zoom.us/j/123456789"),
+            "zoommtg://zoom.us/join?action=join&confno=123456789",
+        )
+        self.assertEqual(zoom_join_url("https://example.zoom.us/my/someone"), "")
+        self.assertEqual(zoom_join_url("https://zoom.us.evil.test/j/123456789"), "")
+        [row] = today_agenda(
+            ics(
+                "DTSTART:20261022T190000Z\nDTEND:20261022T200000Z\nSUMMARY:Call"
+                "\nLOCATION:https://example.zoom.us/j/123456789"
+            ),
+            at(18),
+        ).events
+        self.assertEqual(row.join_url, "zoommtg://zoom.us/join?action=join&confno=123456789")
 
     def test_zoom_domain_validation_and_safe_fallback(self) -> None:
         [event] = ics(
