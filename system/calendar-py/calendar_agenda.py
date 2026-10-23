@@ -19,11 +19,26 @@ URL_PATTERN = re.compile(r"https?://[^\s<>\"']+")
 # Google event types that describe the user's time rather than a meeting.
 BLOCK_EVENT_TYPES = frozenset({"focusTime", "outOfOffice", "workingLocation"})
 HOUR_MINUTES = 60
+# The TLD must be lowercase: descriptions often run an address straight into
+# the next label ("x@site.com.auWebsite: ..."), and that cuts it off there.
+EMAIL_PATTERN = re.compile(
+    r"(?<![\w.+/-])[\w.+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[a-z]{2,}(?![a-z])"
+)
+# Ten or more digits, optionally +country, with the usual separators.
+PHONE_PATTERN = re.compile(r"(?<![\w/=])\+?\(?\d[\d ().-]{8,}\d(?![\d,#])")
+PHONE_DIGITS = 10
+# Zoom invitations list a dozen dial-in numbers; a few contacts are plenty.
+CONTACT_LIMIT = 3
+# The hover card shows the description, not a whole pasted document.
+DETAIL_LIMIT = 1500
+MEETING_ID_PATTERN = re.compile(
+    r"(?:meeting id|passcode|password|pin)\s*[:#]?\s*[\d ]+", re.IGNORECASE
+)
+TAG_PATTERN = re.compile(r"<[^>]+>")
+BREAK_PATTERN = re.compile(r"<\s*(?:br|/p|/div|/li)\s*/?>", re.IGNORECASE)
 # While a meeting runs, the tab also shows one that starts before it ends or
 # within this long after: the back-to-back case worth seeing at a glance.
 FOLLOWING_WINDOW = timedelta(hours=1)
-# Finished meetings stay in the agenda this long, then drop out of it.
-PAST_RETENTION = timedelta(hours=2)
 
 
 class Status(StrEnum):
@@ -71,6 +86,12 @@ class Row:
     link_kind: LinkKind
     # zoommtg:// URL that opens the Zoom app straight into the meeting, or "".
     join_url: str
+    # The event's description as plain text, for the hover card.
+    details: str
+    emails: list[str]
+    phones: list[str]
+    # Listed under Tomorrow; the widget colours these apart from today's.
+    tomorrow: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,17 +99,17 @@ class Feed:
     """The whole JSON document the widget reads."""
 
     date: str
+    # Still ahead today: all-day, in progress and upcoming, in start order.
     events: list[Row]
+    # Today's finished events, shown greyed in a collapsible section below.
+    done: list[Row]
+    # Tomorrow's events, once nothing is ahead today.
+    tomorrow: list[Row]
     next: Row | None
     # True while `next` is in progress: the tab shows a red dot.
     live: bool
     # The meeting after a live `next`, when it is close; a second tab slot.
     following: Row | None
-    # Today's events trimmed for having ended over PAST_RETENTION ago; tells
-    # "all done" apart from "nothing scheduled" once the list is empty.
-    finished: int
-    # Tomorrow's events, once nothing is left today.
-    tomorrow: list[Row]
     next_label: str
     countdown: str
     error: str
@@ -118,6 +139,37 @@ def zoom_join_url(url: str) -> str:
     if passwords:
         query.append(("pwd", passwords[0]))
     return "zoommtg://zoom.us/join?" + urlencode(query)
+
+
+def plain_text(markup: str) -> str:
+    """Flatten Google's HTML description into readable plain text."""
+    text = html.unescape(TAG_PATTERN.sub("", BREAK_PATTERN.sub("\n", markup)))
+    lines = [" ".join(line.split()) for line in text.splitlines()]
+    collapsed = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+    if len(collapsed) > DETAIL_LIMIT:
+        return collapsed[:DETAIL_LIMIT].rstrip() + "…"
+    return collapsed
+
+
+def _unique(items: list[str]) -> list[str]:
+    return list(dict.fromkeys(items))[:CONTACT_LIMIT]
+
+
+def contacts(event: IcalEvent) -> tuple[list[str], list[str]]:
+    """Return the emails and phone numbers written in the event.
+
+    URLs are removed first so an address inside a link is not mistaken for
+    a contact, and a number followed by ",," or "#" -- a Zoom dial-in with
+    its meeting ID -- is left out, as are labelled meeting IDs and passcodes.
+    """
+    text = URL_PATTERN.sub(" ", html.unescape(event.location + "\n" + event.description))
+    text = TAG_PATTERN.sub(" ", text)
+    # Meeting IDs and passcodes look like phone numbers and are not contacts.
+    text = MEETING_ID_PATTERN.sub(" ", text)
+    emails = _unique([match.group(0).rstrip(".") for match in EMAIL_PATTERN.finditer(text)])
+    numbers = (match.group(0).strip() for match in PHONE_PATTERN.finditer(text))
+    phones = _unique([n for n in numbers if sum(c.isdigit() for c in n) >= PHONE_DIGITS])
+    return emails, phones
 
 
 def event_link(event: IcalEvent) -> Link:
@@ -178,6 +230,7 @@ def _row(event: IcalEvent, day: date, now: datetime) -> Row | None:
         and not event.transparent
         and event.event_type not in BLOCK_EVENT_TYPES
     )
+    emails, phones = contacts(event)
     return Row(
         title=event.summary or "Untitled meeting",
         time=label,
@@ -190,6 +243,10 @@ def _row(event: IcalEvent, day: date, now: datetime) -> Row | None:
         url=link.url,
         link_kind=link.kind,
         join_url=zoom_join_url(link.url) if link.kind is LinkKind.ZOOM else "",
+        details=plain_text(event.description),
+        emails=emails,
+        phones=phones,
+        tomorrow=start.date() > now.astimezone().date(),
     )
 
 
@@ -242,10 +299,10 @@ def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
     """Build today's feed at `now`, which must be timezone-aware."""
     day = now.astimezone().date()
     live = [event for event in events if not event.cancelled]
-    scheduled = _rows_on(live, day, now)
-    cutoff = (now - PAST_RETENTION).timestamp()
-    rows = [row for row in scheduled if row.status is not Status.PAST or row.end >= cutoff]
-    chosen = select_next(rows)
+    rows = _rows_on(live, day, now)
+    ahead = [row for row in rows if row.status is not Status.PAST]
+    done = [row for row in rows if row.status is Status.PAST]
+    chosen = select_next(ahead)
     tomorrow: list[Row] = []
     if chosen is None:
         # Leave out events already listed today, such as one running past midnight.
@@ -256,12 +313,12 @@ def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
             if row.all_day or row.start >= midnight
         ]
         label = "Today"
-        if not scheduled:
-            countdown = "No meetings today"
-        elif any(row.status is not Status.ALL_DAY for row in scheduled):
+        if done:
             countdown = "All of today's meetings are done"
-        else:
+        elif ahead:
             countdown = "No more timed meetings"
+        else:
+            countdown = "No meetings today"
     else:
         label = (
             "Now"
@@ -271,12 +328,12 @@ def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
         countdown = _countdown(chosen, now)
     return Feed(
         date=day.strftime("%A, %B %-d"),
-        events=rows,
+        events=ahead,
+        done=done,
+        tomorrow=tomorrow,
         next=chosen,
         live=chosen is not None and chosen.status is Status.CURRENT,
-        following=select_following(rows, chosen),
-        finished=len(scheduled) - len(rows),
-        tomorrow=tomorrow,
+        following=select_following(ahead, chosen),
         next_label=label,
         countdown=countdown,
         error="",
@@ -287,11 +344,11 @@ def _failure(countdown: str, error: str) -> Feed:
     return Feed(
         date="",
         events=[],
+        done=[],
+        tomorrow=[],
         next=None,
         live=False,
         following=None,
-        finished=0,
-        tomorrow=[],
         next_label="Calendar",
         countdown=countdown,
         error=error,

@@ -11,7 +11,9 @@ from calendar_agenda import (
     Link,
     LinkKind,
     Status,
+    contacts,
     event_link,
+    plain_text,
     today_agenda,
     zoom_join_url,
 )
@@ -80,7 +82,7 @@ class AgendaTests(unittest.TestCase):
         self.assertEqual(feed.next_label, "12:00 PM")
         self.assertFalse(feed.live)
         # Every event, blocks included, stays in the hover agenda.
-        self.assertEqual(len(feed.events), 5)
+        self.assertEqual(len(feed.events) + len(feed.done), 5)
 
     def test_meeting_is_sticky_until_its_end(self) -> None:
         for moment in (at(17), at(17, 30), at(17, 59)):
@@ -93,7 +95,7 @@ class AgendaTests(unittest.TestCase):
         feed = today_agenda(ics(*DAY), at(18))  # Standup's end instant
         self.assertEqual(chosen(feed), "Noon call")
         self.assertFalse(feed.live)
-        standup = next(row for row in feed.events if row.title == "Standup")
+        standup = next(row for row in feed.done if row.title == "Standup")
         self.assertIs(standup.status, Status.PAST)
 
     def test_start_boundary_makes_meeting_live(self) -> None:
@@ -130,33 +132,58 @@ class AgendaTests(unittest.TestCase):
         self.assertEqual(chosen(today_agenda(events, at(18, 15))), "Long")
         self.assertEqual(chosen(today_agenda(events, at(18, 30))), "Overlap")
 
-    def test_past_events_leave_the_agenda_two_hours_after_ending(self) -> None:
-        titles = [row.title for row in today_agenda(ics(*DAY), at(20)).events]  # 1:00 PM
-        self.assertEqual(titles, ["Focus block", "Standup", "Hold", "Noon call", "One o'clock"])
-        titles = [row.title for row in today_agenda(ics(*DAY), at(20, 1)).events]
-        self.assertEqual(titles, ["Focus block", "Hold", "Noon call", "One o'clock"])
-        titles = [row.title for row in today_agenda(ics(*DAY), at(22, 1)).events]
-        self.assertEqual(titles, ["One o'clock"])
+    def test_ahead_first_then_done_in_start_order(self) -> None:
+        feed = today_agenda(ics(*DAY), at(19, 30))  # 12:30 PM
+        self.assertEqual([row.title for row in feed.events], ["Noon call", "One o'clock"])
+        self.assertEqual([row.title for row in feed.done], ["Focus block", "Standup", "Hold"])
+        self.assertTrue(all(row.status is Status.PAST for row in feed.done))
 
-    def test_finished_day_says_so_and_previews_tomorrow(self) -> None:
-        tomorrow = (
+    def test_finished_day_keeps_every_meeting_as_done(self) -> None:
+        feed = today_agenda(ics(*DAY), at(23, 30))  # 4:30 PM
+        self.assertEqual(feed.events, [])
+        self.assertEqual(len(feed.done), 5)
+        self.assertEqual(feed.countdown, "All of today's meetings are done")
+
+    def test_tomorrow_appears_once_nothing_is_ahead(self) -> None:
+        friday = (
             "DTSTART:20261023T163000Z\nDTEND:20261023T170000Z\nSUMMARY:Friday call" + ZOOM,
             "DTSTART;VALUE=DATE:20261023\nDTEND;VALUE=DATE:20261024\nSUMMARY:Holiday",
         )
-        feed = today_agenda(ics(*DAY, *tomorrow), at(23, 30))  # 4:30 PM
-        self.assertEqual(feed.events, [])
-        self.assertEqual(feed.finished, 5)
-        self.assertEqual(feed.countdown, "All of today's meetings are done")
+        self.assertEqual(today_agenda(ics(*DAY, *friday), at(19, 30)).tomorrow, [])
+        feed = today_agenda(ics(*DAY, *friday), at(23, 30))
         self.assertEqual([row.title for row in feed.tomorrow], ["Holiday", "Friday call"])
-        self.assertTrue(all(row.status is not Status.PAST for row in feed.tomorrow))
+        self.assertTrue(all(row.tomorrow for row in feed.tomorrow))
+        self.assertFalse(any(row.tomorrow for row in feed.done))
+        self.assertEqual(len(feed.done), 5)
 
-    def test_tomorrow_waits_until_today_is_finished(self) -> None:
-        later = "DTSTART:20261023T163000Z\nDTEND:20261023T170000Z\nSUMMARY:Friday call"
-        self.assertEqual(today_agenda(ics(*DAY, later), at(18, 30)).tomorrow, [])
+    def test_contacts_skip_links_and_zoom_dial_ins(self) -> None:
+        [event] = ics(
+            "DTSTART;VALUE=DATE:20261022\nSUMMARY:Intro\nDESCRIPTION:"
+            "Reach me at jane.doe@example.com or (415) 555-0134."
+            " https://example.zoom.us/j/123?uname=bot@example.org"
+            " Dial +16699006833,,123456789# or +1 669 900 6833"
+            " Meeting ID: 123 456 7890"
+        )
+        emails, phones = contacts(event)
+        self.assertEqual(emails, ["jane.doe@example.com"])
+        self.assertEqual(phones, ["(415) 555-0134", "+1 669 900 6833"])
+
+    def test_email_stops_before_a_run_on_label(self) -> None:
+        [event] = ics(
+            "DTSTART;VALUE=DATE:20261022\nSUMMARY:Intro\n"
+            "DESCRIPTION:Email: sam@site.com.auWebsite: none"
+        )
+        self.assertEqual(contacts(event)[0], ["sam@site.com.au"])
+
+    def test_details_are_plain_text(self) -> None:
+        self.assertEqual(
+            plain_text("Agenda:<br>1. <b>Plan</b> &amp; review<br><br><br>Bring notes"),
+            "Agenda:\n1. Plan & review\n\nBring notes",
+        )
 
     def test_empty_day_is_not_reported_as_done(self) -> None:
         feed = today_agenda([], at(18))
-        self.assertEqual(feed.finished, 0)
+        self.assertEqual(feed.done, [])
         self.assertEqual(feed.countdown, "No meetings today")
 
     def test_expired_events_are_never_selected(self) -> None:
@@ -210,7 +237,8 @@ class AgendaTests(unittest.TestCase):
             at(17, 30),
         )
         self.assertEqual(
-            [row.status for row in feed.events], [Status.PAST, Status.CURRENT, Status.UPCOMING]
+            [row.status for row in feed.done + feed.events],
+            [Status.PAST, Status.CURRENT, Status.UPCOMING],
         )
         self.assertEqual(chosen(feed), "Current")
 

@@ -23,6 +23,11 @@ PlasmoidItem {
     toolTipMainText: ""
     toolTipSubText: ""
 
+    // The Done section's arrow. Closed during the day so what is still ahead
+    // leads; once nothing is ahead the section opens regardless.
+    property bool doneOpen: false
+    readonly property bool showDone: doneOpen || agenda.events.length === 0
+
     property bool tabHovered: false
     property bool agendaHovered: false
 
@@ -228,18 +233,15 @@ PlasmoidItem {
                 }
             }
             PlasmaComponents.Label {
-                visible: root.agenda.events.length === 0
+                visible: root.agenda.events.length === 0 && root.agenda.done.length === 0
                 Layout.fillWidth: true
-                text: root.agenda.error
-                    || (root.agenda.finished > 0
-                        ? (root.agenda.finished === 1 ? "Today's meeting is done." : "All " + root.agenda.finished + " of today's meetings are done.")
-                        : "No meetings scheduled today.")
+                text: root.agenda.error || "No meetings scheduled today."
                 textFormat: Text.PlainText
                 wrapMode: Text.WordWrap
                 padding: 12
             }
             PlasmaComponents.ScrollView {
-                visible: root.agenda.events.length > 0 || root.agenda.tomorrow.length > 0
+                visible: root.agenda.events.length > 0 || root.agenda.done.length > 0 || root.agenda.tomorrow.length > 0
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(420, eventList.implicitHeight)
                 contentWidth: availableWidth
@@ -251,14 +253,29 @@ PlasmoidItem {
                         model: root.agenda.events
                         delegate: meetingRow
                     }
-                    // Once today is over, look ahead rather than show nothing.
+                    PlasmaComponents.ItemDelegate {
+                        visible: root.agenda.done.length > 0
+                        width: eventList.width
+                        icon.name: root.showDone ? "arrow-down" : "arrow-right"
+                        text: "Done · " + root.agenda.done.length
+                        font.bold: true
+                        opacity: 0.8
+                        // Nothing ahead: the done list is all there is, so keep it open.
+                        enabled: root.agenda.events.length > 0
+                        onClicked: root.doneOpen = !root.doneOpen
+                    }
+                    Repeater {
+                        model: root.showDone ? root.agenda.done : []
+                        delegate: meetingRow
+                    }
+                    // Once today is over, look ahead; these rows are green.
                     PlasmaComponents.Label {
                         visible: root.agenda.tomorrow.length > 0
                         width: eventList.width
-                        topPadding: root.agenda.events.length > 0 ? 8 : 0
+                        topPadding: 8
                         text: "Tomorrow"
                         font.bold: true
-                        opacity: 0.8
+                        color: Kirigami.Theme.positiveTextColor
                     }
                     Repeater {
                         model: root.agenda.tomorrow
@@ -274,12 +291,29 @@ PlasmoidItem {
         PlasmaComponents.ItemDelegate {
             id: meeting
             required property var modelData
+            // Tomorrow's meetings read in green, apart from today's.
+            readonly property color accent: modelData.tomorrow ? Kirigami.Theme.positiveTextColor
+                : modelData.status === "current" ? Kirigami.Theme.linkColor : Kirigami.Theme.textColor
             width: parent ? parent.width : 0
             implicitHeight: details.implicitHeight + 18
             enabled: true
             opacity: modelData.status === "past" ? 0.5 : 1.0
             highlighted: modelData.status === "current"
             onClicked: root.openMeeting(modelData)
+
+            // Hover a row for the whole event: time, place, contacts, notes.
+            QQC2.ToolTip.visible: hovered && fullDetails.length > 0
+            QQC2.ToolTip.delay: 500
+            QQC2.ToolTip.text: fullDetails
+            readonly property string fullDetails: [
+                modelData.title,
+                modelData.time,
+                modelData.location,
+                modelData.emails.join("\n"),
+                modelData.phones.join("\n"),
+                modelData.details,
+            ].filter(part => part !== "").join("\n\n")
+
             contentItem: ColumnLayout {
                 id: details
                 spacing: 4
@@ -288,7 +322,7 @@ PlasmoidItem {
                     text: (meeting.modelData.status === "current" ? "NOW · " : "") + meeting.modelData.time
                     textFormat: Text.PlainText
                     font.bold: true
-                    color: meeting.modelData.status === "current" ? Kirigami.Theme.linkColor : Kirigami.Theme.textColor
+                    color: meeting.accent
                 }
                 PlasmaComponents.Label {
                     Layout.fillWidth: true
@@ -296,14 +330,65 @@ PlasmoidItem {
                     textFormat: Text.PlainText
                     wrapMode: Text.WordWrap
                     font.pixelSize: 14
+                    color: meeting.modelData.tomorrow ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
                 }
                 PlasmaComponents.Label {
-                    visible: meeting.modelData.link_kind !== "" || meeting.modelData.location !== ""
+                    visible: meeting.modelData.link_kind !== "Zoom"
+                        && (meeting.modelData.link_kind !== "" || meeting.modelData.location !== "")
                     Layout.fillWidth: true
-                    text: meeting.modelData.link_kind === "Zoom" ? "Zoom · Click to join" : meeting.modelData.location || "Open calendar event"
+                    text: meeting.modelData.location || "Open calendar event"
                     textFormat: Text.PlainText
                     wrapMode: Text.WordWrap
                     opacity: 0.7
+                }
+                // The Zoom link, drawn as a hyperlink; it joins in the app.
+                RowLayout {
+                    visible: meeting.modelData.link_kind === "Zoom"
+                    Layout.fillWidth: true
+                    spacing: 4
+                    Kirigami.Icon {
+                        source: "camera-video"
+                        Layout.preferredWidth: 14
+                        Layout.preferredHeight: 14
+                    }
+                    PlasmaComponents.Label {
+                        id: zoomLink
+                        Layout.fillWidth: true
+                        // Drop the query string: it can carry the meeting passcode.
+                        text: meeting.modelData.url.replace(/^https?:\/\//, "").split("?")[0]
+                        textFormat: Text.PlainText
+                        elide: Text.ElideRight
+                        color: Kirigami.Theme.linkColor
+                        font.underline: true
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.openMeeting(meeting.modelData)
+                        }
+                    }
+                }
+                Repeater {
+                    model: meeting.modelData.emails.map(address => ({label: address, href: "mailto:" + address}))
+                        .concat(meeting.modelData.phones.map(number => ({label: number, href: "tel:" + number.replace(/[^\d+]/g, "")})))
+                    delegate: PlasmaComponents.Label {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        text: modelData.label
+                        textFormat: Text.PlainText
+                        elide: Text.ElideRight
+                        color: Kirigami.Theme.linkColor
+                        font.underline: true
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Qt.openUrlExternally(parent.modelData.href);
+                                root.expanded = false;
+                            }
+                        }
+                    }
                 }
             }
         }
