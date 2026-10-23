@@ -1,6 +1,7 @@
 [Desktops]
 Id_1=Desktop_1
 Id_10=f7d3a692-3970-4e86-a927-760c26005ca8
+Id_11=d6a86b34-8044-4930-b559-afea20b8f7c3
 Id_2=Desktop_2
 Id_3=Desktop_3
 Id_4=Desktop_4
@@ -11,6 +12,7 @@ Id_8=Desktop_8
 Id_9=Desktop_9
 Name_1=Main
 Name_10=bosn
+Name_11=Hermes Setup
 Name_2=NixOS & Hermes
 Name_3=TWP
 Name_4=Clud
@@ -19,7 +21,7 @@ Name_6=zach vorhies dynamic
 Name_7=Loops
 Name_8=Loop2
 Name_9=obs-rust
-Number=10
+Number=11
 Rows=1
 
 [Plugins]
@@ -446,6 +448,18 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][bf3d2f56-ea18-44e2-8d79-e2eb4a5939f2][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][d6a86b34-8044-4930-b559-afea20b8f7c3][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][d6a86b34-8044-4930-b559-afea20b8f7c3][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][d6a86b34-8044-4930-b559-afea20b8f7c3][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
