@@ -88,12 +88,17 @@ let
   };
 
   # OBS-Studio-Rust, the obs-rust port, from its pinned release AppImage.
-  # Upstream reuses stock OBS's desktop ID and icon name (com.obsproject.Studio),
-  # so both are renamed here; stock OBS stays installed alongside it.
-  obsRustVersion = "0.1.0-beta.20261014";
-  obsRustSrc = pkgs.fetchurl {
-    url = "https://github.com/obs-rust/obs-studio/releases/download/obs-studio-rust-v${obsRustVersion}/OBS-Studio-Rust-${obsRustVersion}-linux-x86_64.AppImage";
-    hash = "sha256-zUVopBQoTizS4jXn1g1ym1Vcd4R/2/UXlUHajKwLAtI=";
+  # Upstream ships its own desktop ID (io.github.obs_rust.OBSStudioRust); it is
+  # renamed here to the obs-studio-rust names the dock pins. Stock OBS stays
+  # installed alongside it.
+  # Built locally from obs-rust master b75948ece (`bosn run --task appimage-228`),
+  # not a release, so it is not fetchable: add it to the store first with
+  #   nix-store --add-fixed sha256 OBS-Studio-Rust-0.1.0-b75948ece-linux-x86_64.AppImage
+  obsRustVersion = "0.1.0-b75948ece";
+  obsRustSrc = pkgs.requireFile {
+    name = "OBS-Studio-Rust-${obsRustVersion}-linux-x86_64.AppImage";
+    hash = "sha256-2CUfCK3TrQ3HBopigR8T3sT5B2eZtm4cEwNqUls56WE=";
+    message = "Build the AppImage from obs-rust master and nix-store --add-fixed sha256 it.";
   };
   obsRustExtracted = pkgs.appimageTools.extract {
     pname = "obs-studio-rust";
@@ -115,15 +120,15 @@ let
       fi
     '';
     extraInstallCommands = ''
-      install -Dm444 ${obsRustExtracted}/com.obsproject.Studio.desktop \
+      install -Dm444 ${obsRustExtracted}/io.github.obs_rust.OBSStudioRust.desktop \
         $out/share/applications/obs-studio-rust.desktop
       substituteInPlace $out/share/applications/obs-studio-rust.desktop \
-        --replace-fail 'Exec=obs' 'Exec=obs-studio-rust' \
-        --replace-fail 'Icon=com.obsproject.Studio' 'Icon=obs-studio-rust' \
-        --replace-fail 'Name=OBS Studio' 'Name=OBS Studio (Rust)'
-      install -Dm444 ${obsRustExtracted}/usr/share/icons/hicolor/512x512/apps/com.obsproject.Studio.png \
+        --replace-fail 'Exec=obs-studio-rust-gui' 'Exec=obs-studio-rust' \
+        --replace-fail 'Icon=io.github.obs_rust.OBSStudioRust' 'Icon=obs-studio-rust' \
+        --replace-fail 'Name=OBS-Studio-Rust' 'Name=OBS Studio (Rust)'
+      install -Dm444 ${obsRustExtracted}/usr/share/icons/hicolor/512x512/apps/io.github.obs_rust.OBSStudioRust.png \
         $out/share/icons/hicolor/512x512/apps/obs-studio-rust.png
-      install -Dm444 ${obsRustExtracted}/usr/share/icons/hicolor/scalable/apps/com.obsproject.Studio.svg \
+      install -Dm444 ${obsRustExtracted}/usr/share/icons/hicolor/scalable/apps/io.github.obs_rust.OBSStudioRust.svg \
         $out/share/icons/hicolor/scalable/apps/obs-studio-rust.svg
     '';
   };
