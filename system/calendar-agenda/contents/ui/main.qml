@@ -230,13 +230,16 @@ PlasmoidItem {
             PlasmaComponents.Label {
                 visible: root.agenda.events.length === 0
                 Layout.fillWidth: true
-                text: root.agenda.error || "No meetings scheduled today."
+                text: root.agenda.error
+                    || (root.agenda.finished > 0
+                        ? (root.agenda.finished === 1 ? "Today's meeting is done." : "All " + root.agenda.finished + " of today's meetings are done.")
+                        : "No meetings scheduled today.")
                 textFormat: Text.PlainText
                 wrapMode: Text.WordWrap
                 padding: 12
             }
             PlasmaComponents.ScrollView {
-                visible: root.agenda.events.length > 0
+                visible: root.agenda.events.length > 0 || root.agenda.tomorrow.length > 0
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.min(420, eventList.implicitHeight)
                 contentWidth: availableWidth
@@ -246,43 +249,61 @@ PlasmoidItem {
                     spacing: 6
                     Repeater {
                         model: root.agenda.events
-                        delegate: PlasmaComponents.ItemDelegate {
-                            id: meeting
-                            required property var modelData
-                            width: eventList.width
-                            implicitHeight: details.implicitHeight + 18
-                            enabled: true
-                            opacity: modelData.status === "past" ? 0.5 : 1.0
-                            highlighted: modelData.status === "current"
-                            onClicked: root.openMeeting(modelData)
-                            contentItem: ColumnLayout {
-                                id: details
-                                spacing: 4
-                                PlasmaComponents.Label {
-                                    Layout.fillWidth: true
-                                    text: (meeting.modelData.status === "current" ? "NOW · " : "") + meeting.modelData.time
-                                    textFormat: Text.PlainText
-                                    font.bold: true
-                                    color: meeting.modelData.status === "current" ? Kirigami.Theme.linkColor : Kirigami.Theme.textColor
-                                }
-                                PlasmaComponents.Label {
-                                    Layout.fillWidth: true
-                                    text: meeting.modelData.title
-                                    textFormat: Text.PlainText
-                                    wrapMode: Text.WordWrap
-                                    font.pixelSize: 14
-                                }
-                                PlasmaComponents.Label {
-                                    visible: meeting.modelData.link_kind !== "" || meeting.modelData.location !== ""
-                                    Layout.fillWidth: true
-                                    text: meeting.modelData.link_kind === "Zoom" ? "Zoom · Click to join" : meeting.modelData.location || "Open calendar event"
-                                    textFormat: Text.PlainText
-                                    wrapMode: Text.WordWrap
-                                    opacity: 0.7
-                                }
-                            }
-                        }
+                        delegate: meetingRow
                     }
+                    // Once today is over, look ahead rather than show nothing.
+                    PlasmaComponents.Label {
+                        visible: root.agenda.tomorrow.length > 0
+                        width: eventList.width
+                        topPadding: root.agenda.events.length > 0 ? 8 : 0
+                        text: "Tomorrow"
+                        font.bold: true
+                        opacity: 0.8
+                    }
+                    Repeater {
+                        model: root.agenda.tomorrow
+                        delegate: meetingRow
+                    }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: meetingRow
+        PlasmaComponents.ItemDelegate {
+            id: meeting
+            required property var modelData
+            width: parent ? parent.width : 0
+            implicitHeight: details.implicitHeight + 18
+            enabled: true
+            opacity: modelData.status === "past" ? 0.5 : 1.0
+            highlighted: modelData.status === "current"
+            onClicked: root.openMeeting(modelData)
+            contentItem: ColumnLayout {
+                id: details
+                spacing: 4
+                PlasmaComponents.Label {
+                    Layout.fillWidth: true
+                    text: (meeting.modelData.status === "current" ? "NOW · " : "") + meeting.modelData.time
+                    textFormat: Text.PlainText
+                    font.bold: true
+                    color: meeting.modelData.status === "current" ? Kirigami.Theme.linkColor : Kirigami.Theme.textColor
+                }
+                PlasmaComponents.Label {
+                    Layout.fillWidth: true
+                    text: meeting.modelData.title
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    font.pixelSize: 14
+                }
+                PlasmaComponents.Label {
+                    visible: meeting.modelData.link_kind !== "" || meeting.modelData.location !== ""
+                    Layout.fillWidth: true
+                    text: meeting.modelData.link_kind === "Zoom" ? "Zoom · Click to join" : meeting.modelData.location || "Open calendar event"
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
                 }
             }
         }

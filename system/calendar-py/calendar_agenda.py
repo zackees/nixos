@@ -84,6 +84,11 @@ class Feed:
     live: bool
     # The meeting after a live `next`, when it is close; a second tab slot.
     following: Row | None
+    # Today's events trimmed for having ended over PAST_RETENTION ago; tells
+    # "all done" apart from "nothing scheduled" once the list is empty.
+    finished: int
+    # Tomorrow's events, once nothing is left today.
+    tomorrow: list[Row]
     next_label: str
     countdown: str
     error: str
@@ -227,17 +232,36 @@ def _countdown(row: Row, now: datetime) -> str:
     return f"in {minutes // HOUR_MINUTES}h {minutes % HOUR_MINUTES:02d}m"
 
 
+def _rows_on(events: list[IcalEvent], day: date, now: datetime) -> list[Row]:
+    rows = [row for event in events if (row := _row(event, day, now))]
+    rows.sort(key=lambda row: (not row.all_day, row.start, row.title))
+    return rows
+
+
 def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
     """Build today's feed at `now`, which must be timezone-aware."""
     day = now.astimezone().date()
-    rows = [row for event in events if not event.cancelled and (row := _row(event, day, now))]
+    live = [event for event in events if not event.cancelled]
+    scheduled = _rows_on(live, day, now)
     cutoff = (now - PAST_RETENTION).timestamp()
-    rows = [row for row in rows if row.status is not Status.PAST or row.end >= cutoff]
-    rows.sort(key=lambda row: (not row.all_day, row.start, row.title))
+    rows = [row for row in scheduled if row.status is not Status.PAST or row.end >= cutoff]
     chosen = select_next(rows)
+    tomorrow: list[Row] = []
     if chosen is None:
+        # Leave out events already listed today, such as one running past midnight.
+        midnight = _local(day + timedelta(days=1)).timestamp()
+        tomorrow = [
+            row
+            for row in _rows_on(live, day + timedelta(days=1), now)
+            if row.all_day or row.start >= midnight
+        ]
         label = "Today"
-        countdown = "No more timed meetings" if rows else "No meetings today"
+        if not scheduled:
+            countdown = "No meetings today"
+        elif any(row.status is not Status.ALL_DAY for row in scheduled):
+            countdown = "All of today's meetings are done"
+        else:
+            countdown = "No more timed meetings"
     else:
         label = (
             "Now"
@@ -251,6 +275,8 @@ def today_agenda(events: list[IcalEvent], now: datetime) -> Feed:
         next=chosen,
         live=chosen is not None and chosen.status is Status.CURRENT,
         following=select_following(rows, chosen),
+        finished=len(scheduled) - len(rows),
+        tomorrow=tomorrow,
         next_label=label,
         countdown=countdown,
         error="",
@@ -264,6 +290,8 @@ def _failure(countdown: str, error: str) -> Feed:
         next=None,
         live=False,
         following=None,
+        finished=0,
+        tomorrow=[],
         next_label="Calendar",
         countdown=countdown,
         error=error,

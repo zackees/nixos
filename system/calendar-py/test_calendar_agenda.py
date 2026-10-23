@@ -138,11 +138,32 @@ class AgendaTests(unittest.TestCase):
         titles = [row.title for row in today_agenda(ics(*DAY), at(22, 1)).events]
         self.assertEqual(titles, ["One o'clock"])
 
+    def test_finished_day_says_so_and_previews_tomorrow(self) -> None:
+        tomorrow = (
+            "DTSTART:20261023T163000Z\nDTEND:20261023T170000Z\nSUMMARY:Friday call" + ZOOM,
+            "DTSTART;VALUE=DATE:20261023\nDTEND;VALUE=DATE:20261024\nSUMMARY:Holiday",
+        )
+        feed = today_agenda(ics(*DAY, *tomorrow), at(23, 30))  # 4:30 PM
+        self.assertEqual(feed.events, [])
+        self.assertEqual(feed.finished, 5)
+        self.assertEqual(feed.countdown, "All of today's meetings are done")
+        self.assertEqual([row.title for row in feed.tomorrow], ["Holiday", "Friday call"])
+        self.assertTrue(all(row.status is not Status.PAST for row in feed.tomorrow))
+
+    def test_tomorrow_waits_until_today_is_finished(self) -> None:
+        later = "DTSTART:20261023T163000Z\nDTEND:20261023T170000Z\nSUMMARY:Friday call"
+        self.assertEqual(today_agenda(ics(*DAY, later), at(18, 30)).tomorrow, [])
+
+    def test_empty_day_is_not_reported_as_done(self) -> None:
+        feed = today_agenda([], at(18))
+        self.assertEqual(feed.finished, 0)
+        self.assertEqual(feed.countdown, "No meetings today")
+
     def test_expired_events_are_never_selected(self) -> None:
         feed = today_agenda(ics(*DAY), at(21))
         self.assertIsNone(feed.next)
         self.assertFalse(feed.live)
-        self.assertEqual(feed.countdown, "No more timed meetings")
+        self.assertEqual(feed.countdown, "All of today's meetings are done")
 
     def test_transparent_or_typed_blocks_are_not_meetings(self) -> None:
         events = ics(
