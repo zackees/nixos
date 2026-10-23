@@ -30,7 +30,7 @@ PHONE_DIGITS = 10
 # Zoom invitations list a dozen dial-in numbers; a few contacts are plenty.
 CONTACT_LIMIT = 3
 # The hover card shows the description, not a whole pasted document.
-DETAIL_LIMIT = 1500
+DETAIL_LIMIT = 8000
 MEETING_ID_PATTERN = re.compile(
     r"(?:meeting id|passcode|password|pin)\s*[:#]?\s*[\d ]+", re.IGNORECASE
 )

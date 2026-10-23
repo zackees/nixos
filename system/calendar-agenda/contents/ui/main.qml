@@ -29,6 +29,27 @@ PlasmoidItem {
     readonly property bool showDone: doneOpen || agenda.events.length === 0
 
     property bool tabHovered: false
+    // The meeting whose full details slide out to the right of the list.
+    property var focusRow: null
+    onExpandedChanged: if (!expanded) focusRow = null
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    function link(href, label) {
+        return '<a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a>';
+    }
+    // Everything known about a meeting, with its Zoom link, emails and phones clickable.
+    function fullDetails(row) {
+        const parts = ["<b>" + escapeHtml(row.title) + "</b>", escapeHtml(row.time)];
+        if (row.location !== "" && row.link_kind !== "Zoom") parts.push(escapeHtml(row.location));
+        if (row.link_kind === "Zoom") parts.push(link("zoom:", "Join Zoom meeting"));
+        const contacts = row.emails.map(a => link("mailto:" + a, a))
+            .concat(row.phones.map(n => link("tel:" + n.replace(/[^\d+]/g, ""), n)));
+        if (contacts.length > 0) parts.push(contacts.join("<br>"));
+        if (row.details !== "") parts.push(escapeHtml(row.details).replace(/\n/g, "<br>"));
+        return parts.join("<br><br>");
+    }
     property bool agendaHovered: false
 
     function updateHover() {
@@ -135,7 +156,7 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
-        implicitWidth: 440
+        implicitWidth: 440 + slideOut.width
         implicitHeight: Math.min(520, content.implicitHeight + 24)
         // Include the popup's frame, not just its inner content. Together
         // with the tab's margin this creates a continuous hover handoff.
@@ -148,8 +169,11 @@ PlasmoidItem {
         }
         ColumnLayout {
             id: content
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
             anchors.margins: 12
+            width: 416
             spacing: 10
             RowLayout {
                 Layout.fillWidth: true
@@ -184,6 +208,7 @@ PlasmoidItem {
                 color: Qt.alpha(Kirigami.Theme.highlightColor, 0.16)
                 border.width: 1
                 border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.45)
+                HoverHandler { onHoveredChanged: if (hovered) root.focusRow = root.agenda.next }
                 ColumnLayout {
                     id: headliner
                     anchors.fill: parent
@@ -207,9 +232,11 @@ PlasmoidItem {
                     }
                     PlasmaComponents.Label {
                         Layout.fillWidth: true
-                        text: root.title
+                        text: root.agenda.next && !root.agenda.live ? "Next up: " + root.title : root.title
                         textFormat: Text.PlainText
                         wrapMode: Text.WordWrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
                         font.pixelSize: 20
                         font.bold: true
                     }
@@ -284,6 +311,46 @@ PlasmoidItem {
                 }
             }
         }
+        // Hovering a meeting slides its full details out to the right.
+        Item {
+            id: slideOut
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: root.focusRow ? 380 : 0
+            clip: true
+            Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: 12
+                anchors.leftMargin: 0
+                radius: 8
+                color: Qt.alpha(Kirigami.Theme.highlightColor, 0.08)
+                border.width: 1
+                border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
+                PlasmaComponents.ScrollView {
+                    anchors.fill: parent
+                    anchors.margins: 12
+                    contentWidth: availableWidth
+                    PlasmaComponents.Label {
+                        width: parent ? parent.width : 0
+                        text: root.focusRow ? root.fullDetails(root.focusRow) : ""
+                        textFormat: Text.StyledText
+                        wrapMode: Text.Wrap
+                        linkColor: Kirigami.Theme.linkColor
+                        onLinkActivated: function(href) {
+                            if (href === "zoom:") {
+                                root.openMeeting(root.focusRow);
+                            } else {
+                                Qt.openUrlExternally(href);
+                                root.expanded = false;
+                            }
+                        }
+                        HoverHandler { cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor }
+                    }
+                }
+            }
+        }
     }
 
     Component {
@@ -301,18 +368,7 @@ PlasmoidItem {
             highlighted: modelData.status === "current"
             onClicked: root.openMeeting(modelData)
 
-            // Hover a row for the whole event: time, place, contacts, notes.
-            QQC2.ToolTip.visible: hovered && fullDetails.length > 0
-            QQC2.ToolTip.delay: 500
-            QQC2.ToolTip.text: fullDetails
-            readonly property string fullDetails: [
-                modelData.title,
-                modelData.time,
-                modelData.location,
-                modelData.emails.join("\n"),
-                modelData.phones.join("\n"),
-                modelData.details,
-            ].filter(part => part !== "").join("\n\n")
+            onHoveredChanged: if (hovered) root.focusRow = modelData
 
             contentItem: ColumnLayout {
                 id: details
@@ -329,6 +385,8 @@ PlasmoidItem {
                     text: meeting.modelData.title
                     textFormat: Text.PlainText
                     wrapMode: Text.WordWrap
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
                     font.pixelSize: 14
                     color: meeting.modelData.tomorrow ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
                 }
