@@ -31,6 +31,11 @@ PlasmoidItem {
     property bool tabHovered: false
     // The meeting whose full details slide out to the right of the list.
     property var focusRow: null
+    // With nothing hovered yet, show the meeting the tab shows.
+    readonly property var shownRow: focusRow || agenda.next
+        || (agenda.events.length > 0 ? agenda.events[0] : null)
+        || (agenda.done.length > 0 ? agenda.done[agenda.done.length - 1] : null)
+        || (agenda.tomorrow && agenda.tomorrow.length > 0 ? agenda.tomorrow[0] : null)
     onExpandedChanged: if (!expanded) focusRow = null
 
     function escapeHtml(text) {
@@ -156,6 +161,8 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
+        // Fixed width: Plasma keeps the popup's right edge put, so a growing
+        // popup would push the list left. The details column is reserved instead.
         implicitWidth: 440 + slideOut.width
         implicitHeight: Math.min(520, content.implicitHeight + 24)
         // Include the popup's frame, not just its inner content. Together
@@ -317,9 +324,8 @@ PlasmoidItem {
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.focusRow ? 380 : 0
+            width: root.shownRow ? 380 : 0
             clip: true
-            Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 12
@@ -334,13 +340,13 @@ PlasmoidItem {
                     contentWidth: availableWidth
                     PlasmaComponents.Label {
                         width: parent ? parent.width : 0
-                        text: root.focusRow ? root.fullDetails(root.focusRow) : ""
+                        text: root.shownRow ? root.fullDetails(root.shownRow) : ""
                         textFormat: Text.StyledText
                         wrapMode: Text.Wrap
                         linkColor: Kirigami.Theme.linkColor
                         onLinkActivated: function(href) {
                             if (href === "zoom:") {
-                                root.openMeeting(root.focusRow);
+                                root.openMeeting(root.shownRow);
                             } else {
                                 Qt.openUrlExternally(href);
                                 root.expanded = false;
