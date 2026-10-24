@@ -27,6 +27,9 @@ PlasmoidItem {
     // The Done section's arrow. Closed during the day so what is still ahead
     // leads; once nothing is ahead the section opens regardless.
     property bool doneOpen: false
+    // Nothing today and nothing tomorrow: the popup is just one small line.
+    readonly property bool empty: !agenda.next && agenda.events.length === 0
+        && agenda.done.length === 0 && agenda.tomorrow.length === 0
     readonly property bool showDone: doneOpen || agenda.events.length === 0
 
     property bool tabHovered: false
@@ -165,8 +168,13 @@ PlasmoidItem {
 
     fullRepresentation: Item {
         id: fullRep
-        implicitWidth: 440
+        implicitWidth: root.empty ? 240 : 440
         implicitHeight: Math.min(520, content.implicitHeight + 24)
+        // Pin the size, or Plasma reuses the last, larger popup size.
+        Layout.minimumWidth: implicitWidth
+        Layout.maximumWidth: implicitWidth
+        Layout.minimumHeight: implicitHeight
+        Layout.maximumHeight: implicitHeight
         // Include the popup's frame, not just its inner content. Together
         // with the tab's margin this creates a continuous hover handoff.
         HoverHandler {
@@ -182,9 +190,10 @@ PlasmoidItem {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.margins: 12
-            width: 416
+            width: parent.width - 24
             spacing: 10
             RowLayout {
+                visible: !root.empty
                 Layout.fillWidth: true
                 Kirigami.Icon {
                     source: "view-calendar-agenda"
@@ -271,10 +280,11 @@ PlasmoidItem {
             PlasmaComponents.Label {
                 visible: root.agenda.events.length === 0 && root.agenda.done.length === 0
                 Layout.fillWidth: true
-                text: root.agenda.error || "No meetings scheduled today."
+                text: root.agenda.error || "No meetings today"
                 textFormat: Text.PlainText
                 wrapMode: Text.WordWrap
-                padding: 12
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
             }
             PlasmaComponents.ScrollView {
                 visible: root.agenda.events.length > 0 || root.agenda.done.length > 0 || root.agenda.tomorrow.length > 0
