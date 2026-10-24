@@ -3,13 +3,14 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.plasma.plasmoid
 
 PlasmoidItem {
     id: root
     preferredRepresentation: compactRepresentation
-    property var agenda: ({events: [], next: null, next_label: "Calendar", countdown: "Loading…", error: ""})
+    property var agenda: ({events: [], done: [], tomorrow: [], next: null, next_label: "Calendar", countdown: "Loading…", error: ""})
     readonly property string title: agenda.next ? agenda.next.title : agenda.countdown
 
     // Open a meeting: straight into the Zoom app when there is a join URL,
@@ -56,9 +57,10 @@ PlasmoidItem {
         return parts.join("<br><br>");
     }
     property bool agendaHovered: false
+    property bool detailsHovered: false
 
     function updateHover() {
-        if (tabHovered || agendaHovered) {
+        if (tabHovered || agendaHovered || detailsHovered) {
             closeTimer.stop();
             root.expanded = true;
         } else {
@@ -68,9 +70,10 @@ PlasmoidItem {
 
     Timer {
         id: closeTimer
-        interval: 0
+        // Long enough to cross from the list into the details popup, a separate window.
+        interval: 150
         onTriggered: {
-            if (!root.tabHovered && !root.agendaHovered) root.expanded = false;
+            if (!root.tabHovered && !root.agendaHovered && !root.detailsHovered) root.expanded = false;
         }
     }
 
@@ -161,9 +164,8 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
-        // Fixed width: Plasma keeps the popup's right edge put, so a growing
-        // popup would push the list left. The details column is reserved instead.
-        implicitWidth: 440 + slideOut.width
+        id: fullRep
+        implicitWidth: 440
         implicitHeight: Math.min(520, content.implicitHeight + 24)
         // Include the popup's frame, not just its inner content. Together
         // with the tab's margin this creates a continuous hover handoff.
@@ -318,41 +320,52 @@ PlasmoidItem {
                 }
             }
         }
-        // Hovering a meeting slides its full details out to the right.
-        Item {
+        // Hovering a meeting opens its full details in a second popup on the
+        // right. Widening this popup instead does not work: the panel is
+        // centred, so Plasma centres the popup on the tab and the list would
+        // move left as the popup grew.
+        PlasmaCore.PopupPlasmaWindow {
             id: slideOut
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            width: root.shownRow ? 380 : 0
-            clip: true
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 12
-                anchors.leftMargin: 0
-                radius: 8
-                color: Qt.alpha(Kirigami.Theme.highlightColor, 0.08)
-                border.width: 1
-                border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
-                PlasmaComponents.ScrollView {
+            visualParent: fullRep
+            popupDirection: Qt.RightEdge
+            visible: root.expanded && root.focusRow !== null
+            hideOnWindowDeactivate: false
+            mainItem: Item {
+                width: 380
+                height: Math.max(fullRep.height, 200)
+                HoverHandler {
+                    margin: 12
+                    onHoveredChanged: {
+                        root.detailsHovered = hovered;
+                        root.updateHover();
+                    }
+                }
+                Rectangle {
                     anchors.fill: parent
-                    anchors.margins: 12
-                    contentWidth: availableWidth
-                    PlasmaComponents.Label {
-                        width: parent ? parent.width : 0
-                        text: root.shownRow ? root.fullDetails(root.shownRow) : ""
-                        textFormat: Text.StyledText
-                        wrapMode: Text.Wrap
-                        linkColor: Kirigami.Theme.linkColor
-                        onLinkActivated: function(href) {
-                            if (href === "zoom:") {
-                                root.openMeeting(root.shownRow);
-                            } else {
-                                Qt.openUrlExternally(href);
-                                root.expanded = false;
+                    radius: 8
+                    color: Qt.alpha(Kirigami.Theme.highlightColor, 0.08)
+                    border.width: 1
+                    border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
+                    PlasmaComponents.ScrollView {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        contentWidth: availableWidth
+                        PlasmaComponents.Label {
+                            width: parent ? parent.width : 0
+                            text: root.shownRow ? root.fullDetails(root.shownRow) : ""
+                            textFormat: Text.StyledText
+                            wrapMode: Text.Wrap
+                            linkColor: Kirigami.Theme.linkColor
+                            onLinkActivated: function(href) {
+                                if (href === "zoom:") {
+                                    root.openMeeting(root.shownRow);
+                                } else {
+                                    Qt.openUrlExternally(href);
+                                    root.expanded = false;
+                                }
                             }
+                            HoverHandler { cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor }
                         }
-                        HoverHandler { cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor }
                     }
                 }
             }
