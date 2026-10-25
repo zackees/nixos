@@ -98,23 +98,43 @@ function watch(w) {
 
 workspace.windowList().filter(isKitty).forEach(watch);
 
+// A restored window carries a unique tag as its title for its first moments
+// (kitty_snapshot.py sets it from the pane's kitty_resurrect var). The tag,
+// not launch order, says which saved place is this window's: order broke as
+// soon as one launch was slow, and every later window took its neighbour's.
+const TAG = "kitty-resurrect:";
+const claimed = new Set();
+
+function claim(w) {
+    const tag = String(w.caption);
+    if (!tag.startsWith(TAG) || claimed.has(tag)) return;
+    claimed.add(tag);
+    callDBus(NAME, PATH, NAME, "Claim", String(w.internalId), tag, function (placement) {
+        const p = placement ? JSON.parse(placement) : null;
+        if (p && p.output) place(w, p);
+        // kitty's first configure lands after this and resets the size and
+        // position; the service's Delay is the only timer a KWin script has.
+        callDBus(NAME, PATH, NAME, "Delay", 800, function () {
+            if (p && p.output && workspace.windowList().includes(w)) place(w, p);
+            callDBus(NAME, PATH, NAME, "Placed", tag);
+            push();
+        });
+    });
+}
+
+function watchCaption(w) {
+    w.captionChanged.connect(function () { claim(w); });
+    claim(w);
+}
+
+workspace.windowList().filter(isKitty).forEach(watchCaption);
+
 workspace.windowAdded.connect(function (w) {
     if (!isKitty(w)) return;
     order[String(w.internalId)] = ++added;
     watch(w);
-    // During a restore the service hands each new window its saved place,
-    // in launch order; otherwise the answer is empty and nothing moves.
-    callDBus(NAME, PATH, NAME, "Claim", String(w.internalId), function (placement) {
-        if (!placement) return push();
-        const p = JSON.parse(placement);
-        place(w, p);
-        // kitty's first configure lands after this and resets the size and
-        // position; the service's Delay is the only timer a KWin script has.
-        callDBus(NAME, PATH, NAME, "Delay", 800, function () {
-            if (workspace.windowList().includes(w)) place(w, p);
-            push();
-        });
-    });
+    watchCaption(w);
+    push();
 });
 workspace.windowRemoved.connect(function (w) {
     if (!isKitty(w)) return;

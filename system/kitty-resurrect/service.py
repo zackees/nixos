@@ -15,10 +15,12 @@ kitty windows go away with KWin still up and retires the state instead.
 import json
 import os
 from pathlib import Path
+import shlex
 import shutil
 import signal
 import subprocess
 import sys
+import time
 
 import dbus
 import dbus.service
@@ -31,7 +33,7 @@ PLUGIN = "nixos-kitty-resurrect"
 STATE = Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local/state") / "kitty-resurrect"
 RUNTIME = Path(os.environ["XDG_RUNTIME_DIR"])
 CLOSED_GRACE_MS = 30_000   # all windows gone this long with KWin alive = closed on purpose
-CLAIM_TIMEOUT_MS = 15_000
+CLAIM_TIMEOUT_MS = 60_000   # how long restored windows have to appear
 KEEP_RETIRED = 10
 
 
@@ -101,7 +103,8 @@ class Service(dbus.service.Object):
         super().__init__(self.name, "/org/nixos/KittyResurrect")
         self.windows = []      # KWin's latest view of the kitty windows
         self.mapping = {}      # KWin internalId -> (kitty pid, os window id)
-        self.pending = []      # placements handed out in launch order
+        self.pending = {}      # restore tag -> placement, until KWin claims it
+        self.placed = set()    # tags kitty may drop again
         self.claimed = 0
         self.restoring = False
         self.closed_timer = None
@@ -134,13 +137,28 @@ class Service(dbus.service.Object):
         elif self.closed_timer is None and not self.restoring:
             self.closed_timer = GLib.timeout_add(CLOSED_GRACE_MS, self.closed_on_purpose)
 
-    @dbus.service.method(NAME, in_signature="s", out_signature="s")
-    def Claim(self, window_id):
-        if not self.restoring or not self.pending:
+    @dbus.service.method(NAME, in_signature="ss", out_signature="s")
+    def Claim(self, window_id, tag):
+        """KWin saw a window titled with a restore tag; hand it its place.
+
+        Keyed by the tag kitty_snapshot.py puts in the title, never by launch
+        order: one slow or failed launch used to shift every later window
+        into its neighbour's place.
+        """
+        if tag not in self.pending:
             return ""
-        placement = self.pending.pop(0)
+        placement = self.pending.pop(tag)
         self.claimed += 1
-        return json.dumps(placement) if placement else ""
+        return json.dumps(placement) if placement else "{}"
+
+    @dbus.service.method(NAME, in_signature="s", out_signature="")
+    def Placed(self, tag):
+        # kitty drops the tag and the title follows the shell again.
+        self.placed.add(tag)
+        unpin = RUNTIME / "kitty-resurrect-unpin"
+        tmp = unpin.with_name("." + unpin.name)
+        tmp.write_text("\n".join(sorted(self.placed)) + "\n")
+        os.replace(tmp, unpin)
 
     @dbus.service.method(NAME, in_signature="i", out_signature="",
                          async_callbacks=("reply", "error"))
@@ -255,20 +273,18 @@ class Service(dbus.service.Object):
         if retire_after:
             retire(target)   # before launching: never restore the same state twice
         self.restoring = True
-        self.pending, self.claimed = [], 0
+        self.pending, self.claimed = {}, 0
         self.cancel_closed()
         sessions = STATE / "restoring"
         shutil.rmtree(sessions, ignore_errors=True)
         sessions.mkdir(parents=True)
+        stamp = int(time.time())
 
-        def launch(index):
-            if index == len(windows):
-                return finish()
-            k = windows[index]
+        for index, k in enumerate(windows):
+            tag = f"kitty-resurrect:{stamp}:{index}"
+            self.pending[tag] = places.get(str(k["id"]))
             path = sessions / f"{index}.kitty-session"
-            path.write_text(k["session"])
-            self.pending.append(places.get(str(k["id"])))
-            expect = self.claimed + 1
+            path.write_text(tag_session(k["session"], tag))
             # A scope of its own: the kitty this starts must not live in this
             # unit's cgroup, or restarting the service would kill every
             # terminal. A login shell gives it the PATH the dock's kitty gets.
@@ -278,21 +294,10 @@ class Service(dbus.service.Object):
                 env=session_env(),
                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 start_new_session=True)
-            waited = {"ms": 0}
-
-            def wait():
-                waited["ms"] += 100
-                if self.claimed >= expect or waited["ms"] >= CLAIM_TIMEOUT_MS:
-                    if self.claimed < expect:
-                        log(f"window {index} never appeared; continuing")
-                        self.pending.clear()
-                    launch(index + 1)
-                    return False
-                return True
-            GLib.timeout_add(100, wait)
-            return False
 
         def finish():
+            if self.pending:
+                log(f"{len(self.pending)} restored window(s) never claimed a place")
             self.restoring = False
             self.pending.clear()
             shutil.rmtree(sessions, ignore_errors=True)
@@ -301,7 +306,22 @@ class Service(dbus.service.Object):
                               f"{len(windows)} kitty window(s) from before the crash."])
             return False
 
-        launch(0)
+        GLib.timeout_add(CLAIM_TIMEOUT_MS, finish)
+
+
+def tag_session(session, tag):
+    """Mark the OS window's first pane so kitty titles the window with `tag`."""
+    lines = session.splitlines()
+    for i, line in enumerate(lines):
+        if line == "launch" or line.startswith("launch "):
+            # A tag left over from an earlier restore would shadow the new one.
+            words = [w for w in shlex.split(line)[1:] if not w.startswith("--var=kitty_resurrect=")]
+            # kitty only recognises its unserialize data as the first argument.
+            at = 1 if words and words[0].startswith("kitty-unserialize-data=") else 0
+            words.insert(at, f"--var=kitty_resurrect={tag}")
+            lines[i] = shlex.join(["launch"] + words)
+            break
+    return "\n".join(lines) + "\n"
 
 
 def read_json_str(payload):

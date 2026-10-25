@@ -37,10 +37,11 @@ def continue_agent(command):
         return command
     name = os.path.basename(words[0])
     if name == "clud":
-        # --last continues the newest Claude-harness session here without
-        # clud's -c picker; other harnesses have no such flag, so they get -c.
-        harness = [w for w in words[1:] if w in ("--codex", "--gemini", "--opencode")]
-        words = [words[0]] + (harness + ["-c"] if harness else ["--last"])
+        # `-c 0` picks the newest session in this directory straight away;
+        # bare -c opens a picker, which a restore cannot answer. The harness
+        # flag stays, so a codex pane continues a codex session.
+        harness = [w for w in words[1:] if w in ("--codex", "--gemini", "--opencode", "--claude")]
+        words = [words[0]] + harness + ["-c", "0"]
     elif name == "claude":
         words = [words[0], "--continue"]
     elif name == "codex":
@@ -89,7 +90,8 @@ def write_atomic(path, text):
 def install():
     from kitty.boss import get_boss
     from kitty.fast_data_types import (add_timer, current_focused_os_window_id,
-                                       get_os_window_title, remove_timer)
+                                       get_os_window_title, remove_timer,
+                                       set_os_window_title)
     from kitty.session import parse_save_as_options_spec_args
 
     boss = get_boss()
@@ -127,9 +129,36 @@ def install():
         except Exception:
             pass  # Saving state must never stop the terminal from drawing.
 
+    def unpin():
+        # A restore marks each OS window's first pane with a unique tag
+        # (--var=kitty_resurrect=TAG). Shown as the OS window's title, it is
+        # what lets KWin tell otherwise identical windows apart and give each
+        # its own place. Once placed, the service lists the tag in the unpin
+        # file and the title goes back to following the shell. Not a session
+        # `os_window_title`: kitty pins that one for the window's lifetime.
+        try:
+            placed = set((Path(runtime) / "kitty-resurrect-unpin").read_text().split())
+        except (OSError, TypeError):
+            placed = set()
+        try:
+            for os_id, manager in list(boss.os_window_map.items()):
+                for tab in manager.tabs:
+                    for w in tab.windows:
+                        tag = w.user_vars.get("kitty_resurrect")
+                        if not tag:
+                            continue
+                        if tag in placed:
+                            del w.user_vars["kitty_resurrect"]
+                            set_os_window_title(os_id, "")
+                        elif get_os_window_title(os_id) != tag:
+                            set_os_window_title(os_id, tag)
+        except Exception:
+            pass
+
     def focus(_timer_id):
         # The service pairs this with KWin's active window to learn which
         # KWin window is which OS window; titles alone are ambiguous.
+        unpin()
         try:
             focused = current_focused_os_window_id()
             if focus_path and focused > 0 and focused != last["focus"]:
