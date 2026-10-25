@@ -6,22 +6,29 @@ import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.plasma.plasmoid
 
+// TASKS.md as a plain text editor. The tab counts open `- [ ]` lines; the
+// popup is the whole file, saved (commit + push) a moment after typing stops.
 PlasmoidItem {
     id: root
     preferredRepresentation: compactRepresentation
     property var list_: ({tasks: [], open: 0, synced: true})
-    // Done tasks fold away under their own arrow, like the agenda's Done.
-    property bool doneOpen: false
-    readonly property var openTasks: list_.tasks.filter(t => !t.done)
-    readonly property var doneTasks: list_.tasks.filter(t => t.done)
+    property string text: ""
+    // True while the editor holds keystrokes not yet handed to the backend;
+    // a refresh must not overwrite them.
+    property bool dirty: false
     toolTipMainText: "Tasks"
     toolTipSubText: list_.open + " open" + (list_.synced ? "" : " · not synced")
 
     readonly property string cli: "@TASKS@"
 
     function refresh() { lister.disconnectSource(cli + " list"); lister.connectSource(cli + " list"); }
-    // Edits run one at a time and refresh the list when done.
-    function run(args) { runner.connectSource(cli + " " + args); }
+    function load() { reader.disconnectSource(cli + " read"); reader.connectSource(cli + " read"); }
+    function save() {
+        if (!dirty) return;
+        dirty = false;
+        saver.connectSource(cli + " save64 " + Qt.btoa(unescape(encodeURIComponent(text))));
+    }
+    onExpandedChanged: if (expanded) load(); else save()
 
     Plasma5Support.DataSource {
         id: lister
@@ -35,13 +42,30 @@ PlasmoidItem {
     }
 
     Plasma5Support.DataSource {
-        id: runner
+        id: reader
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            if (data["exit code"] !== 0 || root.dirty) return;
+            root.text = data.stdout.replace(/\n$/, "");
+        }
+    }
+
+    Plasma5Support.DataSource {
+        id: saver
         engine: "executable"
         connectedSources: []
         onNewData: function(sourceName, data) {
             disconnectSource(sourceName);
             root.refresh();
         }
+    }
+
+    Timer {
+        id: saveTimer
+        interval: 1500
+        onTriggered: root.save()
     }
 
     compactRepresentation: MouseArea {
@@ -86,36 +110,23 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
-        implicitWidth: 380
-        implicitHeight: Math.min(560, content.implicitHeight + 24)
+        implicitWidth: 560
+        implicitHeight: 620
         Layout.minimumWidth: implicitWidth
-        Layout.maximumWidth: implicitWidth
         Layout.minimumHeight: implicitHeight
-        Layout.maximumHeight: implicitHeight
-        onVisibleChanged: if (visible) { root.refresh(); entry.forceActiveFocus(); }
+        onVisibleChanged: if (visible) editor.forceActiveFocus()
 
         ColumnLayout {
-            id: content
             anchors.fill: parent
             anchors.margins: 12
             spacing: 8
             RowLayout {
                 Layout.fillWidth: true
-                Kirigami.Icon { source: "view-task"; Layout.preferredWidth: 26; Layout.preferredHeight: 26 }
-                ColumnLayout {
-                    spacing: 0
-                    PlasmaComponents.Label { text: "Tasks"; font.bold: true; font.pixelSize: 18 }
-                    PlasmaComponents.Label {
-                        text: root.list_.synced ? "Synced with zackees/tasks" : "Not synced yet. Will retry."
-                        opacity: 0.7
-                    }
-                }
-                Item { Layout.fillWidth: true }
-                PlasmaComponents.ToolButton {
-                    icon.name: "view-refresh"
-                    text: "Sync now"
-                    display: QQC2.AbstractButton.IconOnly
-                    onClicked: root.run("sync")
+                PlasmaComponents.Label { text: "TASKS.md"; font.bold: true; font.pixelSize: 16 }
+                PlasmaComponents.Label {
+                    Layout.fillWidth: true
+                    text: root.dirty ? "editing…" : root.list_.synced ? "synced" : "not synced, will retry"
+                    opacity: 0.6
                 }
                 PlasmaComponents.ToolButton {
                     icon.name: "internet-services"
@@ -124,71 +135,23 @@ PlasmoidItem {
                     onClicked: { Qt.openUrlExternally("https://github.com/zackees/tasks/blob/main/TASKS.md"); root.expanded = false; }
                 }
             }
-            PlasmaComponents.TextField {
-                id: entry
-                Layout.fillWidth: true
-                placeholderText: "Add a task and press Enter"
-                onAccepted: {
-                    const t = text.trim();
-                    if (t === "") return;
-                    root.run("add64 " + Qt.btoa(unescape(encodeURIComponent(t))));
-                    text = "";
-                }
-            }
-            PlasmaComponents.Label {
-                visible: root.list_.tasks.length === 0
-                Layout.fillWidth: true
-                text: "Nothing to do"
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.7
-            }
             PlasmaComponents.ScrollView {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(440, list.implicitHeight)
-                contentWidth: availableWidth
-                Column {
-                    id: list
-                    width: parent.width
-                    spacing: 2
-                    Repeater { model: root.openTasks; delegate: taskRow }
-                    PlasmaComponents.ItemDelegate {
-                        visible: root.doneTasks.length > 0
-                        width: list.width
-                        icon.name: root.doneOpen ? "arrow-down" : "arrow-right"
-                        text: "Done · " + root.doneTasks.length
-                        font.bold: true
-                        opacity: 0.8
-                        onClicked: root.doneOpen = !root.doneOpen
+                Layout.fillHeight: true
+                QQC2.TextArea {
+                    id: editor
+                    text: root.text
+                    font.family: "monospace"
+                    wrapMode: TextEdit.Wrap
+                    textFormat: TextEdit.PlainText
+                    selectByMouse: true
+                    onTextChanged: {
+                        if (text === root.text) return;
+                        root.text = text;
+                        root.dirty = true;
+                        saveTimer.restart();
                     }
-                    Repeater { model: root.doneOpen ? root.doneTasks : []; delegate: taskRow }
                 }
-            }
-        }
-    }
-
-    Component {
-        id: taskRow
-        RowLayout {
-            required property var modelData
-            width: parent ? parent.width : 0
-            spacing: 4
-            PlasmaComponents.CheckBox {
-                checked: modelData.done
-                onToggled: root.run("toggle " + modelData.index)
-            }
-            PlasmaComponents.Label {
-                Layout.fillWidth: true
-                text: modelData.text
-                textFormat: Text.PlainText
-                wrapMode: Text.WordWrap
-                font.strikeout: modelData.done
-                opacity: modelData.done ? 0.55 : 1.0
-            }
-            PlasmaComponents.ToolButton {
-                icon.name: "edit-delete-remove"
-                text: "Remove"
-                display: QQC2.AbstractButton.IconOnly
-                onClicked: root.run("remove " + modelData.index)
             }
         }
     }

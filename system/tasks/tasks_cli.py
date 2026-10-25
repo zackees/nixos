@@ -115,6 +115,24 @@ def main(argv: list[str]) -> int:
             )
         )
         return 0
+    if cmd == "read":
+        pull()
+        print(FILE.read_text() if FILE.exists() else "")
+        return 0
+    if cmd == "save64":
+        # The widget's editor: the whole file, base64-encoded.
+        text = base64.b64decode(argv[2] if len(argv) > 2 else "").decode()
+        text = text.rstrip("\n") + "\n"
+        if FILE.exists() and FILE.read_text() == text:
+            return 0
+        FILE.write_text(text)
+        git("add", "TASKS.md")
+        git("commit", "-q", "-m", "Edit tasks")
+        if not push():
+            # Someone else pushed first: rebase onto it and retry.
+            pull(force=True)
+            push()
+        return 0
     pull(force=True)
     lines, tasks = read()
     if cmd in ("add", "add64"):
