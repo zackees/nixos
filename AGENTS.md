@@ -250,6 +250,26 @@ causes is the *visible* half (blank kitty, plasmashell respawn); this UVM
 fault is the quieter half, and it only shows up the next time something asks
 for CUDA. If both appear on the same evening, suspect one cause.
 
+This now heals itself for voxtype: `voxtype-heal.service` runs when voxtype
+fails, reloads `nvidia_uvm` through the root `nvidia-uvm-reload.service`
+(polkit lets this user start that one unit without a password, and it
+refuses while anything holds the module), and posts a notification
+otherwise. A "voxtype failed" notification is the signal; read
+`journalctl --user -u voxtype-heal`.
+
+**kitty's windows come back after a crash -- `system/kitty-resurrect/`.**
+kitty saves each OS window as a session every 5 s (loaded from
+`home/kitty/tab_bar.py`), a KWin script reports each kitty window's screen,
+desktop, geometry and tile, and the `kitty-resurrect` user service restores
+the newest state whose kitty process is dead when KWin (re)starts. Run
+`kitty-resurrect` to trigger one by hand. Three traps found while building it:
+kitty's `/tmp` and an agent's sandboxed scratchpad are not the same
+directory, so debug output from code running *inside* kitty has to go
+somewhere like `~/.local/state`. `cmd_at_shell_startup` in kitty's
+serialized sessions is sometimes a string and sometimes an argv list. And
+`Tile.manage()` silently does nothing for a window on a desktop the screen
+is not showing, which is why the script defers tiling to the first visit.
+
 **Boatswain's buttons are a JSON file, not a GUI-only setting.** The Stream
 Deck's whole configuration is `~/.local/share/<serial>.json`, editable by hand.
 Boatswain rewrites it on save and on quit, so it must be stopped first --

@@ -20,6 +20,15 @@ if os.path.isfile(_origin_bridge):
     except Exception:
         pass  # An optional placement helper must not break the tab bar.
 
+# Saves each OS window as a session so kitty-resurrect can bring them back
+# after a crash, onto the screen and desktop they were on.
+_resurrect = '/run/current-system/sw/share/kitty-resurrect/kitty_snapshot.py'
+if os.path.isfile(_resurrect):
+    try:
+        runpy.run_path(_resurrect)['install']()
+    except Exception:
+        pass  # Crash recovery must not break the tab bar either.
+
 KEY = 0xfdbc4b   # amber, matches color11
 LBL = 0x7f8c8d   # Breeze inactive-tab grey
 

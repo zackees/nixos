@@ -29,6 +29,23 @@ let
     mkdir -p $out/share/launch-origin
     cp ${./launch-origin}/*.py ${./launch-origin}/*.js $out/share/launch-origin/
   '';
+  # kitty's OS windows come back after a crash on the screen and desktop they
+  # were on; system/kitty-resurrect/service.py explains the three parts.
+  # Same python as launch-origin: both are dbus + GLib services.
+  kittyResurrect = pkgs.runCommand "kitty-resurrect" { } ''
+    mkdir -p $out/share/kitty-resurrect
+    cp ${./kitty-resurrect}/*.py ${./kitty-resurrect}/*.js $out/share/kitty-resurrect/
+  '';
+  kittyResurrectCli = pkgs.writeShellApplication {
+    name = "kitty-resurrect";
+    runtimeInputs = [ pkgs.qt6.qttools ];
+    text = ''
+      # kitty-resurrect            restore the newest session that died
+      # kitty-resurrect FILE       restore a saved one, e.g. from retired/
+      qdbus org.nixos.KittyResurrect /org/nixos/KittyResurrect \
+        org.nixos.KittyResurrect.Restore "''${1:+$(realpath -e "$1")}"
+    '';
+  };
   # TMOG (https://tmog.org) is a third-party Qt 6 task manager shipped only as an
   # unsigned AppImage, so there is no nixpkgs attribute for it. wrapType2 runs it
   # in an FHS sandbox where its bundled Qt libs resolve. The .deb upstream also
@@ -1042,6 +1059,8 @@ in
     # launcher, so nothing to pin.
     zenity
     launchOrigin        # read-only kitty bridge; user service below owns placement
+    kittyResurrect      # kitty_snapshot.py, loaded by home/kitty/tab_bar.py
+    kittyResurrectCli
     imagemagick
 
     # Sublime Text. Needs the permittedInsecurePackages entry further down --
@@ -1719,6 +1738,8 @@ in
     # [Unit] keys, not [Service] ones, so they cannot go in serviceConfig.
     startLimitIntervalSec = 60;
     startLimitBurst = 5;
+    # Once restarts are exhausted: heal a wedged CUDA, or say why not.
+    onFailure = [ "voxtype-heal.service" ];
 
     serviceConfig = {
       ExecStart = "${pkgs.voxtype}/bin/voxtype daemon";
@@ -1758,6 +1779,77 @@ in
   # manager inherits RLIMIT_NICE from this unit, and the default of 0 is
   # why `Nice` in a user unit used to be silently ineffective.
   systemd.services."user@".serviceConfig.LimitNICE = "-10";
+
+  # ── voxtype heals a wedged CUDA, and says so when it cannot ──
+  # A KWin GPU fault (Xid 13 -> 31, "uvm encountered global fatal error")
+  # leaves every new CUDA context failing with `CUDA failure 999: unknown
+  # error`. voxtype then dies at model load, burns its five restarts in ten
+  # seconds and sits in start-limit-hit -- with nothing on screen, so
+  # dictation just quietly stops working (2026-10-24). The cure is the
+  # nvidia_uvm reload described in CLAUDE.md; this does it automatically.
+  #
+  # Root-only half: reload the module, but only when nothing holds it.
+  # The refcount check makes it safe to start at any time -- it can never
+  # yank the module out from under a live CUDA process.
+  systemd.services.nvidia-uvm-reload = {
+    description = "Reload nvidia_uvm to clear a wedged CUDA state";
+    path = [ pkgs.kmod pkgs.gawk ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      refs="$(lsmod | awk '$1 == "nvidia_uvm" { print $3 }')"
+      if [ -n "$refs" ] && [ "$refs" != 0 ]; then
+        echo "nvidia_uvm is in use ($refs); not reloading" >&2
+        exit 1
+      fi
+      modprobe -r nvidia_uvm || true
+      modprobe nvidia_uvm
+    '';
+  };
+  # ...which this user may start without a password dialog, and only it.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function (action, subject) {
+      if (action.id == "org.freedesktop.systemd1.manage-units" &&
+          action.lookup("unit") == "nvidia-uvm-reload.service" &&
+          action.lookup("verb") == "start" && subject.user == "niteris")
+        return polkit.Result.YES;
+    });
+  '';
+
+  # User half: runs when voxtype ends up failed. A CUDA wedge gets the
+  # reload and one fresh start; anything else -- or a heal that did not
+  # take -- becomes a notification carrying voxtype's own last error line.
+  # The stamp keeps it to one heal per 10 minutes so a fault the reload
+  # cannot clear produces a message, not a loop.
+  systemd.user.services.voxtype-heal = {
+    description = "Recover or report a failed voxtype";
+    path = [ pkgs.systemd pkgs.libnotify pkgs.gnugrep pkgs.coreutils pkgs.findutils ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      # Started by hand, or racing a restart that already worked: nothing to do.
+      systemctl --user is-active --quiet voxtype.service && exit 0
+      # Only the run that just failed -- an older run's CUDA error would
+      # otherwise trigger a heal for a failure that is not this one.
+      run="$(systemctl --user show -p InvocationID --value voxtype.service)"
+      log="$(journalctl --user -u voxtype _SYSTEMD_INVOCATION_ID="$run" --no-pager -o cat)"
+      err="$(printf '%s\n' "$log" | grep -m1 -E '^Error:' | cut -c1-300)"
+      stamp="$XDG_RUNTIME_DIR/voxtype-heal.stamp"
+      if printf '%s' "$log" | grep -q 'CUDA failure 999' &&
+         ! find "$stamp" -mmin -10 2>/dev/null | grep -q .; then
+        touch "$stamp"
+        if systemctl start nvidia-uvm-reload.service; then
+          systemctl --user reset-failed voxtype.service
+          systemctl --user start voxtype.service
+          notify-send -a voxtype -i audio-input-microphone \
+            "voxtype recovered" "CUDA was wedged by a GPU fault; nvidia_uvm reloaded and dictation restarted."
+          exit 0
+        fi
+        err="CUDA is wedged and nvidia_uvm could not be reloaded (something holds it). $err"
+      fi
+      notify-send -a voxtype -u critical -i dialog-error \
+        "voxtype failed — dictation is off" \
+        "''${err:-see journalctl --user -u voxtype}"
+    '';
+  };
 
   # ── Screen capture and streaming ─────────────────────────────
   # OBS. Screen capture on this machine goes through xdg-desktop-portal-kde
@@ -2300,6 +2392,19 @@ in
   systemd.user.paths.soldr-shim-libs = {
     wantedBy = [ "default.target" ];
     pathConfig.PathChanged = [ "%h/.soldr-dev" "%h/.soldr" ];
+  };
+
+  systemd.user.services.kitty-resurrect = {
+    description = "Save kitty's windows and restore them after a crash";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = [ pkgs.systemd pkgs.bash pkgs.libnotify ];
+    serviceConfig = {
+      ExecStart = "${launchOriginPython}/bin/python ${kittyResurrect}/share/kitty-resurrect/service.py ${kittyResurrect}/share/kitty-resurrect/main.js";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
   };
 
   systemd.user.services.launch-origin = {
