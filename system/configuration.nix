@@ -834,6 +834,13 @@ in
           "= /calendar" = calRedirect;
           "= /mail" = mailRedirect;
           "= /email" = mailRedirect;
+          # go/<repo>[/path] -> GitHub. forge-ci's live (unarchived) repos as of
+          # 2026-10-24; fbuild lives under FastLED. Subpaths carry over, so
+          # go/soldr/pulls works.
+          "= /forge-ci".return = "302 https://github.com/forge-ci";
+          "~ ^/(ghd|ci\\.yml|setup-soldr|soldr|zccache|bosn|reld|act2|kernal-api)(/[^\\s]*)?$".return =
+            "302 https://github.com/forge-ci/$1$2";
+          "~ ^/(fbuild)(/[^\\s]*)?$".return = "302 https://github.com/FastLED/$1$2";
           "/" = hermes "";
         };
     };
