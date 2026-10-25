@@ -170,15 +170,19 @@ let
   hermesPkg = hermesBuildPkgs.callPackage "${hermesSource}/nix/hermes-agent.nix" {
     inherit (inputs.hermes-agent.inputs) uv2nix pyproject-nix pyproject-build-systems;
     npm-lockfile-fix = inputs.hermes-agent.inputs.npm-lockfile-fix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    # Since 0.22 the runtime tools come from pm/lock.json, translated by
+    # upstream's nix/pm-packages.nix; nix/packages.nix filters it the same way.
+    pmPackages = hermesBuildPkgs.lib.filterAttrs (_: hermesBuildPkgs.lib.isDerivation)
+      (hermesBuildPkgs.callPackage "${hermesSource}/nix/pm-packages.nix" { });
     # Upstream moved versioning into git tags and hardcodes `version = "0.0.0"`
     # in pyproject.toml, so the derivation falls back to 0.0.0 unless told
     # otherwise. That is not cosmetic: `hermes --version` gates plugin and
     # feature availability on it, and everything needing >= 0.21.5 (the
     # Home Assistant plugin) refuses to load against a 0.0.0 build. Keep this
     # in step with the pinned rev in flake.nix -- flake.nix currently pins
-    # rc.35-v0.21.5, the newest release candidate; there is no stable 0.21.5
-    # tag yet, so bump both together when one lands.
-    version = "0.21.5";
+    # 4ea8d23 (tag v0.22.5+canary.20261025T065651Z, upstream main on
+    # 2026-10-25), so bump both together.
+    version = "0.22.5";
     rev = inputs.hermes-agent.rev;
     extraDependencyGroups = [
       "anthropic" "azure-identity" "bedrock" "daytona" "dingtalk"
