@@ -7,12 +7,15 @@ resurrect service can put each one back on its own screen and desktop.
 
 The file lives in XDG_STATE_HOME, not the runtime dir: it has to survive a
 reboot as well as a compositor crash.
+
+All of this runs on kitty's main thread, which draws every terminal, so
+nothing here touches /proc or the disk: kitty-worker (system/kitty-worker)
+answers the process lookups and does every read and write.
 """
 import json
 import os
 from pathlib import Path
 import shlex
-import tempfile
 import time
 
 INTERVAL = 5.0
@@ -70,33 +73,8 @@ def continue_agents(lines):
     return out
 
 
-def write_atomic(path, text):
-    temporary = None
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, prefix=".tmp-",
-                                         delete=False) as stream:
-            temporary = stream.name
-            stream.write(text)
-        os.replace(temporary, path)
-    except Exception:
-        if temporary:
-            try:
-                os.unlink(temporary)
-            except OSError:
-                pass
-
-
-class LeaderMap(dict):
-    """process_group_map stand-in: group N holds just its leader, pid N."""
-
-    def __missing__(self, pgid):
-        return [pgid] if os.path.exists(f"/proc/{pgid}") else []
-
-
 def install():
     from kitty.boss import get_boss
-    from kitty.child import cached_process_data, process_data_cache
     from kitty.fast_data_types import (add_timer, current_focused_os_window_id,
                                        get_os_window_title, remove_timer,
                                        set_os_window_title)
@@ -121,17 +99,13 @@ def install():
     def snapshot(_timer_id):
         try:
             windows = []
-            # NO /proc scan at all. To find each pane's foreground process
-            # kitty maps every process on the machine to its group by reading
-            # /proc/<pid>/stat -- once per pane outside cached_process_data().
-            # On kitty's main thread, the one that draws every terminal, that
-            # froze them all on a 5 s beat under a build: ~1.3 s per snapshot
-            # with ~30 panes (py-spy, 2026-10-25). Even one scan per snapshot
-            # still blocked 224 ms in do_task_stat on a busy process. A
-            # foreground group's leader has pid == pgid, which is all a session
-            # needs, so seed the cache with a map that says exactly that.
-            with cached_process_data():
-                process_data_cache.cached_result = LeaderMap()
+            worker = getattr(boss, "kitty_worker", None)
+            if worker is None:
+                return
+            # Each pane's foreground process comes from kitty-worker's last
+            # reply. Left to itself kitty scans all of /proc per pane -- ~1.3 s
+            # of this thread per snapshot under a build (py-spy, 2026-10-25).
+            with worker.offline():
                 serialized = [(os_id, manager, manager.serialize_state_as_session(
                     str(path), None, opts, is_first=True))
                     for os_id, manager in list(boss.os_window_map.items())]
@@ -146,7 +120,7 @@ def install():
             if not windows or windows == last["windows"]:
                 return
             last["windows"] = windows
-            write_atomic(path, json.dumps(dict(pid=pid, time=time.time(), windows=windows)))
+            worker.write(path, json.dumps(dict(pid=pid, time=time.time(), windows=windows)))
         except Exception:
             pass  # Saving state must never stop the terminal from drawing.
 
@@ -157,10 +131,12 @@ def install():
         # its own place. Once placed, the service lists the tag in the unpin
         # file and the title goes back to following the shell. Not a session
         # `os_window_title`: kitty pins that one for the window's lifetime.
-        try:
-            placed = set((Path(runtime) / "kitty-resurrect-unpin").read_text().split())
-        except (OSError, TypeError):
-            placed = set()
+        worker = getattr(boss, "kitty_worker", None)
+        if worker is None or not runtime:
+            return
+        unpin_path = str(Path(runtime) / "kitty-resurrect-unpin")
+        worker.read(unpin_path)  # the answer is used on the next tick
+        placed = set((worker.files.get(unpin_path) or "").split())
         try:
             for os_id, manager in list(boss.os_window_map.items()):
                 for tab in manager.tabs:
@@ -184,7 +160,9 @@ def install():
             focused = current_focused_os_window_id()
             if focus_path and focused > 0 and focused != last["focus"]:
                 last["focus"] = focused
-                write_atomic(focus_path, str(focused))
+                worker = getattr(boss, "kitty_worker", None)
+                if worker is not None:
+                    worker.write(focus_path, str(focused))
         except Exception:
             pass
 

@@ -1,12 +1,13 @@
 """Publish only titles and pane IDs; this does not enable kitty remote control.
 
 Loaded by tab_bar.py, including on SIGUSR1, so existing terminals participate.
-Kitty's main-loop timer keeps all access to its window objects on its UI thread.
+Kitty's main-loop timer keeps all access to its window objects on its UI thread;
+the file itself is written by kitty-worker (system/kitty-worker), so that
+thread never waits on the disk.
 """
 import json
 import os
 from pathlib import Path
-import tempfile
 import time
 
 
@@ -22,11 +23,11 @@ def install():
     if not runtime:
         return
     pid = os.getpid()
+    # io-ok: kitty's own /proc entry, once at install.
     start = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19]
     path = Path(runtime) / f"kitty-launch-origin-{pid}.json"
 
     def publish(_timer_id):
-        temporary = None
         try:
             windows = []
             for os_id, manager in boss.os_window_map.items():
@@ -37,18 +38,12 @@ def install():
                 active = manager.active_window
                 title = get_os_window_title(os_id) or (active.title if active else "")
                 windows.append(dict(title=title, panes=panes))
-            with tempfile.NamedTemporaryFile(mode="w", dir=runtime,
-                                             prefix=".kitty-launch-origin-", delete=False) as stream:
-                temporary = stream.name
-                json.dump(dict(start=start, time=time.monotonic(), windows=windows), stream)
-            os.replace(temporary, path)
+            worker = getattr(boss, "kitty_worker", None)
+            if worker is not None:
+                worker.write(path, json.dumps(
+                    dict(start=start, time=time.monotonic(), windows=windows)))
         except Exception:
-            # A placement helper must never prevent terminal rendering.
-            if temporary:
-                try:
-                    os.unlink(temporary)
-                except OSError:
-                    pass
+            pass  # A placement helper must never prevent terminal rendering.
 
     boss.launch_origin_timer = add_timer(publish, 0.5, True)
     publish(None)

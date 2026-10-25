@@ -723,6 +723,7 @@ in
       ./hardware-configuration.nix
       ./calendar.nix
       ./tasks.nix
+      ./kitty-worker.nix
       ./shader-wallpaper.nix
       ./voxtype-popups.nix
     ];

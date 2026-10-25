@@ -11,10 +11,21 @@ from kitty.window_title_bar import clear_caches as clear_pane_title_cache
 # title module itself. Invalidate it here so both title renderers reload together.
 clear_pane_title_cache()
 
+# kitty-worker's client first: everything below asks it instead of touching
+# /proc or the disk on kitty's main thread, which draws every terminal (see
+# system/kitty-worker). Reloaded with this module on SIGUSR1.
+_worker_client = '/run/current-system/sw/share/kitty-worker/kitty_async.py'
+_worker = None
+if os.path.isfile(_worker_client):  # io-ok: module load, not a timer or draw
+    try:
+        _worker = runpy.run_path(_worker_client)['install']()
+    except Exception:
+        _worker = None  # Without it labels go stale; terminals still draw.
+
 # Reloading kitty re-imports this module even for already open windows. The
 # helper publishes read-only pane identities for launch placement (issue #14).
 _origin_bridge = '/run/current-system/sw/share/launch-origin/kitty_bridge.py'
-if os.path.isfile(_origin_bridge):
+if os.path.isfile(_origin_bridge):  # io-ok: module load
     try:
         runpy.run_path(_origin_bridge)['install']()
     except Exception:
@@ -23,7 +34,7 @@ if os.path.isfile(_origin_bridge):
 # Saves each OS window as a session so kitty-resurrect can bring them back
 # after a crash, onto the screen and desktop they were on.
 _resurrect = '/run/current-system/sw/share/kitty-resurrect/kitty_snapshot.py'
-if os.path.isfile(_resurrect):
+if os.path.isfile(_resurrect):  # io-ok: module load
     try:
         runpy.run_path(_resurrect)['install']()
     except Exception:
@@ -46,9 +57,9 @@ SHELLS = frozenset(('bash', 'zsh', 'fish', 'sh', 'dash', 'ksh'))
 # Leading elision when the path is deeper than this many components.
 WD_MAX_PARTS = 4
 
-# Foreground lookup otherwise walks all of /proc for every title redraw. Cache
-# per pane, and share kitty's process-group snapshot across panes for 500 ms.
-# OSC 7 directories remain immediate; only the fallback and program name wait.
+# The foreground program and fallback directory come from kitty-worker's last
+# reply (offline() swaps kitty's /proc lookups for it), never from /proc on
+# this thread. Cached per pane for 500 ms; OSC 7 directories stay immediate.
 FOREGROUND_TTL = 0.5
 _foreground_cache = {}
 
@@ -62,16 +73,11 @@ def _foreground_info(w):
     if cached is not None and now - cached[0] < FOREGROUND_TTL:
         return cached[1], cached[2]
 
-    from kitty.child import process_data_cache
-    old_ttl = process_data_cache.ttl
-    process_data_cache.ttl = FOREGROUND_TTL
-    previous = process_data_cache.start_caching()
-    try:
+    if _worker is None:
+        return '', ''
+    with _worker.offline():
         exe = os.path.basename(w.get_exe_of_child() or '')
         wd = w.get_cwd_of_child(oldest=True) or w.get_cwd_of_child() or ''
-    finally:
-        process_data_cache.stop_caching(previous)
-        process_data_cache.ttl = old_ttl
     if len(_foreground_cache) >= 256:
         _foreground_cache.clear()
     # Start the TTL after the lookup so even a slow scan cannot consume it.

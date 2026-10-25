@@ -312,11 +312,17 @@ somewhere like `~/.local/state`. `cmd_at_shell_startup` in kitty's
 serialized sessions is sometimes a string and sometimes an argv list. And
 `Tile.manage()` silently does nothing for a window on a desktop the screen
 is not showing, which is why the script defers tiling to the first visit. And
-anything this code does on kitty's timers runs on its MAIN thread, the one
-that draws every terminal: a slow snapshot is a periodic freeze in every
-window. Wrap per-pane process lookups in `kitty.child.cached_process_data()`
--- without it kitty rescans all of `/proc` once per pane, which under a
-build froze the terminals ~1.3 s every 5 s. Measure with
+anything our code does inside kitty runs on its MAIN thread, the one that
+draws every terminal: one blocking call there is a freeze in every window
+(2026-10-25: a per-pane `/proc` scan, 1.3 s every 5 s under a build; image
+paste ran wl-paste and magick there for seconds). So kitty-side code never
+touches the disk, `/proc` or a subprocess: it asks `kitty-worker`
+(`system/kitty-worker/`, a uv-run user service) over a datagram socket and
+uses the reply on a later tick -- `client.offline()` answers kitty's own
+`/proc` lookups from that reply. `kitty-worker.nix` lists every kitty-side
+module and its build runs `check_kitty_side.py` over them, failing on any
+blocking call not marked `# io-ok: <why>`; add new kitty-side modules to that
+list. Measure the main thread with
 `sudo py-spy record --nonblocking --pid <kitty>`. To load a changed
 `kitty_snapshot.py` into a running kitty, `touch` the dotfiles
 `tab_bar.py` and send kitty SIGUSR1: kitty skips re-importing an unchanged

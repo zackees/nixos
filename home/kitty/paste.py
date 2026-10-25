@@ -8,20 +8,9 @@ Otherwise paste the clipboard text as normal.
 import os
 import json
 import shlex
-import subprocess
-import tempfile
 import uuid
 
 from kittens.tui.handler import result_handler
-
-WL_PASTE = '/run/current-system/sw/bin/wl-paste'
-SAVE_DIR = os.path.expanduser('~/Pictures/kitty-pastes')
-IMAGE_TYPES = (
-    ('image/png', 'png'),
-    ('image/jpeg', 'jpg'),
-    ('image/webp', 'webp'),
-    ('image/gif', 'gif'),
-)
 
 # The declaratively provisioned user Python includes Tk. Run its GUI outside
 # Kitty's event loop; Kitty's own confirmation is a full-pane overlay.
@@ -156,72 +145,7 @@ def _confirm_popup(boss, message, callback, window):
         notify_on_death=finished)
 
 
-def _wl_paste():
-    return WL_PASTE if os.access(WL_PASTE, os.X_OK) else 'wl-paste'
-
-
-def _clipboard_image():
-    """Read image bytes once, without saving a file before confirmation."""
-    try:
-        types = subprocess.run(
-            [_wl_paste(), '--list-types'],
-            capture_output=True, text=True, timeout=2,
-        ).stdout.split()
-    except Exception:
-        return None
-
-    for mime, ext in IMAGE_TYPES:
-        if mime not in types:
-            continue
-        try:
-            result = subprocess.run(
-                [_wl_paste(), '--type', mime], capture_output=True, timeout=10,
-            )
-            if result.returncode == 0 and result.stdout:
-                return result.stdout, ext
-        except Exception:
-            pass
-    return None
-
-
-def _read_clipboard():
-    image = _clipboard_image()
-    if image:
-        data, ext = image
-        return 'image', data, ext
-    from kitty.clipboard import get_clipboard_string
-    return 'text', get_clipboard_string(), ''
-
-
-def _save_image(data, ext):
-    if ext == 'png':
-        # Screenshots should paste as high-quality JPEG, without resizing.
-        # Prefer the lossless PNG clipboard source: Klipper synthesizes JPEG
-        # at quality 75 even when Spectacle's preferred quality is 95.
-        data = subprocess.run(
-            ['/run/current-system/sw/bin/magick', 'png:-', '-background', 'white',
-             '-alpha', 'remove', '-alpha', 'off', '-sampling-factor', '4:4:4',
-             '-quality', '95', 'jpeg:-'],
-            input=data, capture_output=True, timeout=15, check=True,
-        ).stdout
-        ext = 'jpg'
-    os.makedirs(SAVE_DIR, exist_ok=True)
-    # Rapid pastes must never overwrite an image pasted earlier.
-    with tempfile.NamedTemporaryFile(
-        dir=SAVE_DIR, prefix='paste-', suffix='.' + ext, delete=False,
-    ) as output:
-        try:
-            output.write(data)
-            output.flush()
-        except OSError:
-            os.unlink(output.name)
-            raise
-    return output.name
-
-
-def _prompt(payload):
-    kind, data, _ = payload
-    size = len(data.encode('utf-8')) if kind == 'text' else len(data)
+def _prompt(kind, size):
     # Decimal kB, rounded up so a nonempty clipboard never says 0kB.
     return f'Paste {kind} ({(size + 999) // 1000}kB) [y/n]'
 
@@ -232,36 +156,51 @@ def main(args):
 
 @result_handler(no_ui=True)
 def handle_result(args, answer, target_window_id, boss):
+    """Runs on kitty's main thread, which draws every terminal -- so it never
+    waits. Probing, reading and re-encoding a clipboard image (wl-paste,
+    magick: seconds for a screenshot) happen in kitty-worker, and the path
+    is pasted when its reply arrives. Text comes from kitty's own clipboard.
+    """
+    from kitty.clipboard import get_clipboard_string
+
     w = boss.window_id_map.get(target_window_id)
     if w is None:
         return
-    if '--confirm' in args[1:]:
-        payload = _read_clipboard()
+    confirm = '--confirm' in args[1:]
+    worker = getattr(boss, 'kitty_worker', None)
 
-        def confirmed(accepted):
-            # Do not redirect to a newly focused pane while the prompt is open.
-            # Paste exactly the snapshot described, even if clipboard changes.
-            if accepted:
-                paste_into(target_window_id, boss, payload)
+    def paste(text):
+        # Do not redirect to a newly focused pane while waiting or prompting.
+        target = boss.window_id_map.get(target_window_id)
+        if target is not None and text:
+            target.paste_text(text)  # bracketed paste and paste_actions apply
 
-        _confirm_popup(boss, _prompt(payload), confirmed, w)
-        return
-    paste_into(target_window_id, boss)
+    def ask(kind, size, accept, reject=lambda: None):
+        _confirm_popup(boss, _prompt(kind, size),
+                       lambda ok: accept() if ok else reject(), w)
 
+    def text():
+        # Paste exactly the snapshot described, even if the clipboard changes.
+        data = get_clipboard_string()
+        if confirm and data:
+            ask('text', len(data.encode('utf-8')), lambda: paste(data))
+        else:
+            paste(data)
 
-def paste_into(target_window_id, boss, payload=None):
-    w = boss.window_id_map.get(target_window_id)
-    if w is None:
-        return
-    kind, data, ext = payload if payload is not None else _read_clipboard()
-    if kind == 'image':
-        try:
-            path = _save_image(data, ext)
-        except (OSError, subprocess.SubprocessError) as error:
-            boss.show_error('Paste failed', f'Could not save clipboard image: {error}')
-            return
-        # paste_text applies bracketed paste and the configured paste_actions
-        w.paste_text(shlex.quote(path))
-        return
-    if data:
-        w.paste_text(data)
+    def replied(reply):
+        if reply.get('error'):
+            boss.show_error('Paste failed', f'Could not read the clipboard: {reply["error"]}')
+        elif reply.get('kind') == 'image':
+            path = reply['path']
+            if confirm:
+                ask('image', reply['size'], lambda: paste(shlex.quote(path)),
+                    lambda: worker.delete(path))
+            else:
+                paste(shlex.quote(path))
+        else:
+            text()
+
+    if worker is None:
+        text()  # no worker, no image support; never block to provide it
+    else:
+        worker.request({'op': 'clip'}, replied)
