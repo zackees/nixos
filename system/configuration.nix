@@ -1811,6 +1811,8 @@ in
       # needs LimitNICE raised on user@.service (below), and only takes
       # effect after the user manager restarts, i.e. at next login.
       Nice = -10;
+      # Opt back in: the user manager defaults its children to 0 (below).
+      LimitNICE = "-10";
       IOSchedulingClass = "best-effort";
       IOSchedulingPriority = 0;
     };
@@ -1820,6 +1822,14 @@ in
   # manager inherits RLIMIT_NICE from this unit, and the default of 0 is
   # why `Nice` in a user unit used to be silently ineffective.
   systemd.services."user@".serviceConfig.LimitNICE = "-10";
+  # ...but ONLY voxtype may use it. Every other user unit -- and so the whole
+  # graphical session -- is held back at 0. Without this, Chromium sees the
+  # raised RLIMIT_NICE and renices itself to -8 (Brave, and Hermes's headless
+  # Playwright browsers alike); those bursts of 100-400% CPU then pre-empted
+  # plasmashell and every app at nice 0, and the desktop froze for a moment
+  # every few seconds (2026-10-25, the first boot after LimitNICE landed).
+  # Check: `ps -eo ni,comm | awk '$1<0'` should list no browser.
+  systemd.user.extraConfig = "DefaultLimitNICE=0";
 
   # ── voxtype heals a wedged CUDA, and says so when it cannot ──
   # A KWin GPU fault (Xid 13 -> 31, "uvm encountered global fatal error")
