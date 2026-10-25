@@ -3,7 +3,6 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
-import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.plasma.plasmoid
 
@@ -33,37 +32,10 @@ PlasmoidItem {
     readonly property bool showDone: doneOpen || agenda.events.length === 0
 
     property bool tabHovered: false
-    // The meeting whose full details slide out to the right of the list.
-    property var focusRow: null
-    // With nothing hovered yet, show the meeting the tab shows.
-    readonly property var shownRow: focusRow || agenda.next
-        || (agenda.events.length > 0 ? agenda.events[0] : null)
-        || (agenda.done.length > 0 ? agenda.done[agenda.done.length - 1] : null)
-        || (agenda.tomorrow && agenda.tomorrow.length > 0 ? agenda.tomorrow[0] : null)
-    onExpandedChanged: if (!expanded) focusRow = null
-
-    function escapeHtml(text) {
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
-    function link(href, label) {
-        return '<a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a>';
-    }
-    // Everything known about a meeting, with its Zoom link, emails and phones clickable.
-    function fullDetails(row) {
-        const parts = ["<b>" + escapeHtml(row.title) + "</b>", escapeHtml(row.time)];
-        if (row.location !== "" && row.link_kind !== "Zoom") parts.push(escapeHtml(row.location));
-        if (row.link_kind === "Zoom") parts.push(link("zoom:", "Join Zoom meeting"));
-        const contacts = row.emails.map(a => link("mailto:" + a, a))
-            .concat(row.phones.map(n => link("tel:" + n.replace(/[^\d+]/g, ""), n)));
-        if (contacts.length > 0) parts.push(contacts.join("<br>"));
-        if (row.details !== "") parts.push(escapeHtml(row.details).replace(/\n/g, "<br>"));
-        return parts.join("<br><br>");
-    }
     property bool agendaHovered: false
-    property bool detailsHovered: false
 
     function updateHover() {
-        if (tabHovered || agendaHovered || detailsHovered) {
+        if (tabHovered || agendaHovered) {
             closeTimer.stop();
             root.expanded = true;
         } else {
@@ -73,10 +45,10 @@ PlasmoidItem {
 
     Timer {
         id: closeTimer
-        // Long enough to cross from the list into the details popup, a separate window.
+        // Long enough to cross the panel padding into the popup.
         interval: 150
         onTriggered: {
-            if (!root.tabHovered && !root.agendaHovered && !root.detailsHovered) root.expanded = false;
+            if (!root.tabHovered && !root.agendaHovered) root.expanded = false;
         }
     }
 
@@ -226,7 +198,6 @@ PlasmoidItem {
                 color: Qt.alpha(Kirigami.Theme.highlightColor, 0.16)
                 border.width: 1
                 border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.45)
-                HoverHandler { onHoveredChanged: if (hovered) root.focusRow = root.agenda.next }
                 ColumnLayout {
                     id: headliner
                     anchors.fill: parent
@@ -330,56 +301,7 @@ PlasmoidItem {
                 }
             }
         }
-        // Hovering a meeting opens its full details in a second popup on the
-        // right. Widening this popup instead does not work: the panel is
-        // centred, so Plasma centres the popup on the tab and the list would
-        // move left as the popup grew.
-        PlasmaCore.PopupPlasmaWindow {
-            id: slideOut
-            visualParent: fullRep
-            popupDirection: Qt.RightEdge
-            visible: root.expanded && root.focusRow !== null
-            hideOnWindowDeactivate: false
-            mainItem: Item {
-                width: 380
-                height: Math.max(fullRep.height, 200)
-                HoverHandler {
-                    margin: 12
-                    onHoveredChanged: {
-                        root.detailsHovered = hovered;
-                        root.updateHover();
-                    }
-                }
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 8
-                    color: Qt.alpha(Kirigami.Theme.highlightColor, 0.08)
-                    border.width: 1
-                    border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
-                    PlasmaComponents.ScrollView {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        contentWidth: availableWidth
-                        PlasmaComponents.Label {
-                            width: parent ? parent.width : 0
-                            text: root.shownRow ? root.fullDetails(root.shownRow) : ""
-                            textFormat: Text.StyledText
-                            wrapMode: Text.Wrap
-                            linkColor: Kirigami.Theme.linkColor
-                            onLinkActivated: function(href) {
-                                if (href === "zoom:") {
-                                    root.openMeeting(root.shownRow);
-                                } else {
-                                    Qt.openUrlExternally(href);
-                                    root.expanded = false;
-                                }
-                            }
-                            HoverHandler { cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor }
-                        }
-                    }
-                }
-            }
-        }
+
     }
 
     Component {
@@ -396,8 +318,6 @@ PlasmoidItem {
             opacity: modelData.status === "past" ? 0.5 : 1.0
             highlighted: modelData.status === "current"
             onClicked: root.openMeeting(modelData)
-
-            onHoveredChanged: if (hovered) root.focusRow = modelData
 
             contentItem: ColumnLayout {
                 id: details
