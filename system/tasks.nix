@@ -11,9 +11,13 @@ let
   tasks = pkgs.writeShellApplication {
     name = "tasks";
     # git's https pushes authenticate through gh's credential helper.
-    runtimeInputs = [ pkgs.git pkgs.gh ];
+    runtimeInputs = [ pkgs.git pkgs.gh pkgs.uv ];
+    # Python here always runs through uv: the script declares its own
+    # dependencies inline (PEP 723) and uv resolves them into its cache.
+    # only-managed keeps it on uv's CPython, never a /nix/store python that
+    # garbage collection can delete out from under the cached environment.
     text = ''
-      exec ${pkgs.python3}/bin/python ${tasksCli}/tasks_cli.py "$@"
+      exec uv run --quiet --python-preference only-managed --script ${tasksCli}/tasks_cli.py "$@"
     '';
   };
   tasksApplet = pkgs.runCommand "tasks-applet" { } ''

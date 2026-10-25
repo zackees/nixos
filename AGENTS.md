@@ -34,6 +34,15 @@ For system changes, verify with `nixos-rebuild build --flake .#nixos` before
 activating with `sudo -A nixos-rebuild switch --flake .#nixos`. Honor an explicit
 request for diagnosis only, a draft, or no activation or push.
 
+**Python runs through `uv`, always.** A script this repo ships declares its
+dependencies inline (PEP 723 `# /// script` block) and is launched with
+`uv run --python-preference only-managed --script`, with `pkgs.uv` in the
+wrapper's `runtimeInputs` -- not `pkgs.python3.withPackages`. This is the
+user's standing preference, and `only-managed` keeps it on uv's CPython for
+the same garbage-collection reason as the `~/.venv` trap below.
+`system/tasks.nix` is the reference shape. (`calendar.nix` predates this and
+still uses nixpkgs python.)
+
 **Ask whether a new GUI application belongs on the dock.** Installing one
 and pinning it are separate decisions, and both mistakes have been made here:
 kdenlive and handbrake went in and sat unpinned until someone noticed they

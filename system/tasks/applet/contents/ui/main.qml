@@ -18,7 +18,16 @@ PlasmoidItem {
     // a refresh must not overwrite them.
     property bool dirty: false
     toolTipMainText: "Tasks"
-    toolTipSubText: list_.open + " open" + (list_.synced ? "" : " · not synced")
+    // Hover: the file's top-level list items, as markdown-it parsed them.
+    toolTipTextFormat: Text.RichText
+    toolTipSubText: {
+        const top = list_.top || [];
+        const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const rows = top.map(i => (i.check === null ? "• " : i.check ? "☑ " : "☐ ")
+            + (i.check ? "<s>" + esc(i.text) + "</s>" : esc(i.text)));
+        return (rows.length ? rows.join("<br>") : "Nothing yet")
+            + (list_.synced ? "" : "<br><i>edits waiting for the next sync</i>");
+    }
 
     readonly property string cli: "@TASKS@"
 

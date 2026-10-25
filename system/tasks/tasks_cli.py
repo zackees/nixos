@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["markdown-it-py>=3"]
+# ///
 """Backend for the Tasks panel widget: a Markdown checklist in a git repo.
 
 The list is TASKS.md in a clone of github.com/zackees/tasks, one task per
@@ -19,6 +23,8 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+
+from markdown_it import MarkdownIt
 
 REPO = Path(os.environ.get("TASKS_REPO", Path.home() / "dev" / "tasks"))
 FILE = REPO / "TASKS.md"
@@ -82,6 +88,36 @@ def read() -> tuple[list[str], list[tuple[int, bool, str]]]:
     return lines, tasks
 
 
+def top_level() -> list[dict[str, object]]:
+    """The file's outermost list items, for the widget's hover.
+
+    markdown-it is CommonMark: there is no such thing as invalid input, so a
+    half-typed or malformed file still yields whatever items it can. Only
+    items of a list at the document root count; nested sub-items and lists
+    inside quotes are skipped.
+    """
+    if not FILE.exists():
+        return []
+    tokens = MarkdownIt("commonmark").parse(FILE.read_text())
+    items: list[dict[str, object]] = []
+    depth = 0  # nesting of list items around the current token
+    want = False  # the next inline token is a top-level item's first line
+    for tok in tokens:
+        if tok.type == "list_item_open":
+            depth += 1
+            want = depth == 1 and tok.level == 1
+        elif tok.type == "list_item_close":
+            depth -= 1
+        elif tok.type == "inline" and want:
+            want = False
+            text = tok.content.split("\n")[0].strip()
+            m = re.match(r"^\[( |x|X)\]\s*(.*)$", text)
+            items.append(
+                {"text": m.group(2) if m else text, "check": None if not m else m.group(1) != " "}
+            )
+    return items
+
+
 def write(lines: list[str], message: str) -> None:
     FILE.write_text("\n".join(lines) + "\n")
     git("add", "TASKS.md")
@@ -116,6 +152,7 @@ def main(argv: list[str]) -> int:
                     "tasks": [{"index": n, "done": d, "text": t} for n, (_, d, t) in enumerate(tasks)],
                     "open": sum(1 for _, d, _ in tasks if not d),
                     "synced": unpushed() == 0,
+                    "top": top_level(),
                 }
             )
         )
