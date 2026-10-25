@@ -173,6 +173,29 @@ list is wholesale like `panels` is, and it re-adds them after every rebuild.
 
 Files in `~/Desktop` are unaffected -- this only eats *widgets*.
 
+**What a GUI edit survives, and what it does not.** When someone says "my
+Plasma settings don't stick", check this split before you go looking for a
+culprit:
+
+- *Virtual desktops* (add, remove, rename, reorder) survive everything.
+  KWin writes `kwinrc [Desktops]` at the moment of the edit, not on exit, so
+  a KWin crash loses nothing. plasma-manager's activation (`write_config`, no
+  `resetFiles`, not immutable) touches only `kwinrc [Windows]`. Checked on
+  2026-10-24: a scratch desktop made over D-Bus was on disk at once, and
+  survived a re-run of the activation's `plasma-config` script. Keep
+  `kwin.virtualDesktops` unset, or this stops being true.
+- *Anything stored in `plasma-org.kde.plasma.desktop-appletsrc`* is reverted
+  at the next panel rebuild: the quicklaunch dock, the Dev/Media launcher
+  groups, icon widgets, a launcher's icon, desktop widgets. Right-click
+  task-manager pins are the one exception, because `capture.sh` copies them
+  into `home/kde/dock-pins.txt`. A rebuild happens whenever the generated
+  panel JS changes, so it is a later, unrelated panel edit that reverts the
+  GUI change, which makes it hard to connect the two. To keep one of these
+  edits, put it in `system/configuration.nix`.
+- *Which window was on which desktop* is not saved anywhere. Wayland has no
+  session restore, so after a KWin crash every window comes back on whatever
+  desktop it lands on. That is not a config problem.
+
 **plasma-manager's panel `opacity` option does nothing on Plasma 6.6.6.** It
 emits `panel.opacity = "..."` and plasmashell ignores it: the getter keeps
 saying `adaptive`, no `panelOpacity` is written, and setting it by hand on a
