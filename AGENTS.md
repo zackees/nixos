@@ -311,7 +311,16 @@ directory, so debug output from code running *inside* kitty has to go
 somewhere like `~/.local/state`. `cmd_at_shell_startup` in kitty's
 serialized sessions is sometimes a string and sometimes an argv list. And
 `Tile.manage()` silently does nothing for a window on a desktop the screen
-is not showing, which is why the script defers tiling to the first visit.
+is not showing, which is why the script defers tiling to the first visit. And
+anything this code does on kitty's timers runs on its MAIN thread, the one
+that draws every terminal: a slow snapshot is a periodic freeze in every
+window. Wrap per-pane process lookups in `kitty.child.cached_process_data()`
+-- without it kitty rescans all of `/proc` once per pane, which under a
+build froze the terminals ~1.3 s every 5 s. Measure with
+`sudo py-spy record --nonblocking --pid <kitty>`. To load a changed
+`kitty_snapshot.py` into a running kitty, `touch` the dotfiles
+`tab_bar.py` and send kitty SIGUSR1: kitty skips re-importing an unchanged
+`tab_bar.py`, so a bare SIGUSR1 leaves the old timers running.
 
 **Every Plasma widget goes through `system/plasmoid.nix`.** QML is parsed
 only when plasmashell instantiates it -- for a popup, the first time it is

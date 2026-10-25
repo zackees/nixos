@@ -89,6 +89,7 @@ def write_atomic(path, text):
 
 def install():
     from kitty.boss import get_boss
+    from kitty.child import cached_process_data
     from kitty.fast_data_types import (add_timer, current_focused_os_window_id,
                                        get_os_window_title, remove_timer,
                                        set_os_window_title)
@@ -113,8 +114,19 @@ def install():
     def snapshot(_timer_id):
         try:
             windows = []
-            for os_id, manager in list(boss.os_window_map.items()):
-                lines = manager.serialize_state_as_session(str(path), None, opts, is_first=True)
+            # ONE /proc scan per snapshot, not one per pane. Finding each
+            # pane's foreground process makes kitty map every process on the
+            # machine to its group by reading /proc/<pid>/stat, and outside
+            # this context it redoes that for every pane. With ~30 panes and a
+            # build's thousands of processes that was ~1.3 s of the main
+            # thread every 5 s -- every terminal froze on a beat (py-spy,
+            # 2026-10-25: process_group_map was 80% of kitty's Python time).
+            # kitty wraps its own multi-window walks in the same context.
+            with cached_process_data():
+                serialized = [(os_id, manager, manager.serialize_state_as_session(
+                    str(path), None, opts, is_first=True))
+                    for os_id, manager in list(boss.os_window_map.items())]
+            for os_id, manager, lines in serialized:
                 if not lines:
                     continue
                 active = manager.active_window
