@@ -87,9 +87,16 @@ def write_atomic(path, text):
                 pass
 
 
+class LeaderMap(dict):
+    """process_group_map stand-in: group N holds just its leader, pid N."""
+
+    def __missing__(self, pgid):
+        return [pgid] if os.path.exists(f"/proc/{pgid}") else []
+
+
 def install():
     from kitty.boss import get_boss
-    from kitty.child import cached_process_data
+    from kitty.child import cached_process_data, process_data_cache
     from kitty.fast_data_types import (add_timer, current_focused_os_window_id,
                                        get_os_window_title, remove_timer,
                                        set_os_window_title)
@@ -114,15 +121,17 @@ def install():
     def snapshot(_timer_id):
         try:
             windows = []
-            # ONE /proc scan per snapshot, not one per pane. Finding each
-            # pane's foreground process makes kitty map every process on the
-            # machine to its group by reading /proc/<pid>/stat, and outside
-            # this context it redoes that for every pane. With ~30 panes and a
-            # build's thousands of processes that was ~1.3 s of the main
-            # thread every 5 s -- every terminal froze on a beat (py-spy,
-            # 2026-10-25: process_group_map was 80% of kitty's Python time).
-            # kitty wraps its own multi-window walks in the same context.
+            # NO /proc scan at all. To find each pane's foreground process
+            # kitty maps every process on the machine to its group by reading
+            # /proc/<pid>/stat -- once per pane outside cached_process_data().
+            # On kitty's main thread, the one that draws every terminal, that
+            # froze them all on a 5 s beat under a build: ~1.3 s per snapshot
+            # with ~30 panes (py-spy, 2026-10-25). Even one scan per snapshot
+            # still blocked 224 ms in do_task_stat on a busy process. A
+            # foreground group's leader has pid == pgid, which is all a session
+            # needs, so seed the cache with a map that says exactly that.
             with cached_process_data():
+                process_data_cache.cached_result = LeaderMap()
                 serialized = [(os_id, manager, manager.serialize_state_as_session(
                     str(path), None, opts, is_first=True))
                     for os_id, manager in list(boss.os_window_map.items())]

@@ -2289,6 +2289,18 @@ in
   # system-wide activity, so keep this setting specific to this trusted box.
   boot.kernel.sysctl."kernel.perf_event_paranoid" = -1;
 
+  # ── Write-back in steady trickles, not seconds-long floods ──
+  # The default dirty_ratio of 20% is ~25 GB on this 128 GB box. Builds
+  # wrote ~1.5 TB in 16 h, letting 5-6 GB pile up and then flushing it in
+  # bursts that held ext4's journal: everything that saved a file -- a
+  # shell, an editor, an agent's transcript -- queued behind it
+  # (rq_qos_wait, do_get_write_access, jbd2_journal_commit_transaction),
+  # io PSI full 20-39% sustained, and terminals froze for seconds while
+  # their foreground program waited (measured 2026-10-25). Absolute byte
+  # limits keep at most ~1 GB unwritten, starting write-back at 256 MB.
+  boot.kernel.sysctl."vm.dirty_bytes" = 1073741824;
+  boot.kernel.sysctl."vm.dirty_background_bytes" = 268435456;
+
   # Age out /tmp after three days instead of ten.
   #
   # systemd ships `q /tmp 1777 root root 10d` in its own tmpfiles.d/tmp.conf.
