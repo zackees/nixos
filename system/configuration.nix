@@ -1853,6 +1853,31 @@ in
   # Check: `ps -eo ni,comm | awk '$1<0'` should list no browser.
   systemd.user.extraConfig = "DefaultLimitNICE=0";
 
+  # ── Terminals stay responsive under load ──
+  # kitty is ONE process for every terminal window, launched by the dock (and
+  # by kitty-resurrect) as a transient app-kitty@<id>.service; this drop-in
+  # on the template reaches those transient units too. Nice -10 puts its
+  # render and input threads ahead of builds and Hermes's batch work, the
+  # same opt-in as voxtype above.
+  #
+  # The catch is inheritance: every shell is kitty's child, and at -10 so is
+  # every build started in it, which would bring the lag straight back.
+  # home/bash/bashrc renices each kitty shell to 0 on startup (lowering
+  # priority needs no privilege), so only kitty itself keeps the boost.
+  # Check: `ps -L -o ni,comm -p $(pgrep -o -x .kitty-wrapped)` says -10, and
+  # `ps -o ni= -p $$` in a new kitty shell says 0.
+  systemd.user.services."app-kitty@" = {
+    overrideStrategy = "asDropin";
+    # NixOS gives every unit a minimal PATH (coreutils, systemd), LOCALE_ARCHIVE
+    # and TZDIR. In a drop-in those would REPLACE what the dock passes kitty,
+    # leaving every terminal without the user's PATH.
+    environment = lib.mkForce { };
+    serviceConfig = {
+      Nice = -10;
+      LimitNICE = "-10";
+    };
+  };
+
   # ── voxtype heals a wedged CUDA, and says so when it cannot ──
   # A KWin GPU fault (Xid 13 -> 31, "uvm encountered global fatal error")
   # leaves every new CUDA context failing with `CUDA failure 999: unknown

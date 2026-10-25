@@ -285,11 +285,15 @@ class Service(dbus.service.Object):
             self.pending[tag] = places.get(str(k["id"]))
             path = sessions / f"{index}.kitty-session"
             path.write_text(tag_session(k["session"], tag))
-            # A scope of its own: the kitty this starts must not live in this
+            # A unit of its own: the kitty this starts must not live in this
             # unit's cgroup, or restarting the service would kill every
-            # terminal. A login shell gives it the PATH the dock's kitty gets.
+            # terminal. Named app-kitty@ like the dock's, so the template
+            # drop-in (terminal priority, system/configuration.nix) applies;
+            # a --scope could not carry that. A login shell gives it the
+            # PATH the dock's kitty gets.
             subprocess.Popen(
-                ["systemd-run", "--user", "--scope", "--quiet", "--slice=app.slice", "--",
+                ["systemd-run", "--user", "--quiet", "--slice=app.slice",
+                 f"--unit=app-kitty@resurrect-{time.time_ns()}", "--",
                  "bash", "-lc", 'exec kitty --single-instance --session "$1"', "kitty", str(path)],
                 env=session_env(),
                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,

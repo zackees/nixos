@@ -12,6 +12,14 @@
 # either -- the graphical session exports __ETC_PROFILE_DONE.
 if [ -r /etc/bashrc ]; then . /etc/bashrc; fi
 
+# kitty runs at nice -10 so terminals stay responsive under load (the
+# app-kitty@ drop-in in system/configuration.nix). Its shells inherit that,
+# and so would every build started in them -- the load the boost is meant to
+# outrank. Drop this shell back to 0; lowering priority needs no privilege.
+if [ -n "$KITTY_PID" ] && [ "$(ps -o ni= -p $$ 2>/dev/null)" -lt 0 ] 2>/dev/null; then
+  renice -n 0 -p $$ >/dev/null 2>&1
+fi
+
 # clud is pip-managed in ~/.venv (see scripts/03-apply-home.sh): `clud` on
 # PATH is the venv binary. No uvx alias -- the uv-tool clud was removed so a
 # stale second binary can never shadow pip's.
