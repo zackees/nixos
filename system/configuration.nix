@@ -1817,6 +1817,12 @@ in
       Nice = -10;
       # Opt back in: the user manager defaults its children to 0 (below).
       LimitNICE = "-10";
+      # Belt and braces: `Nice=` has been found not applied (every thread at
+      # 0 with the unit saying -10), and nothing reports it. Renice every
+      # thread after start, under the unit's own LimitNICE, and fail the
+      # start if it does not take -- a visible failure beats a silent
+      # dictation daemon that loses key-ups under load.
+      ExecStartPost = "${pkgs.bash}/bin/bash -c 'for t in /proc/$MAINPID/task/*; do ${pkgs.util-linux}/bin/renice -n -10 -p \"$${t##*/}\" >/dev/null || exit 1; done'";
       IOSchedulingClass = "best-effort";
       IOSchedulingPriority = 0;
     };
