@@ -27,6 +27,18 @@ Rows=1
 [Plugins]
 bosn-widget-cornerEnabled=true
 
+[Tiling][088e3c20-fecb-4424-9c1b-83f0560fdb31][3888de78-b2a4-4178-8007-1a30ee96f969]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][088e3c20-fecb-4424-9c1b-83f0560fdb31][5f41c2a1-6c06-4ddf-9618-52ae6fc8a48b]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][088e3c20-fecb-4424-9c1b-83f0560fdb31][7aceef3f-ec2d-4b23-81cd-5af9e8dbd267]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][11ca81d2-99e8-45a6-a896-2f3e6f907cac][17d9bdba-ca72-4c0f-afe1-b22d0dffe43d]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
