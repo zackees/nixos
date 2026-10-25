@@ -313,6 +313,16 @@ serialized sessions is sometimes a string and sometimes an argv list. And
 `Tile.manage()` silently does nothing for a window on a desktop the screen
 is not showing, which is why the script defers tiling to the first visit.
 
+**Every Plasma widget goes through `system/plasmoid.nix`.** QML is parsed
+only when plasmashell instantiates it -- for a popup, the first time it is
+opened -- so broken QML builds, switches and restarts cleanly and fails in
+front of the user. `mkPlasmoid` runs qmllint against the real Qt, Kirigami
+and Plasma types and fails the build instead; it caught "Type SidePopup
+unavailable" (a `Connections` placed as a `PlasmaCore.Dialog` child, whose
+default property only takes an Item). Do not build a plasmoid with a bare
+`runCommand`/`cp`, and do not silence a lint category other than
+`unqualified` to get one through.
+
 **Boatswain's buttons are a JSON file, not a GUI-only setting.** The Stream
 Deck's whole configuration is `~/.local/share/<serial>.json`, editable by hand.
 Boatswain rewrites it on save and on quit, so it must be stopped first --

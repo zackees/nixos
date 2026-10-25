@@ -191,6 +191,13 @@ let
     ];
   };
 
+  # Hermes Desktop, the native Electron app, built from the same patched
+  # source and pointed at hermesPkg's bin/hermes. A menu launch reads no shell
+  # profile, so HERMES_HOME is baked in or the app would open ~/.hermes.
+  hermesDesktop = hermesPkg.passthru.hermesDesktop.override {
+    extraEnv.HERMES_HOME = "/home/niteris/dev/hermes";
+  };
+
   # ── A "Docker" launcher for the dock ──
   # Docker ships no GUI of its own -- the engine is a daemon, and the window
   # people call "Docker" is Docker Desktop, which does not exist here. So the
@@ -436,14 +443,16 @@ let
   #
   # That is also why preferred://filemanager had to become Dolphin by name:
   # there is no scheme here that expands to a default application.
-  mediaLauncherApplet = pkgs.runCommand "media-launcher-applet" { } ''
-    mkdir -p $out
-    cp -r ${./media-launcher}/. $out/
-  '';
-  devLauncherApplet = pkgs.runCommand "dev-launcher-applet" { } ''
-    mkdir -p $out
-    cp -r ${./dev-launcher}/. $out/
-  '';
+  # Both go through plasmoid.nix, which fails the build on QML that would
+  # not load, rather than leaving it to fail when the widget is opened.
+  mediaLauncherApplet = import ./plasmoid.nix { inherit pkgs; } {
+    name = "media-launcher";
+    src = ./media-launcher;
+  };
+  devLauncherApplet = import ./plasmoid.nix { inherit pkgs; } {
+    name = "dev-launcher";
+    src = ./dev-launcher;
+  };
   dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
     "systemsettings.desktop"
     "org.kde.dolphin.desktop"
@@ -1020,7 +1029,9 @@ in
 
   environment.systemPackages = with pkgs; [
     mlGpu
+    hermesDesktop       # native Hermes app; see let-block above
     dockerVm
+    openssl             # `openssl` CLI (bin output); the libraries are in devLibraries.
     unrar               # Extract RAR archives from the command line.
     photon              # pinned Photon Studio AppImage; see let-block above
     obsRust             # pinned OBS-Studio-Rust AppImage; see let-block above
@@ -3353,7 +3364,7 @@ in
               height = 140;
             };
             config.General.url =
-              "file:///home/niteris/.local/share/applications/pyweb-view.hermes.desktop";
+              "file:///run/current-system/sw/share/applications/com.nousresearch.hermes.desktop";
           }
         ];
 

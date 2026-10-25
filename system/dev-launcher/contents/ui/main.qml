@@ -8,13 +8,12 @@ import org.kde.plasma.plasmoid
 PlasmoidItem {
     id: root
 
-    // `desktop` is a full path: Hermes's entry lives in the user's own
-    // applications dir, not the system one the media launcher assumes.
+    // `desktop` is a full path, which the media launcher does not assume.
     readonly property var devApps: [
         { name: "Visual Studio Code", icon: "vscode",
           desktop: "/run/current-system/sw/share/applications/code.desktop" },
-        { name: "Hermes", icon: "pyweb-view.hermes",
-          desktop: "/home/niteris/.local/share/applications/pyweb-view.hermes.desktop" }
+        { name: "Hermes", icon: "/run/current-system/sw/share/icons/hicolor/1024x1024/apps/hermes.png",
+          desktop: "/run/current-system/sw/share/applications/com.nousresearch.hermes.desktop" }
     ]
 
     preferredRepresentation: compactRepresentation

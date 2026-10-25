@@ -20,12 +20,11 @@ let
       exec uv run --quiet --python-preference only-managed --script ${tasksCli}/tasks_cli.py "$@"
     '';
   };
-  tasksApplet = pkgs.runCommand "tasks-applet" { } ''
-    mkdir -p $out
-    cp -r ${./tasks/applet}/. $out/
-    substituteInPlace $out/contents/ui/main.qml \
-      --replace-fail '@TASKS@' '${tasks}/bin/tasks'
-  '';
+  tasksApplet = import ./plasmoid.nix { inherit pkgs; } {
+    name = "tasks";
+    src = ./tasks/applet;
+    substitutions."@TASKS@" = "${tasks}/bin/tasks";
+  };
 in {
   home-manager.users.niteris.home.file.".local/share/plasma/plasmoids/org.niteris.tasks".source = tasksApplet;
   environment.systemPackages = [ tasks ];

@@ -36,12 +36,11 @@ let
       exec ${python}/bin/python ${calendarPy}/calendar_agenda.py
     '';
   };
-  agendaApplet = pkgs.runCommand "calendar-agenda-applet" { } ''
-    mkdir -p $out
-    cp -r ${./calendar-agenda}/. $out/
-    substituteInPlace $out/contents/ui/main.qml \
-      --replace-fail '@AGENDA@' '${agenda}/bin/calendar-agenda'
-  '';
+  agendaApplet = import ./plasmoid.nix { inherit pkgs; } {
+    name = "calendar-agenda";
+    src = ./calendar-agenda;
+    substitutions."@AGENDA@" = "${agenda}/bin/calendar-agenda";
+  };
 in {
   home-manager.users.niteris.home.file.".local/share/plasma/plasmoids/org.niteris.calendar-agenda".source = agendaApplet;
   environment.systemPackages = with pkgs.kdePackages; [
