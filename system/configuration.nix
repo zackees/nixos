@@ -713,6 +713,7 @@ in
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./calendar.nix
+      ./tasks.nix
       ./shader-wallpaper.nix
       ./voxtype-popups.nix
     ];
@@ -3185,6 +3186,8 @@ in
                 };
               }
               "org.niteris.calendar-agenda"
+              # Tasks: a checklist synced to github.com/zackees/tasks (system/tasks.nix).
+              "org.niteris.tasks"
             ];
           }
           {

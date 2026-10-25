@@ -1,0 +1,12 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.niteris.tasks",
+    "Name": "Tasks",
+    "Description": "Task checklist synced to github.com/zackees/tasks",
+    "Icon": "view-task",
+    "Category": "Utilities",
+    "Version": "1.0"
+  },
+  "X-Plasma-API-Minimum-Version": "6.0"
+}
