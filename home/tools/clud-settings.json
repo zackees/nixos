@@ -48,7 +48,7 @@
   },
   "providers": {
     "openrouter": {
-      "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      "model": "xiaomi/mimo-v2.6-flash"
     }
   },
   "shell": {
