@@ -1,16 +1,15 @@
 """Backend for the Tasks panel widget: a Markdown checklist in a git repo.
 
 The list is TASKS.md in a clone of github.com/zackees/tasks, one task per
-``- [ ] text`` / ``- [x] text`` line. Every edit is committed and pushed at
-once; ``list`` pulls first (rate-limited) so edits made elsewhere show up.
-Network failures never lose an edit: the commit stays local and the next
-successful push carries it.
+``- [ ] text`` / ``- [x] text`` line. Edits are only committed locally; the
+network is touched solely by ``sync``, which the tasks-sync timer runs four
+times a day. A failed sync loses nothing: the commits wait for the next.
 
     tasks_cli.py list            JSON for the widget
     tasks_cli.py add TEXT
     tasks_cli.py toggle INDEX
     tasks_cli.py remove INDEX
-    tasks_cli.py sync            pull and push now
+    tasks_cli.py sync            pull (rebase) and push; the timer's job
 """
 
 import base64
@@ -19,13 +18,11 @@ import os
 import re
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 REPO = Path(os.environ.get("TASKS_REPO", Path.home() / "dev" / "tasks"))
 FILE = REPO / "TASKS.md"
 REMOTE = "https://github.com/zackees/tasks.git"
-PULL_EVERY = 60
 TASK = re.compile(r"^\s*[-*] \[( |x|X)\] (.*)$")
 
 
@@ -50,14 +47,23 @@ def ensure_repo() -> None:
     subprocess.run(["git", "clone", "-q", REMOTE, str(REPO)], check=False, timeout=60)
 
 
-def pull(force: bool = False) -> bool:
-    stamp = REPO / ".git" / "tasks-last-pull"
-    if not force and stamp.exists() and time.time() - stamp.stat().st_mtime < PULL_EVERY:
-        return True
-    ok = git("pull", "-q", "--rebase", "--autostash")
-    if ok:
-        stamp.touch()
-    else:
+def ensure_union() -> None:
+    # Edits from two places both land: git's built-in union driver keeps
+    # the lines of both sides instead of stopping on a conflict. The cost
+    # is a line changed on both sides appearing twice, which is visible
+    # and easy to tidy; a conflict would stall every later sync.
+    attrs = REPO / ".gitattributes"
+    if attrs.exists() and "merge=union" in attrs.read_text():
+        return
+    attrs.write_text("TASKS.md merge=union\n")
+    git("add", ".gitattributes")
+    git("commit", "-q", "-m", "Merge TASKS.md by union so syncs never conflict")
+
+
+def pull() -> bool:
+    ensure_union()
+    ok = git("pull", "-q", "--rebase", "--autostash", timeout=60)
+    if not ok:
         git("rebase", "--abort")
     return ok
 
@@ -80,7 +86,6 @@ def write(lines: list[str], message: str) -> None:
     FILE.write_text("\n".join(lines) + "\n")
     git("add", "TASKS.md")
     git("commit", "-q", "-m", message)
-    push()
 
 
 def unpushed() -> int:
@@ -100,23 +105,22 @@ def unpushed() -> int:
 def main(argv: list[str]) -> int:
     ensure_repo()
     cmd = argv[1] if len(argv) > 1 else "list"
-    if cmd in ("list", "sync"):
-        online = pull(force=cmd == "sync")
-        if unpushed():
-            online = push() and online
+    if cmd == "sync":
+        ok = pull()
+        return 0 if push() and ok else 1
+    if cmd == "list":
         _, tasks = read()
         print(
             json.dumps(
                 {
                     "tasks": [{"index": n, "done": d, "text": t} for n, (_, d, t) in enumerate(tasks)],
                     "open": sum(1 for _, d, _ in tasks if not d),
-                    "synced": online and unpushed() == 0,
+                    "synced": unpushed() == 0,
                 }
             )
         )
         return 0
     if cmd == "read":
-        pull()
         print(FILE.read_text() if FILE.exists() else "")
         return 0
     if cmd == "save64":
@@ -128,12 +132,7 @@ def main(argv: list[str]) -> int:
         FILE.write_text(text)
         git("add", "TASKS.md")
         git("commit", "-q", "-m", "Edit tasks")
-        if not push():
-            # Someone else pushed first: rebase onto it and retry.
-            pull(force=True)
-            push()
         return 0
-    pull(force=True)
     lines, tasks = read()
     if cmd in ("add", "add64"):
         # add64: the widget passes text base64-encoded, so no shell quoting.

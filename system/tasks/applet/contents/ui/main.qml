@@ -7,7 +7,8 @@ import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.plasma.plasmoid
 
 // TASKS.md as a plain text editor. The tab counts open `- [ ]` lines; the
-// popup is the whole file, saved (commit + push) a moment after typing stops.
+// popup is the whole file, committed locally a moment after typing stops;
+// the tasks-sync timer pushes it four times a day.
 PlasmoidItem {
     id: root
     preferredRepresentation: compactRepresentation
@@ -98,7 +99,7 @@ PlasmoidItem {
                 font.pixelSize: 12
                 font.bold: true
             }
-            // Amber dot: an edit is committed locally but not yet pushed.
+            // Amber dot: edits committed locally, waiting for the next sync.
             Rectangle {
                 visible: !root.list_.synced
                 Layout.preferredWidth: 6
@@ -125,7 +126,7 @@ PlasmoidItem {
                 PlasmaComponents.Label { text: "TASKS.md"; font.bold: true; font.pixelSize: 16 }
                 PlasmaComponents.Label {
                     Layout.fillWidth: true
-                    text: root.dirty ? "editing…" : root.list_.synced ? "synced" : "not synced, will retry"
+                    text: root.dirty ? "editing…" : root.list_.synced ? "synced" : "saved, syncs at 0/6/12/18h"
                     opacity: 0.6
                 }
                 PlasmaComponents.ToolButton {
