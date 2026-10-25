@@ -48,7 +48,7 @@
   },
   "providers": {
     "openrouter": {
-      "model": "xiaomi/mimo-v2.6-flash"
+      "model": "deepseek/deepseek-v4.1-flash-1017"
     }
   },
   "shell": {
