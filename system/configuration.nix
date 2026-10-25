@@ -960,6 +960,40 @@ in
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
+  # No canary. rtkit's watchdog decides the box is starving when its own
+  # canary thread misses a tick, and then strips real-time priority from
+  # EVERY thread it ever granted it to -- PipeWire's included -- and nothing
+  # ever asks for it back. On 2026-10-09 18:00 a saturated build tripped it
+  # ("The canary thread is apparently starving. Taking action. ... Demoted 10
+  # threads", among them pipewire 2286), and PipeWire then ran as an ordinary
+  # SCHED_OTHER process for fifteen days: audio dropped out whenever builds or
+  # Hermes's CPU whisper runs filled the cores. That watchdog guards against a
+  # runaway RT thread locking a machine; here it only ever fired on ordinary
+  # load. Check with `ps -L -o cls,rtprio,comm -p $(pgrep -x pipewire)` --
+  # its data-loop thread should say FF, not TS.
+  security.rtkit.args = [ "--no-canary" ];
+
+  # ...and PipeWire has to ASK rtkit, not the portal. module-rt prefers
+  # xdg-desktop-portal's Realtime interface whenever the portal is on the
+  # session bus, and this portal fails every non-sandboxed caller ("Could not
+  # get pidns for pid N: Could not fstatat ns/pid: Not a directory"). The
+  # request is fire-and-forget (module-rt.c: dbus_connection_send, no reply
+  # read), so PipeWire logs "acquired realtime priority 20 ... using RTKit"
+  # either way and its data-loop thread silently stays SCHED_OTHER. At boot
+  # PipeWire usually wins the race against the portal and falls back to
+  # rtkit, so this only bites on a restart -- which is exactly when it is
+  # least expected. Verify with `ps -L -o cls,rtprio,comm -p $(pgrep -x
+  # pipewire)`: data-loop.0 must say RR or FF, whatever the log claims.
+  services.pipewire.extraConfig.pipewire."10-rt-no-portal" = {
+    # A top-level section, NOT inside context.properties: there it is
+    # accepted silently and ignored (module-rt.c "Config override").
+    "module.rt.args"."rtportal.enabled" = false;
+  };
+  services.pipewire.extraConfig.pipewire-pulse."10-rt-no-portal" = {
+    # A top-level section, NOT inside context.properties: there it is
+    # accepted silently and ignored (module-rt.c "Config override").
+    "module.rt.args"."rtportal.enabled" = false;
+  };
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -2498,6 +2532,16 @@ in
       TimeoutStopSec = 70;
       StandardOutput = "journal";
       StandardError = "journal";
+
+      # Batch work yields to the desktop. The gateway's jobs run as its own
+      # children -- whisper-cli at -t 8 on CPU transcribing clips, ffmpeg,
+      # builds -- and at the default weight they compete on equal terms
+      # with KWin, plasmashell and the terminals, which is UI lag on a
+      # 16-thread box. Weight 20 (default 100) only bites under contention:
+      # idle, the agent still gets every core.
+      CPUWeight = 20;
+      IOWeight = 20;
+      Nice = 10;
     };
   };
 

@@ -280,6 +280,17 @@ refuses while anything holds the module), and posts a notification
 otherwise. A "voxtype failed" notification is the signal; read
 `journalctl --user -u voxtype-heal`.
 
+**PipeWire's "acquired realtime priority" log line proves nothing.** Audio
+dropping out under load meant PipeWire had lost real-time scheduling, for two
+separate reasons, both now fixed in `system/configuration.nix` next to
+`security.rtkit`. rtkit's canary watchdog demoted every RT thread under a
+saturated build and nothing re-requested it. And a PipeWire *restart* routes
+its request to xdg-desktop-portal, which rejects host processes, while
+module-rt never reads the reply. Judge it by the thread, not the log:
+`ps -L -o cls,rtprio,comm -p $(pgrep -x pipewire)` should show `data-loop.0`
+as RR/FF. Note too that the NVMe runs the `none` I/O scheduler, so any
+`IOWeight` (bosn.slice, hermes-gateway) is inert; only CPUWeight takes effect.
+
 **kitty's windows come back after a crash -- `system/kitty-resurrect/`.**
 kitty saves each OS window as a session every 5 s (loaded from
 `home/kitty/tab_bar.py`), a KWin script reports each kitty window's screen,
