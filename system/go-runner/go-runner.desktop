@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Go links and tiling
+Comment=go/* links in a new browser window; the KWin tiles editor
+Type=Service
+Icon=internet-web-browser
+X-KDE-PluginInfo-Name=org.niteris.go-runner
+X-KDE-PluginInfo-EnabledByDefault=true
+X-Plasma-API=DBus
+X-Plasma-DBusRunner-Service=org.niteris.GoRunner
+X-Plasma-DBusRunner-Path=/runner
+X-Plasma-Runner-Syntaxes=go/:q:,tile
+X-Plasma-Runner-Syntax-Descriptions=Opens http://go/:q: in a new browser window,Opens the KWin tiles editor (Meta+T)

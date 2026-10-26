@@ -805,6 +805,7 @@ in
       ./calendar.nix
       ./tasks.nix
       ./kitty-worker.nix
+      ./go-runner.nix
       ./shader-wallpaper.nix
       ./voxtype-popups.nix
     ];
