@@ -14,6 +14,7 @@ answers the process lookups and does every read and write.
 """
 import json
 import os
+import re
 from pathlib import Path
 import shlex
 import time
@@ -54,37 +55,38 @@ def continue_agent(command):
     return words if isinstance(command, list) else shlex.join(words)
 
 
-_continued = {}  # line -> rewritten line
+# One shell word, quoted or not; and the pieces inside one. Both are C regex
+# scans, where shlex walks the line a character at a time in Python.
+WORD = re.compile(r"""(?:'[^']*'|"(?:\\.|[^"\\])*"|\\.|[^\s'"\\])+""")
+PIECE = re.compile(r"""'([^']*)'|"((?:\\.|[^"\\])*)"|\\(.)|([^'"\\]+)""")
+
+
+def unquote(word):
+    return "".join(a or (re.sub(r"\\(.)", r"\1", b) if b else c or d or "")
+                   for a, b, c, d in PIECE.findall(word))
 
 
 def continue_agents(lines):
-    # shlex.split is pure Python and a launch line carries kitty's whole
-    # per-pane JSON (~20 KB): 82 ms per snapshot on an idle machine, 91 ms
-    # stalls under load (perf, 2026-10-26). Lines rarely change between
-    # snapshots, so each is rewritten once.
-    global _continued
-    known = {line: _continued[line] for line in lines if line in _continued}
+    # Only the unserialize word is touched. shlex.split over the whole line --
+    # which carries kitty's per-pane JSON, ~20 KB -- cost 82 ms of kitty's
+    # main thread per snapshot on an idle machine and 80-91 ms stalls every
+    # 5 s (perf + py-spy, 2026-10-26).
     out = []
     for line in lines:
-        if line in known:
-            out.append(known[line])
-            continue
-        original = line
-        if line.startswith("launch ") and UNSERIALIZE in line:
+        at = line.find(UNSERIALIZE) if line.startswith("launch ") else -1
+        if at >= 0 and "cmd_at_shell_startup" in line:
             try:
-                words = shlex.split(line)
-                for i, word in enumerate(words):
-                    if word.startswith(UNSERIALIZE):
-                        data = json.loads(word[len(UNSERIALIZE):])
-                        if data.get("cmd_at_shell_startup"):
-                            data["cmd_at_shell_startup"] = continue_agent(data["cmd_at_shell_startup"])
-                        words[i] = UNSERIALIZE + json.dumps(data)
-                line = shlex.join(words)
+                begin = line.rfind(" ", 0, at) + 1
+                m = WORD.match(line, begin)
+                word = unquote(m.group(0))
+                data = json.loads(word[len(UNSERIALIZE):])
+                if data.get("cmd_at_shell_startup"):
+                    data["cmd_at_shell_startup"] = continue_agent(data["cmd_at_shell_startup"])
+                    line = (line[:begin] + shlex.quote(UNSERIALIZE + json.dumps(data))
+                            + line[m.end():])
             except Exception:
                 pass  # An unrecognised line is saved as kitty wrote it.
-        known[original] = line
         out.append(line)
-    _continued = known  # only the current lines: closed panes drop out
     return out
 
 
