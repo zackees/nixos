@@ -48,6 +48,7 @@ cp "$REPO/home/voxtype/config.toml" "$HOME/.config/voxtype/config.toml"
 # User-session audio policy needs no privileged audio restart. This unit is
 # managed here, not duplicated in system/configuration.nix.
 install -Dm644 "$REPO/system/voxtype-ducking.py" "$HOME/.local/libexec/voxtype-ducking.py"
+install -Dm755 "$REPO/system/voxtype-duck-wait.sh" "$HOME/.local/libexec/voxtype-duck-wait.sh"
 install -Dm644 "$REPO/home/voxtype/voxtype-ducking.service" "$HOME/.config/systemd/user/voxtype-ducking.service"
 systemctl --user daemon-reload
 systemctl --user enable --now voxtype-ducking.service

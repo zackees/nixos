@@ -110,6 +110,9 @@ def main():
     ducker = Ducker(journal)
     # The synchronous start hook and state watcher share one recovery journal.
     # Lock both the read and write so they cannot double-duck or lose originals.
+    ducked = journal.with_suffix('.ducked')
+    # voxtype-duck-wait.sh is the fast path for --prepare: it waits on this
+    # flag, which the watcher below writes after each change.
     with journal.with_suffix('.lock').open('a') as lock:
         if args.restore or args.prepare:
             if args.prepare and not args.restore and not watcher_running():
@@ -142,16 +145,18 @@ def main():
                 now = time.monotonic()
                 if recording != previous or (now >= refresh_at and (recording or ducker.saved)):
                     ducker.update(recording)
+                    ducked.write_text('1' if recording else '0')
                     if recording != previous:
                         print('Playback ducked by 12 dB' if recording else 'Playback restored', flush=True)
                     previous = recording
                     refresh_at = now + 0.5
-            stopped.wait(0.05)
+            stopped.wait(0.02)
     finally:
         with journal.with_suffix('.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX)
             ducker.reload()
             ducker.update(False)
+            ducked.write_text('0')
 
 
 if __name__ == '__main__':

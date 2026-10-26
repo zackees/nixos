@@ -101,7 +101,7 @@ context_window_optimization = false
 mode = "paste"
 # The local capture-timing patch runs this synchronously before the start cue
 # and before opening the microphone. Upstream runs this hook after capture.
-pre_recording_command = "/run/current-system/sw/bin/python3 /home/niteris/.local/libexec/voxtype-ducking.py --prepare"
+pre_recording_command = "/run/current-system/sw/bin/bash /home/niteris/.local/libexec/voxtype-duck-wait.sh"
 paste_keys = "shift+insert"
 # Borrow the clipboard for insertion, then restore its previous content.
 restore_clipboard = true
@@ -122,7 +122,7 @@ theme = "default"
 volume = 0.7
 
 [output.notification]
-on_recording_start = true
+on_recording_start = false
 on_recording_stop = true
 on_transcription = true
 
