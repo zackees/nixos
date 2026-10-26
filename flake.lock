@@ -278,7 +278,28 @@
         "kde-shader-wallpaper-src": "kde-shader-wallpaper-src",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "plasma-manager": "plasma-manager"
+        "plasma-manager": "plasma-manager",
+        "talos-bar": "talos-bar"
+      }
+    },
+    "talos-bar": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792990658,
+        "narHash": "sha256-Q9YsnGV2ovhrbLlVhcqbmLQ52tqTeieLRgXWesZiLjE=",
+        "ref": "refs/heads/main",
+        "rev": "7484e255816e199e338df47bbbd9e5f83e463ef7",
+        "revCount": 3,
+        "type": "git",
+        "url": "file:///home/niteris/dev/talos-hq/talos-bar"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/niteris/dev/talos-hq/talos-bar"
       }
     },
     "uv2nix": {

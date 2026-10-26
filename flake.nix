@@ -56,6 +56,13 @@
       url = "git+https://github.com/zackees/docker-vm?ref=main&submodules=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # talos-bar, the Python/Qt bar replacing the Plasma top panel. A local
+    # checkout until it has a GitHub repo; flake.lock pins the commit.
+    talos-bar = {
+      url = "git+file:///home/niteris/dev/talos-hq/talos-bar";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
@@ -67,6 +74,7 @@
 
       modules = [
         ./system/configuration.nix
+        ./system/talos-bar.nix
         home-manager.nixosModules.home-manager
       ];
     };
