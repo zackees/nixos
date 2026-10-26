@@ -20,6 +20,9 @@ in
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
+    # Glue shells out like a desktop app would: tasks_cli runs git (with
+    # gh's credential helper), the agenda opens KOrganizer via kioclient.
+    path = [ "/run/current-system/sw" ];
     serviceConfig = {
       ExecStart = "${talos-bar}/bin/talos-bar";
       Restart = "on-failure";
