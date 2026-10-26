@@ -481,20 +481,64 @@ let
     "systemsettings.desktop"
     "org.kde.dolphin.desktop"
     "brave-browser.desktop"
-    "org.telegram.desktop.desktop"
-    "signal.desktop"
-    "slack.desktop"
-    "Zoom.desktop"
     "org.kde.korganizer.desktop"
-    "dbeaver.desktop"
     "kitty.desktop"
-    "sublime_text.desktop"
-    "startcenter.desktop"
-    "docker-tui.desktop"
-    "podman-desktop.desktop"
-    "docker-vm.desktop"
-    "com.feaneron.Boatswain.desktop"
   ];
+  # Dock folders (#39): the rest of what was one long strip, grouped so the
+  # dock reads as a handful of targets. Same hover-open shape as Media and
+  # Dev, from one widget source (system/launcher-group); each group is its
+  # own plugin id, since plasmashell keys an applet's code by id.
+  mkLauncherGroup = { id, name, icon, apps }:
+    let
+      app = a: {
+        inherit (a) name icon;
+        desktop = "/run/current-system/sw/share/applications/${a.desktop}";
+      };
+      src = pkgs.runCommand "launcher-group-${id}-src" { } ''
+        cp -r ${./launcher-group} $out
+        chmod -R u+w $out
+        cat > $out/metadata.json <<'JSON'
+        ${builtins.toJSON {
+          KPackageStructure = "Plasma/Applet";
+          KPlugin = {
+            Id = "org.niteris.${id}"; Name = name; Icon = icon;
+            Description = "${name} launcher that opens on hover";
+            Category = "Utilities"; Version = "1.0";
+          };
+        }}
+        JSON
+      '';
+    in import ./plasmoid.nix { inherit pkgs; } {
+      name = id;
+      inherit src;
+      substitutions = {
+        "@NAME@" = name;
+        "@APPS@" = builtins.toJSON (map app apps);
+      };
+    };
+  launcherGroups = {
+    chat-launcher = mkLauncherGroup {
+      id = "chat-launcher"; name = "Chat"; icon = "org.telegram.desktop";
+      apps = [
+        { name = "Telegram"; icon = "org.telegram.desktop"; desktop = "org.telegram.desktop.desktop"; }
+        { name = "Signal"; icon = "signal-desktop"; desktop = "signal.desktop"; }
+        { name = "Slack"; icon = "slack"; desktop = "slack.desktop"; }
+        { name = "Zoom"; icon = "Zoom"; desktop = "Zoom.desktop"; }
+      ];
+    };
+    tools-launcher = mkLauncherGroup {
+      id = "tools-launcher"; name = "Tools"; icon = "applications-utilities";
+      apps = [
+        { name = "Sublime Text"; icon = "sublime-text"; desktop = "sublime_text.desktop"; }
+        { name = "DBeaver"; icon = "dbeaver"; desktop = "dbeaver.desktop"; }
+        { name = "Docker TUI"; icon = "docker-tui"; desktop = "docker-tui.desktop"; }
+        { name = "Podman Desktop"; icon = "podman-desktop"; desktop = "podman-desktop.desktop"; }
+        { name = "Docker VM"; icon = "docker-vm"; desktop = "docker-vm.desktop"; }
+        { name = "LibreOffice"; icon = "libreoffice-startcenter"; desktop = "startcenter.desktop"; }
+        { name = "Boatswain"; icon = "com.feaneron.Boatswain"; desktop = "com.feaneron.Boatswain.desktop"; }
+      ];
+    };
+  };
   # Hermes moved from this strip into the Dev group (system/dev-launcher).
 
   # ── The user's writable Python ──
@@ -2897,6 +2941,10 @@ in
         mediaLauncherApplet;
       home.file.".local/share/plasma/plasmoids/org.niteris.dev-launcher".source =
         devLauncherApplet;
+      home.file.".local/share/plasma/plasmoids/org.niteris.chat-launcher".source =
+        launcherGroups.chat-launcher;
+      home.file.".local/share/plasma/plasmoids/org.niteris.tools-launcher".source =
+        launcherGroups.tools-launcher;
 
       programs.plasma = {
         enable = true;
@@ -3342,6 +3390,8 @@ in
               "org.niteris.media-launcher"
               # VS Code and Hermes, one hover-open group like Media Apps.
               "org.niteris.dev-launcher"
+              "org.niteris.chat-launcher"
+              "org.niteris.tools-launcher"
 
               # An expanding spacer either side is what centres the window
               # list. fill = false below is the other half: a task manager
