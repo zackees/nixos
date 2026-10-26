@@ -7,6 +7,10 @@ Switch to Last-Used Keyboard Layout=Meta+Alt+L,Meta+Alt+L,
 Switch to Next Keyboard Layout=Meta+Alt+K,Meta+Alt+K,
 _k_friendly_name=Keyboard Layout Switcher
 
+[hermes]
+D4FCF2D050942F5BDD9FCDAF01CC5AB3-Ctrl+Shift+Space=Ctrl+Shift+Space,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
+_k_friendly_name=hermes
+
 [kaccess]
 Toggle Screen Reader On and Off=Meta+Alt+S,Meta+Alt+S,Toggle Screen Reader On and Off
 _k_friendly_name=Accessibility
@@ -271,6 +275,9 @@ show-on-mouse-pos=Meta+V,Meta+V,Show Clipboard Items at Mouse Position
 switch to next activity=none,none,Switch to Next Activity
 switch to previous activity=none,none,Switch to Previous Activity
 toggle do not disturb=none,none,Toggle do not disturb
+
+[services][org.kde.krunner.desktop]
+_launch=Alt+Space\tMeta+Space
 
 [services][plasma-manager-commands.desktop]
 desktop-move-left=Meta+Ctrl+Alt+Left
