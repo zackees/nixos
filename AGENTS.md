@@ -53,6 +53,12 @@ edit to that list, never a side effect of adding a package. Ask, and do not
 assume either way. If the answer is yes, the pin, the panel apply and the
 plasmashell restart all go together -- see the panel traps below.
 
+**Commit `home/kde/dock-pins.txt` before any panel rebuild.** The panel's
+task-manager pins are built from the committed copy, so a pin changed live
+and captured but left uncommitted is reverted by the next unrelated panel
+apply. That is how the Hermes pin flipped back to `pyweb-view.hermes` on
+2026-10-26.
+
 **Do not restore KDE files while Plasma is running.** `plasmashell` holds its
 own copy in memory and rewrites them on exit, so the restore silently does
 nothing. `scripts/03-apply-home.sh` detects this and skips rather than
@@ -485,9 +491,11 @@ generation and impossible to roll back with one.
 ## Hermes Agent
 
 Hermes Agent -- the Telegram gateway and the local dashboard -- is declared in
-`system/configuration.nix` as three `systemd.user.services`: `hermes-gateway`,
-`hermes-gateway-assistant` (the `assistant` profile, i.e. the second bot) and
-`hermes-dashboard`. The package comes from the `hermes-agent` flake input,
+`system/configuration.nix` as two `systemd.user.services`: `hermes-gateway`
+and `hermes-dashboard`. The second bot (the `assistant` profile) has no unit
+of its own: upstream multiplexes every profile through the one host gateway,
+and a per-profile `gateway run` now exits 78 -- so a missing
+`hermes-gateway-assistant` is correct, not a failure. The package comes from the `hermes-agent` flake input,
 pinned by revision in `flake.nix`.
 
 Its state does **not** move. `HERMES_HOME` is still `/home/niteris/dev/hermes`
@@ -502,9 +510,9 @@ win, so the NixOS unit looks like it did nothing. One-time migration, after the
 first switch that includes this:
 
 ```bash
-rm ~/.config/systemd/user/hermes-{gateway,gateway-assistant,dashboard}.service
+rm ~/.config/systemd/user/hermes-{gateway,dashboard}.service
 systemctl --user daemon-reload
-systemctl --user restart hermes-gateway hermes-gateway-assistant hermes-dashboard
+systemctl --user restart hermes-gateway hermes-dashboard
 ```
 
 Then confirm it is the NixOS unit, not the old one:
