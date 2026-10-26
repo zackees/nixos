@@ -11,6 +11,7 @@ dead or slow worker costs stale labels, never a frozen terminal.
     with client.offline():    # kitty's /proc lookups answered from the cache
         exe = window.get_exe_of_child()
     client.branch(wd)         # '' until the worker has answered
+    client.remote(wd)         # origin's https URL, '' likewise
     client.write(path, text)  # atomic write, done by the worker
     client.read(path)         # ask; client.files[path] holds the answer later
     client.request(msg, f)    # f(reply) runs on kitty's thread when it arrives
@@ -56,6 +57,7 @@ class Client:
         self.boss = boss
         self.procs = {}       # pid -> {cmdline, cwd, exe}, from the last reply
         self.branches = {}    # dir -> branch
+        self.remotes = {}     # dir -> origin's https URL
         self.files = {}       # path -> text (None: missing), from read()
         self.listeners = []
         self.pending = {}     # request id -> callback(reply)
@@ -89,14 +91,19 @@ class Client:
     def branch(self, wd):
         return self.branches.get(wd, "")
 
+    def remote(self, wd):
+        return self.remotes.get(wd, "")
+
     def _on_read(self, msg):
         self.files[msg.get("path")] = msg.get("text")
 
     def _on_panes(self, msg):
         self.procs = {int(k): v for k, v in msg.get("procs", {}).items()}
         self.branches.update(msg.get("branches", {}))
+        self.remotes.update(msg.get("remotes", {}))
         if len(self.branches) > 256:
             self.branches = dict(msg.get("branches", {}))
+            self.remotes = dict(msg.get("remotes", {}))
         self._panes_arrived = True
 
     def request_panes(self, _timer_id=None):
@@ -196,6 +203,7 @@ def install():
     if old is not None:
         # Keep what is known across a reload; listeners re-register themselves.
         client.procs, client.branches, client.files = old.procs, old.branches, old.files
+        client.remotes = getattr(old, "remotes", {})
         if service is not None:
             client.pending = old.pending
         elif hasattr(old, "close"):

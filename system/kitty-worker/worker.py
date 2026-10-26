@@ -20,7 +20,7 @@ Protocol: one JSON object per request.
   {"op": "panes", "panes": [{"pid": shell, "pgid": foreground group,
                              "osc7": dir or ""}]}
       -> {"op": "panes", "procs": {pid: {cmdline, cwd, exe}},
-          "branches": {dir: branch}}
+          "branches": {dir: branch}, "remotes": {dir: https url or ""}}
   {"op": "read", "path": p}  -> {"op": "read", "path": p, "text": t or null}
   {"op": "write", "path": p, "text": t}     atomic write, no reply
   {"op": "unlink", "path": p}                no reply
@@ -34,6 +34,7 @@ Reads and writes are confined to kitty's state and runtime directories.
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -106,6 +107,39 @@ def branch(wd):
     return name if len(name) <= BRANCH_MAX else name[:BRANCH_MAX - 1] + "…"
 
 
+def remote(wd):
+    """origin's web URL for the repo governing `wd`, or ''.
+
+    git@host:o/r.git and ssh://git@host/o/r become https://host/o/r. A
+    worktree's .git file points at <main>/.git/worktrees/<name>; its config
+    is the main repo's, two levels up.
+    """
+    head = git_head(wd)
+    if head is None:
+        return ""
+    gitdir = os.path.dirname(head)
+    if os.path.basename(os.path.dirname(gitdir)) == "worktrees":
+        gitdir = os.path.dirname(os.path.dirname(gitdir))
+    url, section = "", ""
+    try:
+        with open(os.path.join(gitdir, "config"), encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("["):
+                    section = line
+                elif section == '[remote "origin"]' and line.startswith("url"):
+                    url = line.partition("=")[2].strip()
+                    break
+    except OSError:
+        return ""
+    m = re.match(r"(?:ssh://)?[^@/]+@([^:/]+)[:/](.+)", url) or re.match(r"https?://(?:[^@/]+@)?([^/]+)/(.+)", url)
+    if not m:
+        return ""
+    path = m.group(2)
+    path = path[:-4] if path.endswith(".git") else path
+    return f"https://{m.group(1)}/{path.strip('/')}"
+
+
 def panes(msg):
     procs, dirs = {}, set()
     for p in msg.get("panes", []):
@@ -117,7 +151,8 @@ def panes(msg):
                         dirs.add(info["cwd"])
         if p.get("osc7"):
             dirs.add(p["osc7"])
-    return {"op": "panes", "procs": procs, "branches": {d: branch(d) for d in dirs}}
+    return {"op": "panes", "procs": procs, "branches": {d: branch(d) for d in dirs},
+            "remotes": {d: remote(d) for d in dirs}}
 
 
 def read(msg):

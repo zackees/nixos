@@ -38,6 +38,8 @@ BRANCH_COLOUR = '_fdbc4b'
 # enough to push the command name off the end of a narrow pane. The bar clips
 # rather than wraps, so cap the part that can run away.
 BRANCH_MAX = 22
+# Breeze link blue.
+URL_COLOUR = '_3daee9'
 
 # Caption identity at its last render. A TUI can keep OSC 2 unchanged while
 # its agent switches Git branches, so ordinary title events are insufficient:
@@ -56,6 +58,62 @@ def _branch(wd):
     return worker.branch(wd) if worker is not None else ''
 
 
+def _remote(wd):
+    """origin's https URL for `wd`, from kitty-worker's last reply ('' until then)."""
+    worker = _tab_bar.get('_worker')
+    return worker.remote(wd) if worker is not None and hasattr(worker, 'remote') else ''
+
+
+def _url_label(url):
+    return url.split('://', 1)[-1]
+
+
+def _clicked_url(window_id, x):
+    """The URL under a title-bar click at pixel `x`, or ''.
+
+    Reads the bar kitty actually drew (its one-line Screen), so alignment and
+    the bell/activity prefix are accounted for without re-deriving them.
+    """
+    w = get_boss().window_id_map.get(window_id)
+    bar = getattr(w, '_title_bar_screen', None)
+    wd = _pane_wd(w) if w is not None else ''
+    url = _remote(wd) if wd else ''
+    if not url or bar is None:
+        return ''
+    g = bar.geometry
+    # Pixels across the OS window, or across the bar if kitty sent those.
+    px = x - g.left if g.left <= x < g.right else x
+    col = int(px // bar.cell_width)
+    text = str(bar.screen.line(0))
+    start = text.find(_url_label(url))
+    return url if 0 <= start <= col < start + len(_url_label(url)) else ''
+
+
+def install_url_click():
+    """A plain click on the repo URL in a title bar opens it in the browser.
+
+    kitty's own handler only focuses on press and renames on double-click,
+    so it runs unchanged and this adds the open on a clean single release.
+    """
+    from kitty.tabs import TabManager
+    original = getattr(TabManager.handle_window_title_bar_mouse, '__wrapped__',
+                       TabManager.handle_window_title_bar_mouse)
+
+    def handle(self, window_id, x, y, button, modifiers, action):
+        from kitty.fast_data_types import GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, get_window_being_dragged
+        dragging = get_window_being_dragged()[1] if button == GLFW_MOUSE_BUTTON_LEFT else False
+        original(self, window_id, x, y, button, modifiers, action)
+        if button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_RELEASE and not dragging:
+            try:
+                if url := _clicked_url(window_id, x):
+                    get_boss().open_url(url)
+            except Exception:
+                pass
+
+    handle.__wrapped__ = original
+    TabManager.handle_window_title_bar_mouse = handle
+
+
 def _scan_branch_titles():
     """After a worker reply: redraw any visible caption whose branch changed."""
     from kitty.fast_data_types import mark_os_window_dirty
@@ -72,7 +130,7 @@ def _scan_branch_titles():
             if not window.is_visible_in_layout or not window.show_title_bar:
                 continue
             wd = _pane_wd(window)
-            identity = (wd, _branch(wd) if wd else '')
+            identity = (wd, _branch(wd) if wd else '', _remote(wd) if wd else '')
             if _rendered_branches.get(window.id) != identity:
                 # This uses Kitty's own focus/group handling and retains the
                 # caption's activity, progress and attention indicators.
@@ -118,7 +176,8 @@ def draw_window_title(data):
     # used to relabel the pane `/ · wl-copy`. See _pane_wd in tab_bar.py.
     wd = _pane_wd(w)
     branch = _branch(wd) if wd else ''
-    _rendered_branches[data.window_id] = (wd, branch)
+    url = _remote(wd) if wd else ''
+    _rendered_branches[data.window_id] = (wd, branch, url)
     if not wd:
         # ssh, a `launch`ed pager, any child that never reported a directory.
         return ' %s' % (data.title or '…')
@@ -131,6 +190,10 @@ def draw_window_title(data):
         out.append(' %s%s %s%s' % (
             getattr(WindowTitleFormatter.fg, BRANCH_COLOUR), BRANCH_GLYPH,
             branch, WindowTitleFormatter.fg.window))
+    if url:
+        # Click to open (install_url_click). Dimmed: secondary to the path.
+        out.append(' %s%s%s' % (getattr(WindowTitleFormatter.fg, URL_COLOUR),
+                                _url_label(url), WindowTitleFormatter.fg.window))
     exe = _pane_exe(w)
     if exe and exe not in SHELLS:
         out.append(' · %s' % exe)
@@ -138,3 +201,4 @@ def draw_window_title(data):
 
 
 install_branch_refresh()
+install_url_click()
