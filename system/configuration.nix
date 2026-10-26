@@ -409,6 +409,19 @@ let
       fi
     '';
   };
+  # The same placement for every link, not only clicks in kitty (#41). A CLI
+  # running in a terminal -- an agent's sign-in, `gh auth`, anything calling
+  # xdg-open -- reached Brave directly, and Brave reused its last-focused
+  # window, usually on another desktop. Registered below as the http/https
+  # handler, so xdg-open lands here.
+  browserHere = pkgs.makeDesktopItem {
+    name = "brave-here";
+    desktopName = "Brave (this desktop)";
+    exec = "${kittyOpenUrl}/bin/kitty-open-url %u";
+    icon = "brave-browser";
+    noDisplay = true;
+    mimeTypes = [ "x-scheme-handler/http" "x-scheme-handler/https" "text/html" "application/xhtml+xml" ];
+  };
 
   # ── Run a locally built Tauri / WebKitGTK app ──
   # A Rust binary built here (extension2's `soldr cargo build -p tw-orange`)
@@ -963,10 +976,10 @@ in
   # This is the distro-level default; ~/.config/mimeapps.list (captured in
   # home/kde/) carries the same entries at the user level.
   xdg.mime.defaultApplications = {
-    "text/html" = "brave-browser.desktop";
-    "application/xhtml+xml" = "brave-browser.desktop";
-    "x-scheme-handler/http" = "brave-browser.desktop";
-    "x-scheme-handler/https" = "brave-browser.desktop";
+    "text/html" = "brave-here.desktop";
+    "application/xhtml+xml" = "brave-here.desktop";
+    "x-scheme-handler/http" = "brave-here.desktop";
+    "x-scheme-handler/https" = "brave-here.desktop";
     "x-scheme-handler/about" = "brave-browser.desktop";
     "x-scheme-handler/unknown" = "brave-browser.desktop";
 
@@ -1178,6 +1191,7 @@ in
     (lib.hiPrio kittySingleInstance)
     stepDesktop
     kittyOpenUrl
+    browserHere
     kdotool             # KWin window queries from scripts; see kittyOpenUrl
     # GTK dialogs for scripts that must ask the user something -- above all
     # a secret -- on the desktop instead of through a terminal or an agent's
