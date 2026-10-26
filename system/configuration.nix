@@ -198,6 +198,30 @@ let
     extraEnv.HERMES_HOME = "/home/niteris/dev/hermes";
   };
 
+  # The desktop icon's entry: a click opens the native app, and right-click
+  # offers the web view (pyweb-view of go/hermes), so either is one gesture
+  # away with no dialog in front of the common case.
+  hermesLauncher = pkgs.makeDesktopItem {
+    name = "hermes-launcher";
+    desktopName = "Hermes";
+    comment = "Click: desktop app. Right-click: web app.";
+    # --ozone-platform=wayland up front: without it the app re-executes
+    # itself to add the flag (wslg-launch.ts), leaving a second full Electron
+    # (main, GPU, zygotes, ~500 MB) idling as the parent and doubling startup.
+    # systemd-run gives it its own scope at CPUWeight 1000, ten times a kitty
+    # build scope, so it stays usable under load. Not a negative nice: that
+    # is what froze the desktop when Chromium had it (see DefaultLimitNICE).
+    exec = "systemd-run --user --scope --quiet -p CPUWeight=1000 ${hermesDesktop}/bin/hermes-desktop --ozone-platform=wayland";
+    icon = "${hermesDesktop}/share/icons/hicolor/1024x1024/apps/hermes.png";
+    categories = [ "Network" ];
+    startupWMClass = "com.nousresearch.hermes";
+    actions.web = {
+      name = "Open Hermes Web";
+      exec = "systemd-run --user --scope --quiet -p CPUWeight=1000 /home/niteris/.local/bin/pyweb-view go/hermes";
+      icon = "pyweb-view.hermes";
+    };
+  };
+
   # ── A "Docker" launcher for the dock ──
   # Docker ships no GUI of its own -- the engine is a daemon, and the window
   # people call "Docker" is Docker Desktop, which does not exist here. So the
@@ -1031,6 +1055,7 @@ in
   environment.systemPackages = with pkgs; [
     mlGpu
     hermesDesktop       # native Hermes app; see let-block above
+    hermesLauncher      # desktop icon's desktop/web entry; see let-block
     dockerVm
     openssl             # `openssl` CLI (bin output); the libraries are in devLibraries.
     unrar               # Extract RAR archives from the command line.
@@ -2534,10 +2559,36 @@ in
   # The /tmp retention itself (72h, and why reads no longer count) is the
   # `systemd.tmpfiles.rules` entry further up. This only makes the sweep
   # prompt: daily, an entry could outlive its 72h by up to another day, and
-  # on a disk that filled 291 GB of /tmp in four days that day matters. The
-  # empty entry clears upstream's OnUnitActiveSec=1d first -- timer settings
-  # accumulate, and without the reset both triggers would stay armed.
-  systemd.timers.systemd-tmpfiles-clean.timerConfig.OnUnitActiveSec = [ "" "1h" ];
+  # on a disk that filled 291 GB of /tmp in four days that day matters.
+  #
+  # The previous form of this override was the bug that killed the sweep
+  # entirely (found 2026-10-26, disk at 95%). It was:
+  #
+  #   timerConfig.OnUnitActiveSec = [ "" "1h" ];
+  #
+  # with the empty entry meant to clear upstream's OnUnitActiveSec=1d first.
+  # An empty value in a drop-in resets the WHOLE [Timer] monotonic trigger
+  # set, so upstream's OnBootSec=15min was wiped out too. What remained was
+  # one anchorless OnUnitActiveSec=1h; with the service never having run,
+  # there is no last-activation time to anchor it to, and systemd schedules
+  # nothing: TimersMonotonic showed only { OnUnitActiveUSec=1h;
+  # next_elapse=0 }, NextElapseUSecMonotonic=infinity, LastTriggerUSec=0,
+  # SubState=elapsed — and systemd-tmpfiles-clean.service never ran once in
+  # any retained journal, across multiple boots, while /tmp accumulated
+  # 15.9 GB of >72h entries. Verified by A/B in user systemd: same base
+  # unit + this drop-in loses OnBootSec; drop-in removed, both triggers
+  # return.
+  #
+  # OnCalendar lives in the calendar-trigger list, a separate setting the
+  # monotonic reset cannot touch, so the sweep no longer depends on that
+  # pitfall at all; upstream's own OnBootSec/OnUnitActiveSec stay armed
+  # untouched (an extra pass at boot+15min and daily is free — tmpfiles
+  # --clean is idempotent). Persistent=true runs a catch-up pass after
+  # downtime so hours missed while the box was off are not simply lost.
+  systemd.timers.systemd-tmpfiles-clean.timerConfig = {
+    OnCalendar = "hourly";
+    Persistent = true;
+  };
 
   # The Trash: anything deleted more than a day ago is purged, hourly.
   # trash-empty goes by the DeletionDate each .trashinfo records, so it is
@@ -3377,11 +3428,8 @@ in
         # way, and this list is wholesale like `panels` is: what is here is
         # what the desktop gets.
         #
-        # The .desktop file is the one pyweb-view generates in the user's own
-        # applications directory, not something this repo installs, so on a
-        # restored machine the icon draws blank until pyweb-view has run once.
-        # (A launcher whose icon will not resolve renders as empty space
-        # rather than an error -- see the panel note about that.)
+        # The .desktop file is hermesLauncher (see let-block): click opens the
+        # native app, right-click offers the web view.
         desktop.widgets = [
           {
             name = "org.kde.plasma.icon";
@@ -3402,7 +3450,7 @@ in
               height = 140;
             };
             config.General.url =
-              "file:///run/current-system/sw/share/applications/com.nousresearch.hermes.desktop";
+              "file:///run/current-system/sw/share/applications/hermes-launcher.desktop";
           }
         ];
 
