@@ -9,16 +9,20 @@ PlasmoidItem {
     id: root
 
     // `desktop` is a full path, which the media launcher does not assume.
+    // Hermes has two rows, desktop app and web view, so the choice costs no
+    // extra click; `listOnly` keeps the web row out of the panel icon grid.
     readonly property var devApps: [
         { name: "Visual Studio Code", icon: "vscode",
           desktop: "/run/current-system/sw/share/applications/code.desktop" },
         { name: "Hermes", icon: "/run/current-system/sw/share/icons/hicolor/1024x1024/apps/hermes.png",
-          desktop: "/run/current-system/sw/share/applications/com.nousresearch.hermes.desktop" }
+          desktop: "/run/current-system/sw/share/applications/hermes-launcher.desktop" },
+        { name: "Hermes Web", icon: "pyweb-view.hermes", listOnly: true,
+          desktop: "/home/niteris/.local/share/applications/pyweb-view.hermes.desktop" }
     ]
 
     preferredRepresentation: compactRepresentation
     toolTipMainText: "Dev"
-    toolTipSubText: "Visual Studio Code, Hermes"
+    toolTipSubText: "Visual Studio Code, Hermes, Hermes Web"
 
     Timer {
         id: closeTimer
@@ -45,7 +49,7 @@ PlasmoidItem {
             columns: 2
             spacing: 1
             Repeater {
-                model: root.devApps
+                model: root.devApps.filter(app => !app.listOnly)
                 Kirigami.Icon {
                     required property var modelData
                     width: (parent.parent.height - 5) / 2
@@ -94,7 +98,9 @@ PlasmoidItem {
                     width: appList.width
                     height: 40
                     text: modelData.name
-                    icon.name: modelData.icon
+                    // icon.name takes only theme names; Hermes's icon is a file.
+                    icon.name: modelData.icon.startsWith("/") ? "" : modelData.icon
+                    icon.source: modelData.icon.startsWith("/") ? "file://" + modelData.icon : ""
 
                     onClicked: {
                         closeTimer.stop()
