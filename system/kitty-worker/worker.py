@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = []
+# dependencies = ["running-process==4.10.17"]
 # ///
 """kitty-worker: does kitty's blocking work so kitty's main thread never does.
 
@@ -8,10 +8,15 @@ Everything our code runs inside kitty runs on kitty's main thread, the one
 that draws every terminal. A /proc read that waits on a busy process's
 memory map, or a file write queued behind the ext4 journal, freezes every
 terminal for as long as it takes (2026-10-25: up to 1.3 s every 5 s). So
-kitty-side code only sends datagrams here and reads replies later; see
-kitty_async.py for that half.
+kitty-side code only sends requests here and reads replies on a later tick;
+see kitty_async.py for that half.
 
-Protocol: one JSON object per datagram on $XDG_RUNTIME_DIR/kitty-worker.sock.
+Transport: running-process's supervised service (running_process_service),
+service "kitty-worker" on private-use payload protocol 0xF0B7. It owns the
+single-instance endpoint, the identity file kitty's client health-probes, and
+request-id matching. Every request gets a reply; for write/unlink it is {}.
+
+Protocol: one JSON object per request.
   {"op": "panes", "panes": [{"pid": shell, "pgid": foreground group,
                              "osc7": dir or ""}]}
       -> {"op": "panes", "procs": {pid: {cmdline, cwd, exe}},
@@ -24,27 +29,25 @@ Protocol: one JSON object per datagram on $XDG_RUNTIME_DIR/kitty-worker.sock.
       An image on the clipboard is read with wl-paste, PNG re-encoded as
       quality-95 JPEG (Klipper's own JPEG is quality 75) and saved under
       ~/Pictures/kitty-pastes; kitty pastes the path. Text stays in kitty.
-A request carrying "id" gets it back in the reply.
 Reads and writes are confined to kitty's state and runtime directories.
 """
 
 import json
 import os
-import socket
 import subprocess
 import sys
 import tempfile
-from concurrent.futures import ThreadPoolExecutor
+
+from running_process_service import ServiceSpec, serve
 
 RUNTIME = os.environ["XDG_RUNTIME_DIR"]
 STATE = os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state")
-ADDRESS = os.path.join(RUNTIME, "kitty-worker.sock")
 PASTES = os.path.expanduser("~/Pictures/kitty-pastes")
 WRITABLE = (os.path.join(STATE, "kitty-resurrect") + os.sep, RUNTIME + os.sep, PASTES + os.sep)
 IMAGE_TYPES = (("image/png", "png"), ("image/jpeg", "jpg"), ("image/webp", "webp"),
                ("image/gif", "gif"))
 BRANCH_MAX = 22
-MAX_DATAGRAM = 4 << 20
+SPEC = ServiceSpec(name="kitty-worker", version="2", payload_protocol=0xF0B7)
 
 
 def proc(pid):
@@ -178,40 +181,30 @@ def clip(msg):
     return {"op": "clip", "kind": "text"}
 
 
-def main():
+def handle(payload):
     try:
-        os.unlink(ADDRESS)
-    except FileNotFoundError:
-        pass
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, MAX_DATAGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, MAX_DATAGRAM)
-    sock.bind(ADDRESS)
-    os.chmod(ADDRESS, 0o600)
-    # Threads, so one /proc read stuck on a busy process delays nothing else.
-    pool = ThreadPoolExecutor(max_workers=4)
-
-    def handle(data, peer):
+        msg = json.loads(payload)
+        op = msg.get("op")
+        if op in ("write", "unlink"):
+            write(msg)
+            return b"{}"
+        reply = {"panes": panes, "read": read, "clip": clip}.get(op)
+        if reply is None:
+            return json.dumps({"op": op, "error": "unknown op"}).encode()
         try:
-            msg = json.loads(data)
-            reply = {"panes": panes, "read": read, "clip": clip}.get(msg.get("op"))
-            if reply is not None:
-                try:
-                    out = reply(msg)
-                except (OSError, subprocess.SubprocessError) as e:
-                    out = {"op": msg.get("op"), "error": str(e)}
-                if "id" in msg:
-                    out["id"] = msg["id"]
-                if peer:
-                    sock.sendto(json.dumps(out).encode(), peer)
-            elif msg.get("op") in ("write", "unlink"):
-                write(msg)
-        except (OSError, ValueError, KeyError, TypeError) as e:
-            print(f"kitty-worker: {type(e).__name__}: {e}", file=sys.stderr)
+            out = reply(msg)
+        except (OSError, subprocess.SubprocessError) as e:
+            out = {"op": op, "error": str(e)}
+        return json.dumps(out).encode()
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as e:
+        print(f"kitty-worker: {type(e).__name__}: {e}", file=sys.stderr)
+        return json.dumps({"error": f"{type(e).__name__}: {e}"}).encode()
 
-    while True:
-        data, peer = sock.recvfrom(MAX_DATAGRAM)
-        pool.submit(handle, data, peer)
+
+def main():
+    # Worker threads, so one /proc read stuck on a busy process delays
+    # nothing else; replies go back out of order, matched by request id.
+    serve(SPEC, handle, workers=4)
 
 
 if __name__ == "__main__":

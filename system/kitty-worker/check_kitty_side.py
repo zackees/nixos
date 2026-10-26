@@ -4,6 +4,9 @@ That thread draws every terminal; a /proc read or file write on it froze
 them all (2026-10-25). Such work belongs in kitty-worker. This flags calls
 that touch the filesystem, /proc or other processes, unless the line (or the
 comment line just above it) says `# io-ok: <why>` -- e.g. once at module load.
+Importing anything but the standard library or kitty itself needs the same
+mark: a third-party module (running_process_service, say) runs its own code
+on this thread, and a native one is loaded from disk.
 
     python check_kitty_side.py FILE...
 """
@@ -20,6 +23,7 @@ OS_PATH = {"exists", "lexists", "isfile", "isdir", "islink", "realpath", "getmti
 PATH = {"read_text", "read_bytes", "write_text", "write_bytes", "is_file", "is_dir",
         "iterdir", "glob", "rglob", "touch", "resolve", "is_symlink", "unlink"}
 MODULES = {"subprocess", "tempfile", "shutil", "glob"}
+KITTY = {"kitty", "kittens"}
 
 
 def dotted(node):
@@ -45,8 +49,12 @@ def problems(path):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             names = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module or ""]
             for name in names:
-                if name.split(".")[0] in MODULES and not allowed(node.lineno):
+                top = name.split(".")[0]
+                if top in MODULES and not allowed(node.lineno):
                     yield node.lineno, f"imports {name}"
+                elif (getattr(node, "level", 0) == 0 and top not in sys.stdlib_module_names
+                      and top not in KITTY and not allowed(node.lineno)):
+                    yield node.lineno, f"imports third-party {name}"
             continue
         if not isinstance(node, ast.Call):
             continue

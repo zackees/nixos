@@ -1,9 +1,11 @@
 """kitty's half of kitty-worker: ask, never wait.
 
 Runs on kitty's main thread, which draws every terminal, so it must not
-block: no file or /proc access after install, only non-blocking datagrams to
-kitty-worker (worker.py) and in-memory reads of the last reply. A dead or
-slow worker costs stale labels, never a frozen terminal.
+block: no file or /proc access after install, only running-process's
+non-blocking service client (running_process_service) and in-memory reads
+of the last reply. Its send() refuses at once when the worker is down or
+behind, and replies are collected by polling try_recv() from a timer. A
+dead or slow worker costs stale labels, never a frozen terminal.
 
     client = get()            # the one Client, kept on kitty's boss
     with client.offline():    # kitty's /proc lookups answered from the cache
@@ -14,48 +16,63 @@ slow worker costs stale labels, never a frozen terminal.
     client.request(msg, f)    # f(reply) runs on kitty's thread when it arrives
     client.listeners.append(f)  # called after each reply
 
-Loaded by tab_bar.py, including on SIGUSR1; install() replaces the timers.
+Loaded by tab_bar.py, including on SIGUSR1; install() replaces the timers
+and keeps the connection, which lives on the boss with the cached state.
+The service client's own thread finds the worker, health-probes it, and if
+it is gone asks systemd to start it -- none of that on kitty's thread.
 """
 
 import json
 import os
-import socket
+import sys
 from contextlib import contextmanager
+
+# The running-process wheel packaged by system/kitty-worker.nix, pinned to the
+# release worker.py names. Importing it loads the native extension only.
+_SITE = "/run/current-system/sw/share/kitty-worker/site"
+if _SITE not in sys.path:
+    sys.path.insert(0, _SITE)
+# io-ok: one import at module load (kitty start / SIGUSR1), not on a timer or draw
+import running_process_service as rps
 
 PANES_INTERVAL = 0.5
 POLL_INTERVAL = 0.05
+MAX_REPLIES_PER_TICK = 256
+
+SPEC = rps.ServiceSpec(
+    name="kitty-worker",
+    version="2",
+    payload_protocol=0xF0B7,  # private use: one machine, not registered
+    # systemd supervises the worker; a client that finds it gone asks systemd
+    # rather than starting a second, unsupervised copy.
+    command=["/run/current-system/sw/bin/systemctl", "--user", "start", "kitty-worker.service"],
+    health_interval=2.0,
+    spawn_budget=(3, 30.0),
+)
 
 
 class Client:
-    def __init__(self, boss):
+    def __init__(self, boss, service=None):
         self.boss = boss
         self.procs = {}       # pid -> {cmdline, cwd, exe}, from the last reply
         self.branches = {}    # dir -> branch
         self.files = {}       # path -> text (None: missing), from read()
         self.listeners = []
-        self.pending = {}     # request id -> callback
-        self.next_id = 1
-        runtime = os.environ.get("XDG_RUNTIME_DIR", "/tmp")
-        self.server = os.path.join(runtime, "kitty-worker.sock")
-        self.address = os.path.join(runtime, f"kitty-worker-client-{os.getpid()}.sock")
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        self.sock.setblocking(False)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4 << 20)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 << 20)
-        try:
-            os.unlink(self.address)  # io-ok: once at install, tmpfs
-        except OSError:
-            pass
-        self.sock.bind(self.address)
+        self.pending = {}     # request id -> callback(reply)
+        self.service = service or rps.ServiceClient.connect(SPEC, queue_depth=256)
 
     def close(self):
-        self.sock.close()
+        self.service.close()
 
-    def send(self, msg):
+    def send(self, msg, on_reply=None):
         try:
-            self.sock.sendto(json.dumps(msg).encode(), self.server)
-        except OSError:
-            pass  # worker down or its queue full: drop, the next tick resends
+            rid = self.service.send(json.dumps(msg).encode())
+        except (rps.ServiceUnavailable, rps.QueueFull):
+            return  # worker down or behind: drop, the next tick resends
+        if on_reply is not None:
+            self.pending[rid] = on_reply
+            if len(self.pending) > 128:  # replies that will never come
+                self.pending.pop(min(self.pending))
 
     def write(self, path, text):
         self.send({"op": "write", "path": str(path), "text": text})
@@ -64,18 +81,23 @@ class Client:
         self.send({"op": "unlink", "path": str(path)})
 
     def request(self, msg, callback):
-        msg = dict(msg, id=self.next_id)
-        self.pending[self.next_id] = callback
-        self.next_id += 1
-        if len(self.pending) > 64:  # replies that will never come
-            self.pending.pop(min(self.pending))
-        self.send(msg)
+        self.send(msg, callback)
 
     def read(self, path):
-        self.send({"op": "read", "path": str(path)})
+        self.send({"op": "read", "path": str(path)}, self._on_read)
 
     def branch(self, wd):
         return self.branches.get(wd, "")
+
+    def _on_read(self, msg):
+        self.files[msg.get("path")] = msg.get("text")
+
+    def _on_panes(self, msg):
+        self.procs = {int(k): v for k, v in msg.get("procs", {}).items()}
+        self.branches.update(msg.get("branches", {}))
+        if len(self.branches) > 256:
+            self.branches = dict(msg.get("branches", {}))
+        self._panes_arrived = True
 
     def request_panes(self, _timer_id=None):
         from kitty.window import path_from_osc7_url
@@ -89,33 +111,22 @@ class Client:
             reported = w.screen.last_reported_cwd
             panes.append({"pid": child.pid, "pgid": pgid,
                           "osc7": path_from_osc7_url(reported) if reported else ""})
-        self.send({"op": "panes", "panes": panes})
+        self.send({"op": "panes", "panes": panes}, self._on_panes)
 
     def poll(self, _timer_id=None):
-        got = False
-        while True:
-            try:
-                data = self.sock.recv(4 << 20)
-            except (BlockingIOError, OSError):
+        self._panes_arrived = False
+        for _ in range(MAX_REPLIES_PER_TICK):
+            reply = self.service.try_recv()
+            if reply is None:
                 break
+            callback = self.pending.pop(reply.request_id, None)
+            if callback is None or reply.payload is None:
+                continue  # fire-and-forget ack, or the connection dropped
             try:
-                msg = json.loads(data)
-            except ValueError:
-                continue
-            if (callback := self.pending.pop(msg.get("id"), None)) is not None:
-                try:
-                    callback(msg)
-                except Exception:
-                    pass
-            elif msg.get("op") == "panes":
-                self.procs = {int(k): v for k, v in msg.get("procs", {}).items()}
-                self.branches.update(msg.get("branches", {}))
-                if len(self.branches) > 256:
-                    self.branches = dict(msg.get("branches", {}))
-                got = True
-            elif msg.get("op") == "read":
-                self.files[msg.get("path")] = msg.get("text")
-        if got:
+                callback(json.loads(reply.payload))
+            except Exception:
+                pass
+        if self._panes_arrived:
             for f in list(self.listeners):
                 try:
                     f()
@@ -178,12 +189,17 @@ def install():
     for name in ("kitty_worker_poll_timer", "kitty_worker_panes_timer"):
         if (t := getattr(boss, name, None)) is not None:
             remove_timer(t)
-    client = Client(boss)
+    # Keep the live connection across a reload (an older Client, from before
+    # the move to running-process, has none and is replaced).
+    service = getattr(old, "service", None)
+    client = Client(boss, service)
     if old is not None:
         # Keep what is known across a reload; listeners re-register themselves.
         client.procs, client.branches, client.files = old.procs, old.branches, old.files
-        client.pending, client.next_id = old.pending, old.next_id
-        old.close()
+        if service is not None:
+            client.pending = old.pending
+        elif hasattr(old, "close"):
+            old.close()
     boss.kitty_worker = client
     boss.kitty_worker_poll_timer = add_timer(client.poll, POLL_INTERVAL, True)
     boss.kitty_worker_panes_timer = add_timer(client.request_panes, PANES_INTERVAL, True)
