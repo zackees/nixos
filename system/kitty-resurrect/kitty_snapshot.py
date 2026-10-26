@@ -54,9 +54,22 @@ def continue_agent(command):
     return words if isinstance(command, list) else shlex.join(words)
 
 
+_continued = {}  # line -> rewritten line
+
+
 def continue_agents(lines):
+    # shlex.split is pure Python and a launch line carries kitty's whole
+    # per-pane JSON (~20 KB): 82 ms per snapshot on an idle machine, 91 ms
+    # stalls under load (perf, 2026-10-26). Lines rarely change between
+    # snapshots, so each is rewritten once.
+    global _continued
+    known = {line: _continued[line] for line in lines if line in _continued}
     out = []
     for line in lines:
+        if line in known:
+            out.append(known[line])
+            continue
+        original = line
         if line.startswith("launch ") and UNSERIALIZE in line:
             try:
                 words = shlex.split(line)
@@ -69,7 +82,9 @@ def continue_agents(lines):
                 line = shlex.join(words)
             except Exception:
                 pass  # An unrecognised line is saved as kitty wrote it.
+        known[original] = line
         out.append(line)
+    _continued = known  # only the current lines: closed panes drop out
     return out
 
 
