@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasma5support as Plasma5Support
+import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasmoid
 
 // TASKS.md as a plain text editor. The tab counts open `- [ ]` lines; the
@@ -17,10 +18,13 @@ PlasmoidItem {
     // True while the editor holds keystrokes not yet handed to the backend;
     // a refresh must not overwrite them.
     property bool dirty: false
-    toolTipMainText: "Tasks"
+    // The applet's own tooltip cannot take the pointer, so it is off and the
+    // tab carries an interactive ToolTipArea instead: move into the popup and
+    // click it to open the editor.
+    toolTipMainText: ""
+    toolTipSubText: ""
     // Hover: the file's top-level list items, as markdown-it parsed them.
-    toolTipTextFormat: Text.RichText
-    toolTipSubText: {
+    readonly property string topRich: {
         const top = list_.top || [];
         const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const rows = top.map(i => (i.check === null ? "• " : i.check ? "☑ " : "☐ ")
@@ -78,10 +82,41 @@ PlasmoidItem {
         onTriggered: root.save()
     }
 
-    compactRepresentation: MouseArea {
+    compactRepresentation: PlasmaCore.ToolTipArea {
+      id: tip
+      Layout.minimumWidth: 64
+      Layout.preferredWidth: 64
+      interactive: true
+      active: !root.expanded
+      mainItem: MouseArea {
+        implicitWidth: Math.min(Math.max(tipText.implicitWidth, 240), 520) + 24
+        implicitHeight: tipColumn.implicitHeight + 24
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: { tip.hideImmediately(); root.expanded = true; }
+        ColumnLayout {
+            id: tipColumn
+            anchors.fill: parent
+            anchors.margins: 12
+            spacing: 6
+            Kirigami.Heading { text: "Tasks"; level: 4 }
+            PlasmaComponents.Label {
+                id: tipText
+                Layout.fillWidth: true
+                textFormat: Text.RichText
+                wrapMode: Text.Wrap
+                text: root.topRich
+            }
+            PlasmaComponents.Label {
+                text: "Click to edit"
+                opacity: 0.6
+                font.italic: true
+            }
+        }
+      }
+      MouseArea {
         id: tab
-        Layout.minimumWidth: 64
-        Layout.preferredWidth: 64
+        anchors.fill: parent
         Accessible.name: "Tasks: " + root.list_.open + " open"
         Accessible.role: Accessible.Button
         hoverEnabled: true
@@ -117,6 +152,7 @@ PlasmoidItem {
                 color: Kirigami.Theme.neutralTextColor
             }
         }
+      }
     }
 
     fullRepresentation: Item {
