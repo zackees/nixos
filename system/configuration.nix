@@ -2568,6 +2568,15 @@ in
   systemd.user.services.soldr-shim-libs = {
     description = "Symlink soldr.libs into every soldr version dir";
     wantedBy = [ "default.target" ];
+    # The path unit watches the same directories this script writes shims into,
+    # so the run re-triggers itself: five times in ten seconds at each
+    # activation, then systemd's start limit wedges the unit for good
+    # (start-limit-hit) and a later soldr version dir silently loses its
+    # symlink -- the exact failure this unit exists to prevent. Retry forever,
+    # as hermes-gateway does for the same reason: the loop is self-limiting
+    # (the script writes nothing once every dir is linked) even though the
+    # start limit is not.
+    startLimitIntervalSec = 0;
     serviceConfig.Type = "oneshot";
     script = ''
       set -eu
