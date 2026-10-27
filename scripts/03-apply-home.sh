@@ -45,13 +45,17 @@ say "voxtype dictation"
 mkdir -p "$HOME/.config/voxtype" "$HOME/.local/share/applications"
 keep "$HOME/.config/voxtype/config.toml"
 cp "$REPO/home/voxtype/config.toml" "$HOME/.config/voxtype/config.toml"
-# User-session audio policy needs no privileged audio restart. This unit is
-# managed here, not duplicated in system/configuration.nix.
+# User-session audio policy needs no privileged audio restart. voxtype-ducking
+# is a systemd.user.services entry in system/configuration.nix now (it launches
+# the script through `uv run`, not the store python3), so do NOT install a unit
+# here: a hand-written one in ~/.config/systemd/user shadows the NixOS unit
+# silently. Only the two scripts land in the home dir -- the wait script is
+# voxtype's pre_recording_command and must keep a stable path, which a
+# /nix/store path is not.
 install -Dm644 "$REPO/system/voxtype-ducking.py" "$HOME/.local/libexec/voxtype-ducking.py"
 install -Dm755 "$REPO/system/voxtype-duck-wait.sh" "$HOME/.local/libexec/voxtype-duck-wait.sh"
-install -Dm644 "$REPO/home/voxtype/voxtype-ducking.service" "$HOME/.config/systemd/user/voxtype-ducking.service"
+rm -f "$HOME/.config/systemd/user/voxtype-ducking.service"
 systemctl --user daemon-reload
-systemctl --user enable --now voxtype-ducking.service
 # Meta+H is NOT bound to this entry any more -- push-to-talk needs a key
 # release event, which KGlobalAccel does not have, so the hotkey moved into
 # voxtype's own evdev reader (see [hotkey] in config.toml). The entry stays

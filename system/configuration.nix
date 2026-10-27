@@ -796,6 +796,18 @@ let
     '';
   });
 
+  # Voxtype's playback-ducking helper, launched through uv instead of the
+  # immutable store python3. `uv run --script` resolves its own uv-managed
+  # CPython -- never pkgs.python3, which is PEP 668-managed and pinned to a
+  # /nix/store path -- which is the same rule the user venv and
+  # PIPX_DEFAULT_PYTHON below exist for. --no-project keeps it out of any
+  # pyproject.toml that happens to sit in the caller's cwd. Costs ~30 ms warm,
+  # against the ~200 ms of the bare-python path this replaces.
+  voxtypeDucking = pkgs.writeShellScriptBin "voxtype-ducking" ''
+    exec ${pkgs.uv}/bin/uv run --no-project --quiet \
+      --python-preference only-managed --script ${./voxtype-ducking.py} "$@"
+  '';
+
 in
 {
   # home-manager's NixOS module is added by flake.nix, alongside this file.
@@ -1019,10 +1031,13 @@ in
   # the DHCP lease can -- and a queue pointing at a stale IP fails as "the
   # printer is broken", a long way from its actual cause.
   #
-  # ensure-printers is its own oneshot unit rather than part of the
-  # activation script, so if the printer is off at switch time the unit fails
-  # and the rebuild still succeeds. `systemctl start ensure-printers` once it
-  # is back.
+  # ensure-printers is its own oneshot unit rather than part of the activation
+  # script, which was supposed to mean a printer that is switched off fails only
+  # that unit. It does not: switch-to-configuration starts the unit and
+  # propagates lpadmin's exit 1 as exit 4 from `nixos-rebuild switch`, so every
+  # rebuild with the printer off reported failure and any real fault hid behind
+  # it. The override after the list makes that exit code non-fatal and warns
+  # instead. `systemctl start ensure-printers` once the printer is back.
   hardware.printers.ensureDefaultPrinter = "Brother_HL-L2395DW";
   hardware.printers.ensurePrinters = [
     {
@@ -1040,6 +1055,17 @@ in
       # as `everywhere` and the printer negotiate it.
     }
   ];
+
+  # lpadmin exits 1 when the device cannot be reached -- printer switched off,
+  # or a network that does not route .local. Treat exactly that code as
+  # success, because a printer being off must not fail a system rebuild, and
+  # say so out loud instead. The warning comes from a real query: the script
+  # asks CUPS whether each declared queue exists, so it fires on a missing
+  # printer rather than on a guess about the exit code.
+  systemd.services.ensure-printers.serviceConfig = {
+    SuccessExitStatus = [ 1 ];
+    ExecStartPost = "-${pkgs.bash}/bin/bash ${./ensure-printers-warn.sh} ${lib.escapeShellArgs (map (p: p.name) config.hardware.printers.ensurePrinters)}";
+  };
 
   # cups-browsed auto-creates a queue for every printer it discovers over
   # DNS-SD. Switching avahi on therefore produced a second, implicitclass://
@@ -1922,6 +1948,33 @@ in
       ExecStartPost = "${pkgs.bash}/bin/bash -c 'for t in /proc/$MAINPID/task/*; do ${pkgs.util-linux}/bin/renice -n -10 -p \"$${t##*/}\" >/dev/null || exit 1; done'";
       IOSchedulingClass = "best-effort";
       IOSchedulingPriority = 0;
+    };
+  };
+
+  # Playback ducking during dictation, declared here instead of being installed
+  # into ~/.config/systemd/user by scripts/03-apply-home.sh. Two reasons: a unit
+  # hand-written there shadows this one silently (same trap as the hermes
+  # units, see AGENTS.md), and its interpreter was
+  # /run/current-system/sw/bin/python3 -- the immutable store python. Both this
+  # service and voxtype's pre_recording_command now go through `uv run`.
+  systemd.user.services.voxtype-ducking = {
+    description = "System-wide playback ducking during Voxtype dictation";
+    wantedBy = [ "voxtype.service" ];
+    bindsTo = [ "voxtype.service" ];
+    partOf = [ "voxtype.service" "graphical-session.target" ];
+    after = [ "voxtype.service" "pipewire.service" "wireplumber.service" ];
+    serviceConfig = {
+      Type = "simple";
+      # uv resolves its own CPython, so this unit needs no python on PATH; the
+      # script calls pw-dump/pw-cli/systemctl by absolute path itself.
+      ExecStart = "${voxtypeDucking}/bin/voxtype-ducking";
+      ExecStopPost = "${voxtypeDucking}/bin/voxtype-ducking --restore";
+      Restart = "on-failure";
+      RestartSec = 1;
+      RuntimeDirectory = "voxtype-ducking";
+      RuntimeDirectoryMode = "0700";
+      RuntimeDirectoryPreserve = "yes";
+      TimeoutStopSec = 15;
     };
   };
 

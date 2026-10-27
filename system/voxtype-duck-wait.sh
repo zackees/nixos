@@ -11,4 +11,10 @@ for _ in $(seq 60); do
   [ "$(cat "$flag" 2>/dev/null)" = 1 ] && exit 0
   sleep 0.005
 done
-exec /run/current-system/sw/bin/python3 "$HOME/.local/libexec/voxtype-ducking.py" --prepare
+# Fallback only: uv, never the immutable store python3. This path is already
+# the slow one (300 ms of polling failed), so uv's ~30 ms extra does not
+# matter, and uv resolves its own managed CPython instead of pinning a
+# /nix/store interpreter.
+exec "$HOME/.nix-profile/bin/uv" run --no-project --quiet \
+  --python-preference only-managed \
+  --script "$(dirname "$0")/voxtype-ducking.py" --prepare

@@ -1,3 +1,12 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+#
+# Run only through `uv run --script` (the voxtypeDucking wrapper in
+# system/configuration.nix, and voxtype-duck-wait.sh's fallback path) -- never
+# with the store python3, which is PEP 668-managed and pinned to a /nix/store
+# interpreter. Standard library only, so the dependency list stays empty.
 """Duck physical playback devices while Voxtype records, independent of apps.
 
 Only output channel gains change: microphone gain, mute, routing, virtual OBS
