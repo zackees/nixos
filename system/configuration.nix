@@ -2697,7 +2697,24 @@ in
     # actually lands on PATH. That is where gh, uv and clud live, which the
     # agent shells out to; bin/hermes appends its own tools (node, git,
     # ripgrep, ffmpeg) on top.
-    path = [ "/home/niteris/.local" "/home/niteris/.cargo" ];
+    #
+    # This list is the whole PATH: a unit that sets PATH does not inherit
+    # environment.sessionVariables, so anything the agent has in an interactive
+    # shell but is missing here reads as "command not found" in agent sessions.
+    # `~/.venv` is the one that bit: pip lives there (user-python-venv builds
+    # it) and nowhere else, so agent sessions had python3 but no pip.
+    # `/run/current-system/sw` is the systemPackages dir the agent drives --
+    # spectacle, magick, qdbus, nixos-rebuild -- and /usr/bin is that same dir
+    # on NixOS, so it also stands in for the FHS defaults.
+    path = [
+      "/home/niteris/.venv" # pip, python3 -> the writable venv (see sessionVariables.PATH)
+      "/home/niteris/.local"
+      "/home/niteris/.cargo"
+      "/home/niteris/.npm-global"
+      "/run/wrappers" # setuid sudo; the sw/bin symlink is inert
+      "/run/current-system/sw"
+      "/home/niteris/.nix-profile"
+    ];
     environment = {
       HERMES_HOME = "/home/niteris/dev/hermes";
       HERMES_SUPERVISED_CHILD = "1";
@@ -2748,7 +2765,17 @@ in
     wantedBy = [ "default.target" ];
     after = [ "network-online.target" "hermes-gateway.service" ];
     wants = [ "network-online.target" ];
-    path = [ "/home/niteris/.local" ];
+    # Same PATH reasoning as hermes-gateway above: pip needs ~/.venv/bin, and
+    # the dashboard's embedded session shells need the systemPackages dir.
+    path = [
+      "/home/niteris/.venv"
+      "/home/niteris/.local"
+      "/home/niteris/.cargo"
+      "/home/niteris/.npm-global"
+      "/run/wrappers"
+      "/run/current-system/sw"
+      "/home/niteris/.nix-profile"
+    ];
     environment.HERMES_HOME = "/home/niteris/dev/hermes";
     serviceConfig = {
       Type = "simple";

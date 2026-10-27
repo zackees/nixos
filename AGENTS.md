@@ -521,6 +521,21 @@ Then confirm it is the NixOS unit, not the old one:
 systemctl --user show -p FragmentPath hermes-gateway   # expect /etc/systemd/user/...
 ```
 
+**The drop-in directories shadow it too, and they are easy to miss.** The same
+`hermes gateway install` also left
+`~/.config/systemd/user/hermes-gateway.service.d/10-path.conf`. A drop-in is
+applied *after* the unit, so it silently replaced the declared PATH with a
+hand-written list from Sep 2026 naming a stale `/nix/store` hash -- and
+because a unit that sets PATH does not inherit
+`environment.sessionVariables`, agent sessions ended up without `~/.venv/bin`
+(so `pip` was "command not found" in every Hermes session while kitty had it)
+and without `/run/wrappers/bin` (so `sudo` resolved to the inert
+`/run/current-system/sw/bin/sudo` symlink and failed with "must be owned by
+uid 0 and have the setuid bit set"). Rename it `.disabled`, matching the
+voxtype precedent. Keep its `20-openrouter.conf` sibling: that one is what
+loads `.openrouter.env`. The declared `path` list is the whole PATH, so when
+adding anything the agent shells out to, add it there too.
+
 **To update Hermes, bump the revision in `flake.nix`** and rebuild. Do not run
 `hermes update`: it installs into the nix profile, which is the drift this
 replaced.
