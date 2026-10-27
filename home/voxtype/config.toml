@@ -101,7 +101,11 @@ context_window_optimization = false
 mode = "paste"
 # The local capture-timing patch runs this synchronously before the start cue
 # and before opening the microphone. Upstream runs this hook after capture.
-pre_recording_command = "/run/current-system/sw/bin/bash /home/niteris/.local/libexec/voxtype-duck-wait.sh"
+# One uv command, no shell script: --wait makes it read the flag the watcher
+# sets (usually already set, since `preparing` is published before this hook)
+# and duck synchronously only if the watcher did not answer in 300 ms. uv, not
+# /run/current-system/sw/bin/python3 -- see system/voxtype-ducking.py.
+pre_recording_command = "/home/niteris/.nix-profile/bin/uv run --no-project --quiet --python-preference only-managed --script /home/niteris/.local/libexec/voxtype-ducking.py --prepare --wait"
 paste_keys = "shift+insert"
 # Borrow the clipboard for insertion, then restore its previous content.
 restore_clipboard = true

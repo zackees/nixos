@@ -2420,6 +2420,36 @@ in
   # lives in the bridge's own store plus ~/.config/himalaya, never here.
   services.protonmail-bridge.enable = true;
 
+  # Newsletter retention: drop approved Epoch Times mail once it is seven days
+  # old, so the mailbox never fills Proton's quota and nobody sweeps by hand.
+  # The script belongs to the website repo
+  # (scripts/mail-filters/epoch_retention.py), is standard-library only, and
+  # runs through uv -- it used to be invoked as ~/.local/bin/python3.13, a
+  # uv-managed CPython path standing in for exactly this.
+  #
+  # This pair was hand-written in ~/.config/systemd/user, so declaring it here
+  # only takes effect once those files are gone: a user unit shadows the NixOS
+  # one silently (the trap in AGENTS.md "Hermes Agent").
+  systemd.user.services.protonmail-epoch-retention = {
+    description = "Keep seven days of approved Epoch Times newsletters";
+    after = [ "protonmail-bridge.service" ];
+    requires = [ "protonmail-bridge.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.uv}/bin/uv run --no-project --quiet --python-preference only-managed --script /home/niteris/dev/zachvorhies_com/scripts/mail-filters/epoch_retention.py --apply";
+      TimeoutStartSec = "45min";
+      UMask = "0077";
+    };
+  };
+  systemd.user.timers.protonmail-epoch-retention = {
+    description = "Hourly Epoch Times newsletter retention";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-*-* *:30:00";
+      Persistent = true;
+    };
+  };
+
   # This is a development workstation where profiling ordinary processes is
   # expected. -1 removes perf_event's access restrictions, so unprivileged
   # local processes may use CPU counters rather than needing CAP_PERFMON.

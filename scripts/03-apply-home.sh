@@ -53,7 +53,9 @@ cp "$REPO/home/voxtype/config.toml" "$HOME/.config/voxtype/config.toml"
 # voxtype's pre_recording_command and must keep a stable path, which a
 # /nix/store path is not.
 install -Dm644 "$REPO/system/voxtype-ducking.py" "$HOME/.local/libexec/voxtype-ducking.py"
-install -Dm755 "$REPO/system/voxtype-duck-wait.sh" "$HOME/.local/libexec/voxtype-duck-wait.sh"
+# The wait logic lives in that script now (--prepare --wait), so there is no
+# second file and no bash in the pre-capture path.
+rm -f "$HOME/.local/libexec/voxtype-duck-wait.sh"
 rm -f "$HOME/.config/systemd/user/voxtype-ducking.service"
 systemctl --user daemon-reload
 # Meta+H is NOT bound to this entry any more -- push-to-talk needs a key

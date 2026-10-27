@@ -4,9 +4,10 @@
 # ///
 #
 # Run only through `uv run --script` (the voxtypeDucking wrapper in
-# system/configuration.nix, and voxtype-duck-wait.sh's fallback path) -- never
-# with the store python3, which is PEP 668-managed and pinned to a /nix/store
-# interpreter. Standard library only, so the dependency list stays empty.
+# system/configuration.nix for the watcher, and voxtype's pre_recording_command
+# for --prepare --wait) -- never with the store python3, which is PEP 668-
+# managed and pinned to a /nix/store interpreter. Standard library only, so the
+# dependency list stays empty.
 """Duck physical playback devices while Voxtype records, independent of apps.
 
 Only output channel gains change: microphone gain, mute, routing, virtual OBS
@@ -104,11 +105,38 @@ class Ducker:
                 self.save()
 
 
+def watcher_answered(flag, timeout):
+    """True once the watcher has flagged playback as ducked, within timeout.
+
+    Polling a file is what keeps the pre-capture hook cheap: the watcher ducks
+    as soon as voxtype publishes `preparing`, which happens *before* the hook
+    runs, so the usual case is one read rather than a second interpreter
+    starting up. This used to be a bash script (voxtype-duck-wait.sh) for the
+    same reason; folding it in here keeps one implementation instead of two
+    while uv's ~30 ms start is only paid on the path that has already given up
+    waiting.
+    """
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            if flag.read_text().strip() == '1':
+                return True
+        except FileNotFoundError:
+            pass
+        time.sleep(0.005)
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--restore', action='store_true')
     parser.add_argument('--prepare', action='store_true',
                         help='Synchronously duck before the start cue and capture')
+    parser.add_argument('--wait', action='store_true',
+                        help='With --prepare, let the watcher duck first and only '
+                             'duck here if it does not answer in --wait-timeout')
+    parser.add_argument('--wait-timeout', type=float, default=0.3,
+                        help='Seconds to wait for the watcher (default 0.3)')
     parser.add_argument('--state', type=Path)
     parser.add_argument('--journal', type=Path)
     args = parser.parse_args()
@@ -120,8 +148,12 @@ def main():
     # The synchronous start hook and state watcher share one recovery journal.
     # Lock both the read and write so they cannot double-duck or lose originals.
     ducked = journal.with_suffix('.ducked')
-    # voxtype-duck-wait.sh is the fast path for --prepare: it waits on this
-    # flag, which the watcher below writes after each change.
+    if args.prepare and not args.restore and args.wait:
+        # The watcher ducks as soon as voxtype publishes `preparing`, which is
+        # before this hook runs, so the common case is one read of the flag it
+        # writes. Duck synchronously below if it does not answer in time.
+        if watcher_running() and watcher_answered(ducked, args.wait_timeout):
+            return
     with journal.with_suffix('.lock').open('a') as lock:
         if args.restore or args.prepare:
             if args.prepare and not args.restore and not watcher_running():
