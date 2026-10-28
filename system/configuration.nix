@@ -2024,6 +2024,14 @@ in
     serviceConfig = {
       Nice = -10;
       LimitNICE = "-10";
+      # Enable GPU rendering for Zoom’s embedded Chromium UI.
+      # Set only this preference before launch; keep account data out of Nix.
+      # This accelerates the web UI, not meeting video encoding/decoding.
+      ExecStartPre = pkgs.writeShellScript "zoom-enable-cef-gpu" ''
+        config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}"
+        ${pkgs.coreutils}/bin/mkdir -p "$config_dir"
+        ${pkgs.crudini}/bin/crudini --set "$config_dir/zoomus.conf" General enableCefGpu true
+      '';
     };
   };
 
