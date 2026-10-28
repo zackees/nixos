@@ -20,6 +20,7 @@ sda         931.5G
 ├─sda1         50M ntfs   System Reserved C7C0D431375DBADC                     
 ├─sda2        931G ntfs                   F03CCA193CC9DB2C                     /run/media/niteris/F03CCA193CC9DB2C
 └─sda3        499M ntfs                   0313E9927EEEBDAC                     
+sdb             0B                                                             
 nvme0n1       1.8T                                                             
 ├─nvme0n1p1     2G vfat                   866F-1102                            /boot
 └─nvme0n1p2   1.8T ext4   root            ea0caf0b-ae20-413c-bb57-22a9bdc5719e /
