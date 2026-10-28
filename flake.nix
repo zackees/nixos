@@ -48,7 +48,17 @@
     # Pinned to the exact revision that profile install had (0.21.0), so this
     # migration is a no-op rather than a silent upgrade -- same reasoning as
     # the nixpkgs pin above. Bump it deliberately, then restart the units.
-    hermes-agent.url = "github:NousResearch/hermes-agent/4ea8d23cc9f527332ccb1d55359b27741b6ea51b";
+    #
+    # TEMPORARY: the pin carries one local fix on top of upstream 4ea8d23 --
+    # BrowseShSource falls back to a catalog entry's own GitHub link when
+    # browse.sh's detail endpoint has dropped it, which is why the dashboard's
+    # skill Install button failed with "Stale index entry" for
+    # browserbase.com/cookie-sync and 11 other skills that were moved to the
+    # browserbase/skills repo. Upstream PR:
+    # https://github.com/NousResearch/hermes-agent/pull/145678 -- once merged,
+    # point this back at `github:NousResearch/hermes-agent/<merge commit>` and
+    # drop the fork.
+    hermes-agent.url = "git+https://github.com/zackees/hermes-agent?ref=nix/browse-sh-fallback&rev=269bf032d07aec8d6c6d5405ade6ebcb0a482a20";
 
     # The private-desktop application tracks main (with its noVNC submodule);
     # flake.lock pins the exact revision, and scripts/apply.sh advances it.
@@ -63,6 +73,16 @@
       url = "git+file:///home/niteris/dev/talos-hq/talos-bar";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
+    # Consent-gated sudo for the Hermes agents: ONE sudoers rule naming ONE
+    # helper, and the helper refuses unless the maintainer approved the exact
+    # argv in Telegram (single use, TTL, audit log). Pinned to the same
+    # revision the module was tested at, not to main -- same rule as the
+    # inputs above. Bump deliberately and re-run the VM check.
+    client-skills = {
+      url = "github:talos-hq/client-skills/afa4c57ba336a75a29b64158b6fb052cfeb8a136";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
@@ -75,6 +95,7 @@
       modules = [
         ./system/configuration.nix
         ./system/talos-bar.nix
+        inputs.client-skills.nixosModules.consent-sudo
         home-manager.nixosModules.home-manager
       ];
     };

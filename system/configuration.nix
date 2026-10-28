@@ -2869,6 +2869,24 @@ in
   # profiles; its journal shows it running `hermes -p assistant ...` on a
   # 30s rescan. Do not re-add a per-profile unit here.
 
+  # Consent-gated root for the agents (talos-hq/client-skills). The sudoers
+  # rule this declares names exactly ONE command -- the helper -- and that
+  # helper will not exec anything until an approval exists that it can bind to
+  # the exact argv: right Telegram account, unexpired, single use. So a wedged
+  # desktop (a dead GPU driver, a stuck unit) is fixable from the chat without
+  # handing the agent blanket root, and every attempt -- allowed or refused --
+  # lands in /var/log/hermes-consent.log.
+  #
+  # This sits BESIDE the sudo-askpass setup above, it does not replace it: the
+  # maintainer's own sudo still prompts (dialog + YubiKey), and only the helper
+  # path is NOPASSWD.
+  services.hermesConsent = {
+    enable = true;
+    agentUser = "niteris";
+    telegramUserId = 887113368; # the only account allowed to approve
+    ttlMinutes = 10;
+  };
+
   # The local dashboard on 127.0.0.1:9119, which the host nginx proxies at
   # https://164.92.65.2/ and the `go/hermes` link frames.
   systemd.user.services.hermes-dashboard = {

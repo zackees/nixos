@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "client-skills": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793204086,
+        "narHash": "sha256-QgTvK/kpqoVV3Yk/Ri1uMMw0yj4C0nrveqr87YASZDc=",
+        "owner": "talos-hq",
+        "repo": "client-skills",
+        "rev": "afa4c57ba336a75a29b64158b6fb052cfeb8a136",
+        "type": "github"
+      },
+      "original": {
+        "owner": "talos-hq",
+        "repo": "client-skills",
+        "rev": "afa4c57ba336a75a29b64158b6fb052cfeb8a136",
+        "type": "github"
+      }
+    },
     "docker-vm": {
       "inputs": {
         "nixpkgs": [
@@ -55,18 +76,19 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1792896981,
-        "narHash": "sha256-lIxLZ0xzwTZQN+xAT/p8lTHklHrvwiHwSGVALle9P0Y=",
-        "owner": "NousResearch",
-        "repo": "hermes-agent",
-        "rev": "4ea8d23cc9f527332ccb1d55359b27741b6ea51b",
-        "type": "github"
+        "lastModified": 1793128546,
+        "narHash": "sha256-ivNUsCt7ibh8S+1442ccGp2E2N4swLlxpA1n+kZV1us=",
+        "ref": "nix/browse-sh-fallback",
+        "rev": "269bf032d07aec8d6c6d5405ade6ebcb0a482a20",
+        "revCount": 58530,
+        "type": "git",
+        "url": "https://github.com/zackees/hermes-agent"
       },
       "original": {
-        "owner": "NousResearch",
-        "repo": "hermes-agent",
-        "rev": "4ea8d23cc9f527332ccb1d55359b27741b6ea51b",
-        "type": "github"
+        "ref": "nix/browse-sh-fallback",
+        "rev": "269bf032d07aec8d6c6d5405ade6ebcb0a482a20",
+        "type": "git",
+        "url": "https://github.com/zackees/hermes-agent"
       }
     },
     "home-manager": {
@@ -272,6 +294,7 @@
     },
     "root": {
       "inputs": {
+        "client-skills": "client-skills",
         "docker-vm": "docker-vm",
         "hermes-agent": "hermes-agent",
         "home-manager": "home-manager_2",
