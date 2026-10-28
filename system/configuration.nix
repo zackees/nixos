@@ -1982,7 +1982,7 @@ in
   # manager inherits RLIMIT_NICE from this unit, and the default of 0 is
   # why `Nice` in a user unit used to be silently ineffective.
   systemd.services."user@".serviceConfig.LimitNICE = "-10";
-  # ...but ONLY voxtype may use it. Every other user unit -- and so the whole
+  # Only explicitly opted-in services may use it. Every other user unit -- and so the whole
   # graphical session -- is held back at 0. Without this, Chromium sees the
   # raised RLIMIT_NICE and renices itself to -8 (Brave, and Hermes's headless
   # Playwright browsers alike); those bursts of 100-400% CPU then pre-empted
@@ -1994,21 +1994,32 @@ in
   # ── Terminals stay responsive under load ──
   # kitty is ONE process for every terminal window, launched by the dock (and
   # by kitty-resurrect) as a transient app-kitty@<id>.service; this drop-in
-  # on the template reaches those transient units too. Nice -10 puts its
+  # on the template reaches those transient units too. Nice -5 puts its
   # render and input threads ahead of builds and Hermes's batch work, the
   # same opt-in as voxtype above.
   #
-  # The catch is inheritance: every shell is kitty's child, and at -10 so is
+  # The catch is inheritance: every shell is kitty's child, and at -5 so is
   # every build started in it, which would bring the lag straight back.
   # home/bash/bashrc renices each kitty shell to 0 on startup (lowering
   # priority needs no privilege), so only kitty itself keeps the boost.
-  # Check: `ps -L -o ni,comm -p $(pgrep -o -x .kitty-wrapped)` says -10, and
+  # Check: `ps -L -o ni,comm -p $(pgrep -o -x .kitty-wrapped)` says -5, and
   # `ps -o ni= -p $$` in a new kitty shell says 0.
   systemd.user.services."app-kitty@" = {
     overrideStrategy = "asDropin";
     # NixOS gives every unit a minimal PATH (coreutils, systemd), LOCALE_ARCHIVE
     # and TZDIR. In a drop-in those would REPLACE what the dock passes kitty,
     # leaving every terminal without the user's PATH.
+    environment = lib.mkForce { };
+    serviceConfig = {
+      Nice = -5;
+      LimitNICE = "-5";
+    };
+  };
+
+  # Zoom audio/video takes priority over terminals and background builds.
+  # Match KDE's transient app-Zoom@<id>.service without restarting meetings.
+  systemd.user.services."app-Zoom@" = {
+    overrideStrategy = "asDropin";
     environment = lib.mkForce { };
     serviceConfig = {
       Nice = -10;
