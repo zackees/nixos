@@ -70,17 +70,23 @@ model size or a later request for VRAM.
 
 ## Layout
 
+### Top bar
+
+Talos Bar is the cross-platform top bar, started by the `talos-bar` user
+service declared in `system/talos-bar.nix`. The old Plasma top panel is
+retired; Plasma still provides the bottom dock.
+
 ### Calendar reminders
 
-The compact calendar tab beside the top-panel clock shows the next meeting's
+The compact calendar tab in Talos Bar shows the next meeting's
 start time and stays roughly the clock's width. Hover or click for its title and countdown,
 and today's full agenda, including all-day and completed events.
 Current meetings are highlighted and completed meetings dimmed. Click a Zoom
 meeting to join it, or another event to open its calendar page; the calendar
 button opens KOrganizer. The tab refreshes every 30 seconds from the existing
 private local calendar, without another Google connection. No meeting data or
-joining links are stored in this repository. The widget and reader live in
-`system/calendar-agenda/` and `system/calendar-py/calendar_agenda.py`.
+joining links are stored in this repository. Talos reads the shared agenda data from
+`system/calendar-py/calendar_agenda.py`.
 
 KOrganizer is pinned to the dock. `calendar-sync.service` reads Google Calendar
 every minute into a read-only local calendar: yesterday through the next 90 days,

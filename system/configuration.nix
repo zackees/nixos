@@ -3363,7 +3363,7 @@ in
 
         panels = [
           # ── Which monitor the panels live on ──
-          # `screen = 0` on BOTH, and it is load-bearing. Leaving it unset
+          # `screen = 0` is load-bearing. Leaving it unset
           # does NOT mean "the primary screen", which is what the comment
           # here used to claim: plasma-manager then emits no lastScreen at
           # all and the panels land wherever plasmashell felt like putting
@@ -3394,154 +3394,7 @@ in
           # plasma-plasmashell to its own restartServices, which is the same
           # restart the icon-cache trap below needs anyway.
 
-          # The clock strip along the top centre.
-          #
-          # `hiding` is the load-bearing key here, and `lengthMode = "fit"` is
-          # NOT what keeps this out of the way -- that was the original
-          # assumption and it was wrong. A panel with the default
-          # `hiding = "none"` reserves a strut the FULL width of the screen
-          # edge it sits on, however short the panel itself is, so a short
-          # centred clock still walled off a 44px band across the whole top of
-          # the monitor and maximized windows stopped below it. The symptom
-          # reads as "a top bar I never asked for" when the visible panel is
-          # plainly only a clock.
-          #
-          # `windowsgobelow` drops the strut entirely and keeps the clock
-          # painted over whatever is beneath it -- an overlay rather than a
-          # bar. The cost is that it now sits on top of the centre of a
-          # maximized window's title bar; if that grates, `dodgewindows` is the
-          # other Plasma 6 mode, which hides the clock whenever a window would
-          # overlap it (visible on the desktop, gone under a window).
-          #
-          # plasma-manager passes this string through to plasmashell's own
-          # `panel.hiding` verbatim, and an unrecognised value there is a
-          # silent no-op that leaves the strut in place -- so the spelling
-          # matters. plasmashell 6.6.6 accepts exactly four, confirmed against
-          # the binary's UTF-16 literals:
-          #
-          #   strings -e l -n 4 $(readlink -f $(command -v plasmashell))-wrapped
-          #
-          # -> none, autohide, dodgewindows, windowsgobelow. The other names
-          # plasma-manager's enum offers (`normalpanel`, `windowscover`,
-          # `windowsbelow`) are not among them.
-          #
-          # Height 36 rather than the module default of 44: 26 was the first
-          # try and read as too small. At 36 the clock stacks time over date,
-          # which is the wanted look; the one-line form needs roughly 26.
-          #
-          # There is deliberately NO `opacity` here even though plasma-manager
-          # offers the option. See the panel-opacity startup script below:
-          # plasmashell 6.6.6 ignores the scripting setter it emits, so the
-          # option is a silent no-op and writing it here would only mislead.
-          #
-          # Note that KWin maximizing a window dragged to the top screen edge
-          # is a separate, pre-existing thing (`ElectricBorderMaximize`), not
-          # this panel -- removing the strut does not turn that off.
-          {
-            location = "top";
-            screen = 0;
-            alignment = "center";
-            lengthMode = "fit";
-            height = 36;
-            hiding = "windowsgobelow";
-            widgets = [
-              # Panel Colorizer, present ONLY for its numeric alpha. Plasma's
-              # own panel background has three modes and no slider, and the
-              # most transparent of them (translucent) measured ~80-85% opaque
-              # against the wallpaper -- more solid than wanted. This widget
-              # multiplies the stock background's opacity by a real number, so
-              # the panel opacity below is the actual figure.
-              #
-              # `hideWidget` is what keeps it from drawing anything of its own:
-              # it is a background effect here, not a launcher, and without it
-              # the panel grows a colorizer icon next to the clock. Its own
-              # painting (panel.normal.enabled) stays off -- the default -- so
-              # nothing but `nativePanel.background.opacity` is in play.
-              #
-              # The JSON is merged over the widget's defaults at load
-              # (`mergeConfigs(defaultConfig, globalSettings)` in its main.qml),
-              # which is why three keys are enough and a full settings blob --
-              # what its own export produces -- is not needed. That blob is
-              # version-shaped; these three keys are not.
-              #
-              # plasma-manager pulls `plasma-panel-colorizer` into home.packages
-              # by itself when it sees this widget name, so there is no
-              # systemPackages entry to keep in sync.
-              {
-                name = "luisbocanegra.panel.colorizer";
-                config.General = {
-                  hideWidget = true;
-                  globalSettings = builtins.toJSON {
-                    nativePanel.background = {
-                      enabled = true;
-                      opacity = 0.7;
-                      shadow = true;
-                    };
-                  };
-                };
-              }
-
-              # World clock: local time plus New York (Eastern), Chicago
-              # (Central), Denver (Mountain), Sydney, Luxembourg and Tokyo.
-              # `selected` populates the timezone row in the popup you get by
-              # clicking the clock, and the same list shows in its hover
-              # tooltip -- "Local" is the special value for the system
-              # timezone itself, not a literal zone name. `format = "city"`
-              # spells out the city name instead of the 3-4 letter zone code.
-              {
-                digitalClock = {
-                  timeZone.selected = [
-                    "Local"
-                    "America/New_York"
-                    "America/Chicago"
-                    "America/Denver"
-                    "Australia/Sydney"
-                    "Europe/Luxembourg"
-                    "Europe/Moscow"
-                    "Asia/Tokyo"
-                    "UTC"
-                  ];
-                  timeZone.format = "city";
-                };
-              }
-              "org.niteris.calendar-agenda"
-              # Tasks: a checklist synced to github.com/zackees/tasks (system/tasks.nix).
-              "org.niteris.tasks"
-
-              # Virtual desktops live up here, out of the dock's way (#38);
-              # they sat mid-dock beside the window list before that.
-              # Per-screen: this pager belongs to screen 0 and shows
-              # that screen's current desktop, not a global one. See the
-              # virtual desktops block above.
-              # displayedText is what makes the desktop names from
-              # KDE settings visible here; the default draws each
-              # desktop as an unlabelled box, which is what "the desktops
-              # have no names" looks like. Spelled as the raw config rather
-              # than plasma-manager's `pager.general.displayedText =
-              # "desktopName"`: that writes the enum's *name* ("Name") and
-              # the applet reads it back as 0, which is Number -- so the
-              # dock showed 1 2 3. The applet's kcfg is Number=0, Name=1,
-              # None=2 (verified on Plasma 6.7.4 by writing each value to
-              # the live widget).
-              # Overview button, immediately left of the pager so the "show
-              # me my desktops" control sits with the desktops themselves;
-              # it lived beside the clock on the top panel before. See
-              # gridView in the let block; its tooltip carries the Super+G
-              # reminder.
-              {
-                name = "org.kde.plasma.icon";
-                config.General.url =
-                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
-              }
-              {
-                name = "org.kde.plasma.pager";
-                config.General = {
-                  showOnlyCurrentScreen = true;
-                  displayedText = 1;
-                };
-              }
-            ];
-          }
+          # Talos Bar owns the top edge; Plasma keeps only the bottom dock.
           {
             location = "bottom";
             screen = 0;
@@ -3674,73 +3527,7 @@ in
           }
         ];
 
-        # ── Panel opacity, the long way round ──
-        # This exists because plasma-manager's `opacity` panel option does
-        # nothing on plasmashell 6.6.6. The option emits
-        # `panel.opacity = "translucent"` into the panel script, and that
-        # setter is a no-op here: the getter keeps reporting `adaptive`, no
-        # `panelOpacity` key is written at panel creation, and even setting it
-        # by hand on a live panel (`panels()[0].opacity = "opaque"`) changes
-        # nothing on disk. `panel.hiding` in the same script works, so this is
-        # specific to opacity, not to the scripting bridge.
-        #
-        # The setting itself is real, it just has to be written to the config:
-        #
-        #   [PlasmaViews][Panel <id>] panelOpacity=1    (0 adaptive, 1 opaque,
-        #                                                2 translucent)
-        #
-        # in `~/.config/plasmashellrc`. That cannot go in `configFile` because
-        # <id> is the panel's containment id, which plasma-manager regenerates
-        # on EVERY panel rebuild (498 -> 529 on one such run here). So the id
-        # has to be looked up at apply time, which is what this does -- asking
-        # plasmashell rather than parsing appletsrc, because the file is not
-        # necessarily flushed yet when this runs.
-        #
-        # Priority 3 puts it after 2_desktop_script_panels.sh, so the panels it
-        # asks about are the newly built ones. `runAlways` is required rather
-        # than tidy: a run-once script is gated on a hash of its own text,
-        # which does not change when the panel ids do, so it would skip exactly
-        # the rebuild that invalidated the id it wrote last time. It is a
-        # no-op when the value is already right.
-        #
-        # `restartServices` is ignored for runAlways scripts (plasma-manager
-        # only emits it in the run-once branch), hence the explicit append to
-        # services_to_restart -- run_all.sh restarts whatever is listed there
-        # after all the scripts have run. Appending only on an actual change
-        # keeps logins from restarting plasmashell for nothing.
-        #
-        # Why `opaque` (1) and not `translucent` (2), when the panel is meant
-        # to be see-through: the transparency comes from the Panel Colorizer
-        # widget above, which MULTIPLIES this background's opacity. Stacking
-        # the two would make the real figure the product of a theme-defined
-        # alpha and 0.7, which nobody can read off the config. A solid base
-        # makes 0.7 mean 70%. (Translucent alone measured ~80-85% opaque
-        # against the wallpaper, which is what sent this down the widget road.)
-        #
-        # `adaptive` -- the default, and what you get if this script does not
-        # run -- is worse than either: it turns solid the moment a window is
-        # under the panel, and with `hiding = "windowsgobelow"` there nearly
-        # always is one, so the alpha would flicker with what is on screen.
-        startup.startupScript.panel-opacity = {
-          priority = 3;
-          runAlways = true;
-          text = ''
-            id=$(qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
-              var p = panels();
-              for (var i = 0; i < p.length; i++) if (p[i].location == "top") print(p[i].id);
-            ' 2>/dev/null | tr -dc "0-9")
-            [ -n "$id" ] || exit 0
 
-            cur=$(kreadconfig6 --file plasmashellrc \
-                    --group PlasmaViews --group "Panel $id" --key panelOpacity)
-            if [ "$cur" != "1" ]; then
-              kwriteconfig6 --file plasmashellrc \
-                --group PlasmaViews --group "Panel $id" --key panelOpacity 1
-              echo plasma-plasmashell \
-                >> "$HOME/.local/share/plasma-manager/services_to_restart"
-            fi
-          '';
-        };
       };
     };
 

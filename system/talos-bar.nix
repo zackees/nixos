@@ -1,6 +1,6 @@
-# talos-bar: the cross-platform Python/Qt bar that is replacing the Plasma
-# top panel (~/dev/talos-hq/talos-bar). It runs side by side with that panel
-# for now, docked top-right on the primary screen through layer-shell.
+# Talos Bar is the top bar; Plasma provides only the bottom dock.
+# The cross-platform Python/Qt bar docks on the primary screen through
+# layer-shell and starts automatically with the graphical session.
 #
 # Packaged by the talos-bar flake itself, not run through uv like the other
 # Python here: it needs nixpkgs' PySide6/Qt and layer-shell-qt, and the PyPI
