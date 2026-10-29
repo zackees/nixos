@@ -3411,11 +3411,6 @@ in
             hiding = "windowsgobelow";
             widgets = [
               {
-                name = "org.kde.plasma.icon";
-                config.General.url =
-                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
-              }
-              {
                 name = "org.kde.plasma.pager";
                 config.General = {
                   showOnlyCurrentScreen = true;
@@ -3485,6 +3480,14 @@ in
                   appearance.highlightWindows = true;
                   behavior.grouping.clickAction = "showTooltips";
                 };
+              }
+
+              # Overview sits at the right end of the central app group;
+              # individual desktop buttons remain in the top strip.
+              {
+                name = "org.kde.plasma.icon";
+                config.General.url =
+                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
               }
 
               {
