@@ -1,4 +1,4 @@
-# Talos Bar is the top bar; Plasma provides only the bottom dock.
+# Talos Bar is centered at the top, with Plasma desktop controls to its right.
 # The cross-platform Python/Qt bar docks on the primary screen through
 # layer-shell and starts automatically with the graphical session.
 #
@@ -23,6 +23,7 @@ in
     # Glue shells out like a desktop app would: tasks_cli runs git (with
     # gh's credential helper), the agenda opens KOrganizer via kioclient.
     path = [ "/run/current-system/sw" ];
+    environment.TALOS_BAR_ALIGN = "center";
     serviceConfig = {
       ExecStart = "${talos-bar}/bin/talos-bar";
       Restart = "on-failure";

@@ -74,7 +74,8 @@ model size or a later request for VRAM.
 
 Talos Bar is the cross-platform top bar, started by the `talos-bar` user
 service declared in `system/talos-bar.nix`. The old Plasma top panel is
-retired; Plasma still provides the bottom dock.
+retired; Plasma provides the virtual desktop strip to Talos’s right and the
+bottom dock.
 
 ### Calendar reminders
 

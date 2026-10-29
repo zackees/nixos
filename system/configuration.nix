@@ -3189,7 +3189,7 @@ in
         # "Switch desktop independently for each screen" (Window Management
         # -> Virtual Desktops), and it is the reason kdePackages comes from
         # nixpkgs-unstable in the overlay above. The dock's pager (see the
-        # bottom panel) is told to show only its own screen, so it reads
+        # top desktop panel) is told to show only its own screen, so it reads
         # and drives the primary's desktop rather than a global one.
         # KDE owns desktop names, count, order and rows. Declaring
         # kwin.virtualDesktops here overwrites edits made in Overview or
@@ -3394,7 +3394,36 @@ in
           # plasma-plasmashell to its own restartServices, which is the same
           # restart the icon-cache trap below needs anyway.
 
-          # Talos Bar owns the top edge; Plasma keeps only the bottom dock.
+          # Talos is centered at the top. Keep KWin's per-screen desktop
+          # controls immediately to its right until Talos implements them.
+          {
+            location = "top";
+            screen = 0;
+            alignment = "left";
+            # Primary output is 2560 logical pixels wide. The centered Talos
+            # strip ends near 1400; leave a small gap before the desktop strip.
+            # Plasma ignores offset in fit mode, so keep this strip custom.
+            offset = 1410;
+            minLength = 600;
+            maxLength = 600;
+            lengthMode = "custom";
+            height = 36;
+            hiding = "windowsgobelow";
+            widgets = [
+              {
+                name = "org.kde.plasma.icon";
+                config.General.url =
+                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
+              }
+              {
+                name = "org.kde.plasma.pager";
+                config.General = {
+                  showOnlyCurrentScreen = true;
+                  displayedText = 1;
+                };
+              }
+            ];
+          }
           {
             location = "bottom";
             screen = 0;
