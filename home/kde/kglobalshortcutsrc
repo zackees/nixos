@@ -282,7 +282,3 @@ _launch=Alt+Space\tMeta+Space
 [services][plasma-manager-commands.desktop]
 desktop-move-left=Meta+Ctrl+Alt+Left
 desktop-move-right=Meta+Ctrl+Alt+Right
-
-[zoom]
-ZMHKey55834574920=Ctrl+Alt+Shift+H,Ctrl+Alt+Shift+H,Show/hide floating meeting controls
-_k_friendly_name=zoom
