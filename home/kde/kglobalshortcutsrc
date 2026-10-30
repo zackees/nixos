@@ -240,11 +240,6 @@ Turn Off Screen=none,none,Turn Off Screen
 _k_friendly_name=Power Management
 powerProfile=Battery\tMeta+B,Battery\tMeta+B,Switch Power Profile
 
-[plasma-manager-commands.desktop]
-_k_friendly_name=Plasma Manager
-desktop-move-left=Meta+Ctrl+Alt+Left,,desktop-move-left
-desktop-move-right=Meta+Ctrl+Alt+Right,,desktop-move-right
-
 [plasmashell]
 Slideshow Wallpaper Next Image=none,none,Next Wallpaper Image
 _k_friendly_name=plasmashell

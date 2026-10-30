@@ -25,6 +25,9 @@
   "gc": {
     "delete_remote_branches": false
   },
+  "gh": {
+    "backend": "ghd"
+  },
   "git": {
     "gh_read_broker": true,
     "pr_wait_fail_fast": true

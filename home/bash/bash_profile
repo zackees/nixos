@@ -7,3 +7,13 @@ case ":$PATH:" in
   *) export PATH="$PATH":'/home/niteris/.photon/bin' ;;
 esac
 # <<< Photon CLI <<<
+
+# Shared user-wide env (DIGITALOCEAN_ACCESS_TOKEN in
+# ~/.config/environment.d/digitalocean.conf) so every login shell/profile sees it.
+for f in "$HOME"/.config/environment.d/*.conf; do
+  [ -r "$f" ] || continue
+  set -a
+  . "$f"
+  set +a
+done
+
