@@ -2106,6 +2106,48 @@ in
     '';
   };
 
+  # ── Auxiliary USB disks must not take the machine down ───────
+  # A dying ADATA HD710 PRO (2026-10-28/30) answered every SCSI command with
+  # "Hardware Error ASC=0x44" or not at all, at 180 s per timeout. Plugged in
+  # at power-on, its sd probe ran inside the initrd, and every init_module
+  # waits for all pending async probes (async_synchronize_full), so PID 1
+  # sat in D state for nine minutes until the drive was pulled. Root is on
+  # NVMe; nothing in stage 1 needs USB storage, so keep it out of the
+  # initrd. The probe then happens in stage 2 under udevd, where it can
+  # only stall that one device, not boot. hardware-configuration.nix is
+  # generated, hence the override here instead of an edit there.
+  boot.initrd.availableKernelModules = lib.mkForce [ "nvme" "xhci_pci" "ahci" "usbhid" "sd_mod" ];
+
+  # Failing loudly instead: a user service that reads this boot's kernel
+  # log from the start (so a drive that broke before login is reported at
+  # login) and then follows it, posting one critical notification per disk
+  # per 10 minutes. Matches by kernel name, since a dead disk may already
+  # be gone from /sys by the time we look up its model.
+  systemd.user.services.disk-error-notify = {
+    description = "Notify about failing disks from the kernel log";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = [ pkgs.systemd pkgs.libnotify pkgs.gnugrep pkgs.coreutils ];
+    serviceConfig.Restart = "on-failure";
+    script = ''
+      declare -A last
+      journalctl -k -b -f -o cat --no-pager |
+        grep --line-buffered -E '\[sd[a-z]+\] .*(Hardware Error|timing out command|Medium Error|Read Capacity.*failed)|I/O error, dev sd[a-z]+' |
+        while IFS= read -r line; do
+          disk="$(printf '%s' "$line" | grep -oE 'sd[a-z]+' | head -1)"
+          now="$(date +%s)"
+          (( now - ''${last[$disk]:-0} < 600 )) && continue
+          last[$disk]=$now
+          model="$(cat /sys/block/"$disk"/device/model 2>/dev/null | tr -s ' ')"
+          notify-send -a "Disk health" -u critical -i drive-harddisk \
+            "Disk $disk ''${model:+($model) }is failing" \
+            "$(printf '%s' "$line" | cut -c1-200)
+      Unplug it if it is an external drive; see journalctl -k -b."
+        done
+    '';
+  };
+
   # ── Screen capture and streaming ─────────────────────────────
   # OBS. Screen capture on this machine goes through xdg-desktop-portal-kde
   # (already present with Plasma), not X11 capture, so the "Screen Capture
