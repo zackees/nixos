@@ -3443,15 +3443,16 @@ in
           # restart the icon-cache trap below needs anyway.
 
           # Talos is centered at the top. Keep KWin's per-screen desktop
-          # controls immediately to its right until Talos implements them.
+          # controls in the middle of the left half until Talos implements
+          # them: to its right they overlapped once its clock grew wider.
           {
             location = "top";
             screen = 0;
             alignment = "left";
             # Primary output is 2560 logical pixels wide. The centered Talos
-            # strip ends near 1400; leave a small gap before the desktop strip.
+            # strip starts near 1070; end this one well short of that.
             # Plasma ignores offset in fit mode, so keep this strip custom.
-            offset = 1410;
+            offset = 340;
             minLength = 600;
             maxLength = 600;
             lengthMode = "custom";
