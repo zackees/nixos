@@ -58,7 +58,12 @@
     # https://github.com/NousResearch/hermes-agent/pull/145678 -- once merged,
     # point this back at `github:NousResearch/hermes-agent/<merge commit>` and
     # drop the fork.
-    hermes-agent.url = "git+https://github.com/zackees/hermes-agent?ref=nix/browse-sh-fallback&rev=269bf032d07aec8d6c6d5405ade6ebcb0a482a20";
+    #
+    # Second local fix on top (branch nix/gpu-boot-ledger): the Linux GPU
+    # launch ledger, so a force-kill or second-instance launch no longer pins
+    # the desktop app to SwiftShader CPU rendering forever (~5 fps here, the
+    # sticky marker never expired on a 0.0.0 build). talos-hq/hermes-slim#6.
+    hermes-agent.url = "git+https://github.com/zackees/hermes-agent?ref=nix/gpu-boot-ledger&rev=d32ed93838bfb9a8fe3de8d2ba5f10cdf9682286";
 
     # The private-desktop application tracks main (with its noVNC submodule);
     # flake.lock pins the exact revision, and scripts/apply.sh advances it.
