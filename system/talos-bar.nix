@@ -14,7 +14,10 @@ in
   environment.systemPackages = [ talos-bar ];
 
   # Started with the Plasma session; Wayland env comes from the session's
-  # systemd import. Restart covers a crash without looping on a bad config.
+  # systemd import. Restart=always, not on-failure: on 2026-10-30 the bar
+  # exited 0 fifteen seconds into login (cause unconfirmed; likely Qt quitting
+  # once its layer-shell surface went away as the session settled), and
+  # on-failure left the top edge empty all day. StartLimit still stops a tight crash loop.
   systemd.user.services.talos-bar = {
     description = "talos-bar desktop bar";
     wantedBy = [ "graphical-session.target" ];
@@ -26,7 +29,7 @@ in
     environment.TALOS_BAR_ALIGN = "center";
     serviceConfig = {
       ExecStart = "${talos-bar}/bin/talos-bar";
-      Restart = "on-failure";
+      Restart = "always";
       RestartSec = 3;
     };
   };
