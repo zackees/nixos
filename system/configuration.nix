@@ -211,7 +211,13 @@ let
     # systemd-run gives it its own scope at CPUWeight 1000, ten times a kitty
     # build scope, so it stays usable under load. Not a negative nice: that
     # is what froze the desktop when Chromium had it (see DefaultLimitNICE).
-    exec = "systemd-run --user --scope --quiet -p CPUWeight=1000 ${hermesDesktop}/bin/hermes-desktop --ozone-platform=wayland";
+    # --no-sandbox on the command line, not left to the app: its "sticky
+    # sandbox fallback" only appends the switch at runtime, which reaches the
+    # GPU process but not the renderer zygote, already forked sandboxed. Every
+    # sandboxed renderer then died at startup (SIGILL, "FATAL ... incorrect
+    # permissions on /dev/shm") about once a second, the window stayed blank,
+    # and because the GPU process never died the CPU fallback never fired.
+    exec = "systemd-run --user --scope --quiet -p CPUWeight=1000 ${hermesDesktop}/bin/hermes-desktop --ozone-platform=wayland --no-sandbox";
     icon = "${hermesDesktop}/share/icons/hicolor/1024x1024/apps/hermes.png";
     categories = [ "Network" ];
     startupWMClass = "com.nousresearch.hermes";
