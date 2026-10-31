@@ -3,6 +3,40 @@
 const NAME = "org.nixos.KittyResurrect";
 const PATH = "/org/nixos/KittyResurrect";
 
+// Every entry point (signal handler, D-Bus reply, top-level setup) runs
+// through guard(): an exception escaping a script handler lands inside
+// whatever KWin was doing when it emitted the signal -- on 2026-10-31 a
+// TypeError here was followed 10 s later by a failed output configuration
+// and dark screens. Log one warning per distinct reason and carry on.
+const warned = new Set();
+function guard(where, fn) {
+    return function () {
+        try {
+            return fn.apply(this, arguments);
+        } catch (e) {
+            const reason = where + ": " + (e && e.message ? e.message : String(e));
+            if (!warned.has(reason)) {
+                warned.add(reason);
+                console.warn("kitty-resurrect: " + reason);
+            }
+        }
+    };
+}
+
+// KWin replaces its LogicalOutput objects whenever the outputs are
+// reconfigured (monitor sleep, hotplug, a mode change), and a C++ call given
+// one kept from before throws "Could not convert argument 0 ... to
+// KWin::LogicalOutput*". So hold outputs by name and resolve them right
+// before each call; null means the screen is gone and the call is skipped.
+function outputByName(name) {
+    if (!name) return null;
+    return workspace.screens.find(s => s.name === name) || null;
+}
+
+function liveOutput(o) {
+    return o && workspace.screens.includes(o) ? o : null;
+}
+
 function isKitty(w) {
     return w && w.normalWindow && !w.transient && String(w.resourceClass) === "kitty";
 }
@@ -19,14 +53,16 @@ const order = {};
 // a quick tile lives under a different root and its geometry covers it.
 function tilePath(w) {
     const t = w.tile;
-    if (!t || !w.output || w.desktops.length !== 1) return null;
+    const output = liveOutput(w.output);
+    if (!t || !output || w.desktops.length !== 1) return null;
     const path = [];
     let node = t;
     while (node.parent) { path.unshift(node.positionInLayout); node = node.parent; }
-    return node === workspace.rootTile(w.output, w.desktops[0]) ? path : null;
+    return node === workspace.rootTile(output, w.desktops[0]) ? path : null;
 }
 
 function tileAt(output, desktop, path) {
+    if (!liveOutput(output)) return null;
     let node = workspace.rootTile(output, desktop);
     for (const i of path) {
         node = node && node.tiles[i];
@@ -55,7 +91,7 @@ function push(gone) {
 }
 
 function place(w, p) {
-    const output = workspace.screens.find(s => s.name === p.output);
+    const output = outputByName(p.output);
     if (output && w.output !== output) workspace.sendClientToScreen(w, output);
     const desktops = workspace.desktops.filter(d => p.desktops.includes(d.id));
     if (desktops.length) w.desktops = desktops;
@@ -71,7 +107,7 @@ function place(w, p) {
     // does nothing (verified on 6.7.4) -- so a window restored to a desktop
     // in the background is tiled the first time that desktop comes up.
     if (output && desktops.length === 1 && p.tile) {
-        pendingTiles.set(w, {output: output, desktop: desktops[0], path: p.tile});
+        pendingTiles.set(w, {output: output.name, desktop: desktops[0], path: p.tile});
         applyPendingTiles();
     }
     if (p.minimized) w.minimized = true;
@@ -82,21 +118,23 @@ const pendingTiles = new Map();
 function applyPendingTiles() {
     for (const [w, t] of pendingTiles) {
         if (!workspace.windowList().includes(w)) { pendingTiles.delete(w); continue; }
-        if (workspace.currentDesktopForScreen(t.output) !== t.desktop) continue;
-        const tile = tileAt(t.output, t.desktop, t.path);
+        const output = outputByName(t.output);
+        if (!output) { pendingTiles.delete(w); continue; }
+        if (workspace.currentDesktopForScreen(output) !== t.desktop) continue;
+        const tile = tileAt(output, t.desktop, t.path);
         if (tile) tile.manage(w);
         pendingTiles.delete(w);
     }
 }
-workspace.currentDesktopChanged.connect(applyPendingTiles);
+workspace.currentDesktopChanged.connect(guard("currentDesktopChanged", applyPendingTiles));
 
 function watch(w) {
     for (const signal of [w.interactiveMoveResizeFinished, w.outputChanged,
                           w.desktopsChanged, w.minimizedChanged, w.tileChanged])
-        signal.connect(function () { push(); });
+        signal.connect(guard("window signal", function () { push(); }));
 }
 
-workspace.windowList().filter(isKitty).forEach(watch);
+guard("startup", function () { workspace.windowList().filter(isKitty).forEach(watch); })();
 
 // A restored window carries a unique tag as its title for its first moments
 // (kitty_snapshot.py sets it from the pane's kitty_resurrect var). The tag,
@@ -109,37 +147,41 @@ function claim(w) {
     const tag = String(w.caption);
     if (!tag.startsWith(TAG) || claimed.has(tag)) return;
     claimed.add(tag);
-    callDBus(NAME, PATH, NAME, "Claim", String(w.internalId), tag, function (placement) {
+    callDBus(NAME, PATH, NAME, "Claim", String(w.internalId), tag, guard("Claim reply", function (placement) {
         const p = placement ? JSON.parse(placement) : null;
         if (p && p.output) place(w, p);
         // kitty's first configure lands after this and resets the size and
         // position; the service's Delay is the only timer a KWin script has.
-        callDBus(NAME, PATH, NAME, "Delay", 800, function () {
-            if (p && p.output && workspace.windowList().includes(w)) place(w, p);
-            callDBus(NAME, PATH, NAME, "Placed", tag);
+        callDBus(NAME, PATH, NAME, "Delay", 800, guard("Delay reply", function () {
+            try {
+                if (p && p.output && workspace.windowList().includes(w)) place(w, p);
+            } finally {
+                // Always release the service's wait, even if placing failed.
+                callDBus(NAME, PATH, NAME, "Placed", tag);
+            }
             push();
-        });
-    });
+        }));
+    }));
 }
 
 function watchCaption(w) {
-    w.captionChanged.connect(function () { claim(w); });
+    w.captionChanged.connect(guard("captionChanged", function () { claim(w); }));
     claim(w);
 }
 
-workspace.windowList().filter(isKitty).forEach(watchCaption);
+guard("startup", function () { workspace.windowList().filter(isKitty).forEach(watchCaption); })();
 
-workspace.windowAdded.connect(function (w) {
+workspace.windowAdded.connect(guard("windowAdded", function (w) {
     if (!isKitty(w)) return;
     order[String(w.internalId)] = ++added;
     watch(w);
     watchCaption(w);
     push();
-});
-workspace.windowRemoved.connect(function (w) {
+}));
+workspace.windowRemoved.connect(guard("windowRemoved", function (w) {
     if (!isKitty(w)) return;
     push(w);
     delete order[String(w.internalId)];
-});
-workspace.windowActivated.connect(function (w) { if (isKitty(w)) push(); });
-push();
+}));
+workspace.windowActivated.connect(guard("windowActivated", function (w) { if (isKitty(w)) push(); }));
+guard("startup", push)();
