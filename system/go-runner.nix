@@ -25,7 +25,8 @@ in {
     programs.plasma = {
       # Global shortcuts land at the next login, not at switch: KWin holds
       # them in memory (see the shortcuts.kwin trap in CLAUDE.md).
-      shortcuts."services/org.kde.krunner.desktop"._launch = [ "Alt+Space" "Meta+Space" ];
+      # Meta+Space moved to talos-searchd (talos-bar.nix); KRunner keeps Alt+Space.
+      shortcuts."services/org.kde.krunner.desktop"._launch = [ "Alt+Space" ];
       configFile.krunnerrc.General.FreeFloating = true;
     };
   };

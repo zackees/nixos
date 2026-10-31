@@ -9,6 +9,7 @@
 
 let
   talos-bar = inputs.talos-bar.packages.${pkgs.stdenv.hostPlatform.system}.talos-bar;
+  talos-searchd = inputs.talos-bar.packages.${pkgs.stdenv.hostPlatform.system}.talos-searchd;
 in
 {
   environment.systemPackages = [ talos-bar ];
@@ -37,4 +38,25 @@ in
       RestartSec = 3;
     };
   };
+
+  # Meta+Space search (talos-bar docs/SEARCH.md): the daemon owns the hotkey
+  # (XDG GlobalShortcuts portal through kernal-api), the app catalog and
+  # launching; talos-bar draws the popup it asks for. Bound under the
+  # `token_talos_search` kglobalaccel component, which KRunner no longer holds.
+  systemd.user.services.talos-searchd = {
+    description = "talos-bar search daemon (Meta+Space)";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    # Launched apps inherit this PATH, as from any desktop launcher.
+    path = [ "/run/current-system/sw" ];
+    serviceConfig = {
+      ExecStart = "${talos-searchd}/bin/talos-searchd --hotkey Meta+Space";
+      Restart = "always";
+      RestartSec = 3;
+    };
+  };
+  # KDE keeps a binding it has stored over the trigger the portal requests, so
+  # pin Meta+Space here too (lands at the next login, like every shortcut).
+  home-manager.users.niteris.programs.plasma.shortcuts.token_talos_search."talos-search" = "Meta+Space";
 }
