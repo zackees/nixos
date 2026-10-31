@@ -11,6 +11,9 @@ PlasmoidItem {
     preferredRepresentation: compactRepresentation
     // Tomorrow's rows: semi-transparent yellow, so they lead without shouting.
     readonly property color tomorrowColor: Qt.alpha("#f5c518", 0.7)
+    // Nothing left today but something tomorrow: the tab turns to tomorrow.
+    readonly property var tomorrowFirst: !agenda.next && agenda.events.length === 0
+        && agenda.tomorrow && agenda.tomorrow.length > 0 ? agenda.tomorrow[0] : null
     property var agenda: ({events: [], done: [], tomorrow: [], next: null, next_label: "Calendar", countdown: "Loading…", error: ""})
     readonly property string title: agenda.next ? agenda.next.title : agenda.countdown
 
@@ -105,7 +108,7 @@ PlasmoidItem {
         id: tab
         // One slot is roughly the clock's width; a close follow-on meeting
         // doubles the tab rather than squeezing a second time into it.
-        readonly property int tabWidth: root.agenda.following ? 224 : 112
+        readonly property int tabWidth: root.agenda.following ? 224 : root.tomorrowFirst ? 140 : 112
         Layout.minimumWidth: tabWidth
         Layout.preferredWidth: tabWidth
         Layout.maximumWidth: tabWidth
@@ -116,9 +119,11 @@ PlasmoidItem {
             anchors.fill: parent
             anchors.margins: 2
             radius: 7
-            color: Qt.alpha(Kirigami.Theme.highlightColor, tab.containsMouse || root.expanded ? 0.23 : 0.10)
+            color: root.tomorrowFirst
+                ? Qt.alpha("#f5c518", tab.containsMouse || root.expanded ? 0.45 : 0.30)
+                : Qt.alpha(Kirigami.Theme.highlightColor, tab.containsMouse || root.expanded ? 0.23 : 0.10)
             border.width: 1
-            border.color: Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
+            border.color: root.tomorrowFirst ? Qt.alpha("#f5c518", 0.7) : Qt.alpha(Kirigami.Theme.highlightColor, 0.35)
         }
         RowLayout {
             anchors.centerIn: parent
@@ -138,7 +143,8 @@ PlasmoidItem {
             }
             PlasmaComponents.Label {
                 text: root.agenda.live ? "In progress"
-                    : root.agenda.next ? Qt.formatDateTime(new Date(root.agenda.next.start * 1000), "h:mm AP") : "—"
+                    : root.agenda.next ? Qt.formatDateTime(new Date(root.agenda.next.start * 1000), "h:mm AP")
+                    : root.tomorrowFirst ? Qt.formatDateTime(new Date(root.tomorrowFirst.start * 1000), "ddd h:mm AP") : "—"
                 font.pixelSize: 12
                 font.bold: true
             }
