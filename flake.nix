@@ -63,7 +63,13 @@
     # launch ledger, so a force-kill or second-instance launch no longer pins
     # the desktop app to SwiftShader CPU rendering forever (~5 fps here, the
     # sticky marker never expired on a 0.0.0 build). talos-hq/hermes-slim#6.
-    hermes-agent.url = "git+https://github.com/zackees/hermes-agent?ref=nix/gpu-boot-ledger&rev=d32ed93838bfb9a8fe3de8d2ba5f10cdf9682286";
+    #
+    # Branch nix/consent-tap-deploy = nix/browse-sh-fallback (which now carries
+    # zackees/hermes-agent#3: a Telegram button tap writes
+    # ~/.hermes/consent/<id>.approved for hermes-consent-exec, plus #2's
+    # bounded gateway restarts) merged with nix/gpu-boot-ledger. The two had
+    # diverged by one commit each, so pinning either alone dropped a fix.
+    hermes-agent.url = "git+https://github.com/zackees/hermes-agent?ref=nix/consent-tap-deploy&rev=e7ab2444cdd687c5b1931fa7c1e1f42d56c91a97";
 
     # The private-desktop application tracks main (with its noVNC submodule);
     # flake.lock pins the exact revision, and scripts/apply.sh advances it.

@@ -76,17 +76,17 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1793331343,
-        "narHash": "sha256-gZ6mt2UBrU6Fodc6q1Pg2WybTTTYv0dHLrsMwpIMn48=",
-        "ref": "nix/gpu-boot-ledger",
-        "rev": "d32ed93838bfb9a8fe3de8d2ba5f10cdf9682286",
-        "revCount": 58531,
+        "lastModified": 1793467935,
+        "narHash": "sha256-7U78c6KXQk3JSxosRhjbXk4Zg5PR8hkonLBJMxjpNqY=",
+        "ref": "nix/consent-tap-deploy",
+        "rev": "e7ab2444cdd687c5b1931fa7c1e1f42d56c91a97",
+        "revCount": 58537,
         "type": "git",
         "url": "https://github.com/zackees/hermes-agent"
       },
       "original": {
-        "ref": "nix/gpu-boot-ledger",
-        "rev": "d32ed93838bfb9a8fe3de8d2ba5f10cdf9682286",
+        "ref": "nix/consent-tap-deploy",
+        "rev": "e7ab2444cdd687c5b1931fa7c1e1f42d56c91a97",
         "type": "git",
         "url": "https://github.com/zackees/hermes-agent"
       }
