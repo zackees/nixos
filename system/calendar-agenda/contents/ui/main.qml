@@ -9,6 +9,8 @@ import org.kde.plasma.plasmoid
 PlasmoidItem {
     id: root
     preferredRepresentation: compactRepresentation
+    // Tomorrow's rows: semi-transparent yellow, so they lead without shouting.
+    readonly property color tomorrowColor: Qt.alpha("#f5c518", 0.7)
     property var agenda: ({events: [], done: [], tomorrow: [], next: null, next_label: "Calendar", countdown: "Loading…", error: ""})
     readonly property string title: agenda.next ? agenda.next.title : agenda.countdown
 
@@ -296,6 +298,28 @@ PlasmoidItem {
                     id: eventList
                     width: parent.width
                     spacing: 6
+                    // Once today is over, tomorrow leads, in translucent
+                    // yellow; the day just gone stays listed below it.
+                    PlasmaComponents.Label {
+                        visible: root.agenda.tomorrow.length > 0
+                        width: eventList.width
+                        text: "Tomorrow"
+                        font.bold: true
+                        color: root.tomorrowColor
+                    }
+                    Repeater {
+                        model: root.agenda.tomorrow
+                        delegate: meetingRow
+                    }
+                    PlasmaComponents.Label {
+                        visible: root.agenda.tomorrow.length > 0
+                            && (root.agenda.events.length > 0 || root.agenda.done.length > 0)
+                        width: eventList.width
+                        topPadding: 8
+                        text: "Today"
+                        font.bold: true
+                        opacity: 0.8
+                    }
                     Repeater {
                         model: root.agenda.events
                         delegate: meetingRow
@@ -313,19 +337,6 @@ PlasmoidItem {
                     }
                     Repeater {
                         model: root.showDone ? root.agenda.done : []
-                        delegate: meetingRow
-                    }
-                    // Once today is over, look ahead; these rows are green.
-                    PlasmaComponents.Label {
-                        visible: root.agenda.tomorrow.length > 0
-                        width: eventList.width
-                        topPadding: 8
-                        text: "Tomorrow"
-                        font.bold: true
-                        color: Kirigami.Theme.positiveTextColor
-                    }
-                    Repeater {
-                        model: root.agenda.tomorrow
                         delegate: meetingRow
                     }
                 }
@@ -386,8 +397,8 @@ PlasmoidItem {
         PlasmaComponents.ItemDelegate {
             id: meeting
             required property var modelData
-            // Tomorrow's meetings read in green, apart from today's.
-            readonly property color accent: modelData.tomorrow ? Kirigami.Theme.positiveTextColor
+            // Tomorrow's meetings read in translucent yellow, apart from today's.
+            readonly property color accent: modelData.tomorrow ? root.tomorrowColor
                 : modelData.status === "current" ? Kirigami.Theme.linkColor : Kirigami.Theme.textColor
             width: parent ? parent.width : 0
             implicitHeight: details.implicitHeight + 18
@@ -417,7 +428,7 @@ PlasmoidItem {
                     maximumLineCount: 2
                     elide: Text.ElideRight
                     font.pixelSize: 14
-                    color: meeting.modelData.tomorrow ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.textColor
+                    color: meeting.modelData.tomorrow ? root.tomorrowColor : Kirigami.Theme.textColor
                 }
                 PlasmaComponents.Label {
                     visible: meeting.modelData.link_kind !== "Zoom"
