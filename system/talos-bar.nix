@@ -27,7 +27,9 @@ in
     # gh's credential helper), the agenda opens KOrganizer via kioclient.
     path = [ "/run/current-system/sw" ];
     environment.TALOS_BAR_ALIGN = "center";
-    # The 4K primary, by connector name: Qt reports a side monitor as primary.
+    # Default screen until one is picked from the bar's right-click menu
+    # (saved in ~/.local/state/talos-bar/screen): the 4K, by connector name,
+    # because Qt reports a side monitor as primary.
     environment.TALOS_BAR_SCREEN = "HDMI-A-1";
     serviceConfig = {
       ExecStart = "${talos-bar}/bin/talos-bar";
