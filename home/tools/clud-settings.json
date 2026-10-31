@@ -58,6 +58,7 @@
     "disable_powershell": false
   },
   "tmp": {
+    "max_bytes": 10737418240,
     "warn_bytes": 21474836480
   },
   "trash": {
