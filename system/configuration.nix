@@ -3334,27 +3334,23 @@ in
         };
 
         # ── Idle behaviour ──
-        # The screen stays on for 15 idle minutes, then locks and powers off
-        # together. Coming back within 2 hours of going idle needs no
-        # password; after that it does.
-        #
-        # The 2 hours is the lock's grace period: lock at 15 min plus 105 min
-        # of grace. System Settings only offers up to 5 minutes, but that cap
-        # lives in its QML alone -- ksldapp.cpp multiplies LockGrace by 1000
-        # with no clamp and the kcfg declares no <max> (kscreenlocker 6.6.6),
-        # so the daemon honours the full value. Opening that settings page
-        # and pressing Apply would write a capped value back; the next switch
-        # restores it.
+        # The screen stays on for 2 idle hours, then locks and powers off
+        # together, and coming back after that needs the password -- the
+        # same "password after 2 hours idle" rule as before, when it locked
+        # at 15 minutes and a 105-minute grace period covered the rest.
+        # (That grace was beyond System Settings' 5-minute cap, which lives
+        # only in its QML; ksldapp.cpp honours any LockGrace.) Fewer monitor
+        # sleeps also means fewer chances for Talos Bar to lose its output.
         kscreenlocker = {
           autoLock = true;
-          timeout = 15;  # minutes
+          timeout = 120;  # minutes
           passwordRequired = true;
-          passwordRequiredDelay = 105 * 60;  # seconds
+          passwordRequiredDelay = 0;  # seconds
         };
 
         powerdevil.AC = {
           # PowerDevil uses seconds; kscreenlocker above uses minutes.
-          turnOffDisplay.idleTimeout = 900;
+          turnOffDisplay.idleTimeout = 120 * 60;
 
           # Dimming is off rather than merely postponed. Left enabled it
           # keeps its own 5-minute default and the screen still fades on you
