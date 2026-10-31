@@ -312,11 +312,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793407517,
-        "narHash": "sha256-ZZcR4pYWUxdq/cmu/pETOT8WBhHU54s8regFHi358fU=",
+        "lastModified": 1793407689,
+        "narHash": "sha256-IiOvvhzdcdzGwnf2flcxeRhoaA9GI14JVe+a9m7SL3g=",
         "ref": "refs/heads/main",
-        "rev": "2dc08a435ad414c0ff6b336c0915334a0d488725",
-        "revCount": 23,
+        "rev": "c0dcc1b074f42a9185f1d1871709c6e1fd4d8f50",
+        "revCount": 24,
         "type": "git",
         "url": "file:///home/niteris/dev/talos-hq/talos-bar"
       },
