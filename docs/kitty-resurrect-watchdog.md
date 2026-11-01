@@ -14,7 +14,7 @@ Code: `system/kitty-resurrect/watchdog.py` (pure, tested by
 |---|---|---|---|---|
 | 1 | logind `Active` | `loginctl show-session <seat0 session> -p Active` | one fork | `no` ⇒ `session-inactive` (KWin is not DRM master: the 2026-10-31 cause). Unknown ⇒ `unknown`, never acted on. |
 | 2 | KWin journal since last tick | `journalctl --user -u plasma-kwin_wayland --since @T -o cat` | one fork, a few lines | any of `Applying output configuration failed`, `atomic commit failed`, `Failed to find a working output layer configuration` ⇒ `output-errors` |
-| 3 | Frame luminance (opt-in) | `spectacle -f -b -n -o` + `magick -format %[fx:mean]` | ~12 MB PNG, ~1 s | mean < `DARK_MEAN` ⇒ `dark-frame`. At most once per `LUMA_INTERVAL`, only when 1 and 2 say ok, and only with `KITTY_RESURRECT_LUMA=1`. |
+| 3 | Frame luminance (opt-in) | `spectacle -f -b -n -o` + `magick` lit fraction (pixels >10% bright, white monitor gaps blacked) | ~12 MB PNG, ~1 s | lit < `LIT_MIN` ⇒ `dark-frame`. At most once per `LUMA_INTERVAL`, only when 1 and 2 say ok, and only with `KITTY_RESURRECT_LUMA=1`. |
 
 Signal 3 is off by default: spectacle reads the compositor's buffer, not the
 panel, so it cannot see a lost DRM master (the only black screen we have
@@ -52,7 +52,7 @@ Each step logs one greppable line:
 - `Ledger.expire(WINDOW)`: attempts older than 600 s are dropped, so three
   *separate* incidents an hour apart are each recoverable, while three
   failures in a row still open the breaker.
-- `DARK_MEAN = 0.02`, `LUMA_INTERVAL = 300 s`: a 3-monitor capture is 12 MB;
+- `LIT_MIN = 0.001` (a dark wallpaper with a clock measured 0.0077), `LUMA_INTERVAL = 300 s`: a 3-monitor capture is 12 MB;
   once per 5 min is the most we are willing to spend.
 
 ## 4. Why it cannot become its own crash loop
@@ -70,9 +70,9 @@ Each step logs one greppable line:
 
 1. `sudo -A nixos-rebuild switch --flake .#nixos`
 2. verify `/run/current-system` is the new generation
-3. `systemctl --user unmask kitty-resurrect && systemctl --user enable --now kitty-resurrect`
+3. `systemctl --user unmask kitty-resurrect && systemctl --user start kitty-resurrect` (not `enable`: it would link the unit into `~/.config` and shadow later NixOS units)
 4. journal shows `kitty-resurrect KWin script loaded` and no `LogicalOutput` error
-5. screenshot: the full capture is not black, logind session `Active=yes`
+5. screenshot: more than 0.1% of pixels brighter than 10% (gaps between monitors are pure white and are blacked first, or they alone would pass a mean check), logind session `Active=yes`
 6. any failure ⇒ `systemctl --user mask --now kitty-resurrect`, exit non-zero
 
 ## 6. Rollback (one command)

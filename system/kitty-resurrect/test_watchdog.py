@@ -42,8 +42,8 @@ class Classify(unittest.TestCase):
         self.assertEqual(wd.classify(True, ""), "ok")
 
     def test_luminance_only_as_last_resort(self):
-        self.assertEqual(wd.classify(True, "", luma=0.001), "dark-frame")
-        self.assertEqual(wd.classify(True, "", luma=0.4), "ok")
+        self.assertEqual(wd.classify(True, "", luma=0.0), "dark-frame")
+        self.assertEqual(wd.classify(True, "", luma=0.007), "ok")
         self.assertEqual(wd.classify(False, "", luma=0.4), "session-inactive")
 
 

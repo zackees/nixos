@@ -7,7 +7,7 @@ and kill switch are safeguards.py's; this module only consumes them.
 import safeguards as sg
 
 INTERVAL = 15          # s between ticks
-DARK_MEAN = 0.02       # mean luminance (0..1) below which a frame is black
+LIT_MIN = 0.001        # fraction of pixels >10% bright below which a frame is black
 LUMA_INTERVAL = 300    # s; never capture the 12 MB frame more often
 KWIN_UNIT = "plasma-kwin_wayland"
 OUTPUT_ERRORS = (
@@ -25,7 +25,7 @@ def classify(session_active, journal, luma=None):
         return "session-inactive"
     if any(err in journal for err in OUTPUT_ERRORS):
         return "output-errors"
-    if luma is not None and luma < DARK_MEAN:
+    if luma is not None and luma < LIT_MIN:
         return "dark-frame"
     return "ok"
 

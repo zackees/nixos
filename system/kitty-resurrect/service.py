@@ -132,7 +132,10 @@ def watchdog_probe(since):
 
 
 class Luma:
-    """Signal 3, opt-in: mean luminance of a full capture, rate-limited."""
+    """Signal 3, opt-in: lit fraction of a full capture, rate-limited.
+
+    Pure-white gaps between monitors are blacked first; see
+    scripts/kitty-resurrect-enable.sh for why a plain mean is useless."""
     def __init__(self):
         self.last = 0.0
 
@@ -144,7 +147,8 @@ class Luma:
         try:
             subprocess.run(["spectacle", "-f", "-b", "-n", "-o", str(png)],
                            capture_output=True, timeout=20, env=session_env())
-            out = subprocess.run(["magick", str(png), "-colorspace", "Gray",
+            out = subprocess.run(["magick", str(png), "-fill", "black", "-opaque", "white",
+                                  "-colorspace", "Gray", "-threshold", "10%",
                                   "-format", "%[fx:mean]", "info:"],
                                  capture_output=True, text=True, timeout=20).stdout
             return float(out)

@@ -17,7 +17,9 @@ echo "generation: $(readlink -f /run/current-system) ${want:+(was result: $want)
 
 since=$(date +%s)
 systemctl --user unmask "$unit" && systemctl --user daemon-reload
-systemctl --user enable --now "$unit" || remask "enable failed"
+# Not `enable`: that links the unit into ~/.config, shadowing every later
+# NixOS unit. wantedBy = graphical-session.target already enables it.
+systemctl --user start "$unit" || remask "start failed"
 sleep 20
 systemctl --user is-active -q "$unit" || remask "service not active"
 journal=$(journalctl --user -u "$unit" -u plasma-kwin_wayland --since "@$since" -o cat --no-pager)
@@ -29,9 +31,12 @@ sid=$(loginctl show-user "$(id -u)" -p Display --value)
 [ "$(loginctl show-session "$sid" -p Active --value)" = yes ] || remask "session not active"
 shot=${XDG_RUNTIME_DIR:-/tmp}/kitty-resurrect-verify.png
 spectacle -f -b -n -o "$shot" || remask "screenshot failed"
-mean=$(magick "$shot" -colorspace Gray -format '%[fx:mean]' info:)
-echo "screenshot $shot mean luminance $mean"
-awk -v m="$mean" 'BEGIN{exit !(m > 0.02)}' || remask "screenshot is black"
+# Fraction of pixels brighter than 10%. The gaps between monitors come out
+# pure white, so they are blacked first or they alone pass a mean check;
+# a dark wallpaper plus a clock still lights ~0.7%, a dead frame 0.
+lit=$(magick "$shot" -fill black -opaque white -colorspace Gray -threshold 10% -format '%[fx:mean]' info:)
+echo "screenshot $shot lit fraction $lit"
+awk -v m="$lit" 'BEGIN{exit !(m > 0.001)}' || remask "screenshot is black"
 # Optional single, bounded restore check: pass a saved state (e.g. a retired one).
 if [ -n "${1:-}" ]; then
   kitty-resurrect "$1" | tee /dev/stderr | grep -q '^restoring' || remask "restore refused"
