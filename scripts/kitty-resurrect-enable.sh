@@ -9,7 +9,7 @@ remask() { echo "FAIL: $*; re-masking $unit" >&2
            systemctl --user mask --now "$unit" >/dev/null 2>&1; exit 1; }
 
 log=$(mktemp); trap 'rm -f "$log"' EXIT
-sudo -A nixos-rebuild switch --flake .#nixos >"$log" 2>&1 || { tail -20 "$log"; remask "switch failed"; }
+timeout 120 sudo -A nixos-rebuild switch --flake .#nixos >"$log" 2>&1 || { tail -20 "$log"; remask "switch failed"; }
 want=$(readlink -f result 2>/dev/null || true)
 nixos-rebuild build --flake .#nixos >"$log" 2>&1 || remask "build for verification failed"
 [ "$(readlink -f /run/current-system)" = "$(readlink -f result)" ] || remask "current-system is not the new generation"
@@ -30,6 +30,9 @@ grep -Eq "atomic commit failed|Applying output configuration failed" <<<"$journa
 sid=$(loginctl show-user "$(id -u)" -p Display --value)
 [ "$(loginctl show-session "$sid" -p Active --value)" = yes ] || remask "session not active"
 shot=${XDG_RUNTIME_DIR:-/tmp}/kitty-resurrect-verify.png
+# Idle DPMS-off outputs capture as fully transparent (lit 0), which is
+# power saving, not a black screen: wake them first.
+kscreen-doctor --dpms on >/dev/null 2>&1; sleep 4
 spectacle -f -b -n -o "$shot" || remask "screenshot failed"
 # Fraction of pixels brighter than 10%. The gaps between monitors come out
 # pure white, so they are blacked first or they alone pass a mean check;
