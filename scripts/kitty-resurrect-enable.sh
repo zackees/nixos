@@ -9,7 +9,10 @@ remask() { echo "FAIL: $*; re-masking $unit" >&2
            systemctl --user mask --now "$unit" >/dev/null 2>&1; exit 1; }
 
 log=$(mktemp); trap 'rm -f "$log"' EXIT
-timeout 120 sudo -A nixos-rebuild switch --flake .#nixos >"$log" 2>&1 || { tail -20 "$log"; remask "switch failed"; }
+# Bound only the password dialog: a timeout around the switch itself could
+# kill activation half-way.
+timeout 120 sudo -A true || remask "no sudo (nobody at the dialog?)"
+sudo nixos-rebuild switch --flake .#nixos >"$log" 2>&1 || { tail -20 "$log"; remask "switch failed"; }
 want=$(readlink -f result 2>/dev/null || true)
 nixos-rebuild build --flake .#nixos >"$log" 2>&1 || remask "build for verification failed"
 [ "$(readlink -f /run/current-system)" = "$(readlink -f result)" ] || remask "current-system is not the new generation"
