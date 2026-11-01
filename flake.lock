@@ -76,17 +76,17 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1793560426,
-        "narHash": "sha256-x4tHfX3VvxExsPC6USwuDF6r3NoRbpuJKCKecDXUiDA=",
+        "lastModified": 1793565820,
+        "narHash": "sha256-8HM5xOC4CP30298hgMN2pWCkiMLSK+4vuX9ZncF0c7k=",
         "ref": "main",
-        "rev": "4411beecb9289f858b841400c6c8ed6c3bec9e02",
-        "revCount": 61068,
+        "rev": "ef799a709016b1398be72b8131fc1aed8937e25d",
+        "revCount": 61070,
         "type": "git",
         "url": "https://github.com/talos-hq/hermes-slim"
       },
       "original": {
         "ref": "main",
-        "rev": "4411beecb9289f858b841400c6c8ed6c3bec9e02",
+        "rev": "ef799a709016b1398be72b8131fc1aed8937e25d",
         "type": "git",
         "url": "https://github.com/talos-hq/hermes-slim"
       }
