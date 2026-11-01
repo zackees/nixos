@@ -1657,12 +1657,25 @@ in
         # on_demand_loading = false the primary would otherwise sit resident
         # in VRAM for the daemon's entire life with no way to age it out.
         # One-line patch: drop the is_primary exemption in that one filter.
-        patches = (old.patches or [ ]) ++ [
-          ./patches/voxtype-primary-idle-evict.patch
-          ./patches/voxtype-cues-outside-capture.patch
-          # Reject accidental taps before VAD/model inference (16 kHz: 8000 samples).
-          ./patches/voxtype-minimum-recording.patch
-        ];
+        # talos-vox (our fork) in place of the nixpkgs release: it adds what
+        # the search popup's dictation drives (`record start --no-osd`,
+        # `record stop --wait --json`) and carries the start-cue and 500 ms
+        # minimum-recording fixes that were host patches here.
+        version = "1.1.1-talos";
+        src = inputs.talos-vox;
+        cargoDeps = prev.rustPlatform.importCargoLock {
+          lockFile = "${inputs.talos-vox}/Cargo.lock";
+          # Fixed hashes fetch just these commits; allowBuiltinFetchGit made
+          # the root-run switch clone kernal-api's whole history per crate.
+          outputHashes = {
+            "kernal-api-0.1.36" = "sha256-WgFBnd1nYSetaLpAMGhcBiNTw+BDBWyb5Cni9oztWrw=";
+            "openvino-finder-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";
+            "openvino-genai-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";
+            "openvino-genai-sys-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";
+            "openvino-sys-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";
+          };
+        };
+        patches = [ ./patches/voxtype-primary-idle-evict.patch ];
 
         # gpu-cuda maps to whisper-rs/cuda, which builds ggml's CUDA backend.
         # Viable only since the card moved to the proprietary driver: nouveau

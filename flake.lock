@@ -302,7 +302,8 @@
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "plasma-manager": "plasma-manager",
-        "talos-bar": "talos-bar"
+        "talos-bar": "talos-bar",
+        "talos-vox": "talos-vox"
       }
     },
     "talos-bar": {
@@ -312,17 +313,35 @@
         ]
       },
       "locked": {
-        "lastModified": 1793486582,
-        "narHash": "sha256-9MYFzbc8acJjX23GM6A2PQ/tWogthr3unX5w61PbW5U=",
-        "ref": "refs/heads/feat/searchd",
-        "rev": "4cb018e1658409a392027b3112efb121cc409ea2",
-        "revCount": 33,
+        "lastModified": 1793503713,
+        "narHash": "sha256-GL/fc1abag7FXWDQD5JKBFO0KG/Vr8k23i2ZOP8SxKE=",
+        "ref": "feat/searchd",
+        "rev": "8049b2bf3d9b87d2647e8765484ec5e684fa0359",
+        "revCount": 36,
         "type": "git",
-        "url": "file:///home/niteris/dev/talos-hq/talos-bar"
+        "url": "https://github.com/talos-hq/talos-bar"
       },
       "original": {
+        "ref": "feat/searchd",
         "type": "git",
-        "url": "file:///home/niteris/dev/talos-hq/talos-bar"
+        "url": "https://github.com/talos-hq/talos-bar"
+      }
+    },
+    "talos-vox": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793489722,
+        "narHash": "sha256-0o8du5/luBAN7S7Hy2L/QwHObuirmdlZpqMnTiiafNQ=",
+        "ref": "feat/kernal-api-audio",
+        "rev": "97f2b4791abc39a29c35e74f351f5f29c7d08918",
+        "revCount": 1316,
+        "type": "git",
+        "url": "https://github.com/talos-hq/talos-vox"
+      },
+      "original": {
+        "ref": "feat/kernal-api-audio",
+        "type": "git",
+        "url": "https://github.com/talos-hq/talos-vox"
       }
     },
     "uv2nix": {

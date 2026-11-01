@@ -78,11 +78,20 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # talos-bar, the Python/Qt bar replacing the Plasma top panel. A local
-    # checkout until it has a GitHub repo; flake.lock pins the commit.
+    # talos-bar, the Python/Qt bar replacing the Plasma top panel, with the
+    # Meta+Space search popup (feat/searchd until talos-hq/talos-bar#30 lands);
+    # flake.lock pins the commit.
     talos-bar = {
-      url = "git+file:///home/niteris/dev/talos-hq/talos-bar";
+      url = "git+https://github.com/talos-hq/talos-bar?ref=feat/searchd";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
+    # talos-vox, our voxtype fork (dictation, and the voice half of talos-bar's
+    # search popup). Source only: system/configuration.nix builds it through
+    # the nixpkgs voxtype derivation so the CUDA/ONNX setup there carries over.
+    talos-vox = {
+      url = "git+https://github.com/talos-hq/talos-vox?ref=feat/kernal-api-audio";
+      flake = false;
     };
 
     # Consent-gated sudo for the Hermes agents: ONE sudoers rule naming ONE
