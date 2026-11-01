@@ -1167,6 +1167,7 @@ in
 
   environment.systemPackages = with pkgs; [
     mlGpu
+    hermesPkg           # `hermes` CLI from talos-hq/hermes-slim (replaces the old nix profile entry)
     hermesDesktop       # native Hermes app; see let-block above
     hermesLauncher      # desktop icon's desktop/web entry; see let-block
     dockerVm
