@@ -73,7 +73,7 @@
     # carries all of the fixes above (browse.sh fallback, GPU boot ledger,
     # consent tap) and is where desktop fixes land. Bump with
     # `git -C ~/dev/talos-hq/hermes-slim rev-parse origin/main`.
-    hermes-agent.url = "git+https://github.com/talos-hq/hermes-slim?ref=main&rev=4411beecb9289f858b841400c6c8ed6c3bec9e02";
+    hermes-agent.url = "git+https://github.com/talos-hq/hermes-slim?ref=main&rev=ef799a709016b1398be72b8131fc1aed8937e25d";
 
     # The private-desktop application tracks main (with its noVNC submodule);
     # flake.lock pins the exact revision, and scripts/apply.sh advances it.
