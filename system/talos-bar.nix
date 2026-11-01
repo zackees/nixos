@@ -51,7 +51,8 @@ in
     # Launched apps inherit this PATH, as from any desktop launcher.
     path = [ "/run/current-system/sw" ];
     serviceConfig = {
-      ExecStart = "${talos-searchd}/bin/talos-searchd --hotkey Meta+Space";
+      # go/ links open in a new Brave window, as the KRunner go-runner did.
+      ExecStart = "${talos-searchd}/bin/talos-searchd --hotkey Meta+Space --browser brave-browser.desktop";
       Restart = "always";
       RestartSec = 3;
     };
