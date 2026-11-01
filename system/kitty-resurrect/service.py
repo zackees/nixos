@@ -28,6 +28,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, GLibUnix
 
 import safeguards as sg
+import watchdog as wd
 
 
 NAME = "org.nixos.KittyResurrect"
@@ -38,6 +39,7 @@ CLOSED_GRACE_MS = 30_000   # all windows gone this long with KWin alive = closed
 CLAIM_TIMEOUT_MS = 60_000   # how long restored windows have to appear
 KEEP_RETIRED = 10
 GUARD = STATE / "guard.json"   # attempts + breaker, see safeguards.py
+WATCHDOG = STATE / "watchdog.json"   # the black-screen watchdog's own ledger
 
 
 def log(*args):
@@ -116,6 +118,45 @@ def session_active():
     return loginctl("show-session", sid, "-p", "Active", "--value") == "yes"
 
 
+def watchdog_probe(since):
+    """(session active, KWin journal text since `since`): signals 1 and 2."""
+    since = since or time.time() - wd.INTERVAL
+    try:
+        journal = subprocess.run(
+            ["journalctl", "--user", "-u", wd.KWIN_UNIT, "--since", f"@{int(since)}",
+             "-o", "cat", "--no-pager", "-q"],
+            capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        journal = ""
+    return session_active(), journal
+
+
+class Luma:
+    """Signal 3, opt-in: mean luminance of a full capture, rate-limited."""
+    def __init__(self):
+        self.last = 0.0
+
+    def __call__(self, now):
+        if now - self.last < wd.LUMA_INTERVAL:
+            return None
+        self.last = now
+        png = RUNTIME / "kitty-resurrect-luma.png"
+        try:
+            subprocess.run(["spectacle", "-f", "-b", "-n", "-o", str(png)],
+                           capture_output=True, timeout=20, env=session_env())
+            out = subprocess.run(["magick", str(png), "-colorspace", "Gray",
+                                  "-format", "%[fx:mean]", "info:"],
+                                 capture_output=True, text=True, timeout=20).stdout
+            return float(out)
+        except (OSError, subprocess.SubprocessError, ValueError):
+            return None
+        finally:
+            try:
+                png.unlink()
+            except OSError:
+                pass
+
+
 def retire(path):
     """Keep a few old states for a manual `kitty-resurrect restore FILE`."""
     retired = STATE / "retired"
@@ -152,6 +193,17 @@ class Service(dbus.service.Object):
         self.load_script = self.unload_script = lambda: None   # set by main()
         self.ledger = sg.Ledger(GUARD, log=log)
         self.ledger.begin_session(session_token())
+        # Black-screen watchdog (docs/kitty-resurrect-watchdog.md).
+        wd_ledger = sg.Ledger(WATCHDOG, log=log)
+        wd_ledger.begin_session(session_token())
+        self.watchdog = wd.Watchdog(
+            wd_ledger, probe=watchdog_probe,
+            actions={"activate": lambda: loginctl("activate", graphical_session()),
+                     "reload-script": lambda: self.load_script()},
+            disabled=lambda: self.off(), log=log,
+            dry_run=os.environ.get("KITTY_RESURRECT_WATCHDOG_DRY_RUN", "") not in ("", "0"),
+            luma=Luma() if os.environ.get("KITTY_RESURRECT_LUMA", "") not in ("", "0") else None)
+        GLib.timeout_add_seconds(wd.INTERVAL, self.watch)
         # kitty's file can trail a new window by one 5 s snapshot, so the
         # pairing that failed on KWin's update gets another go here.
         GLib.timeout_add_seconds(10, self.rematch)
@@ -170,6 +222,13 @@ class Service(dbus.service.Object):
             GLib.idle_add(self.load_script)
         self.off_reason = reason
         return reason is not None
+
+    def watch(self):
+        try:
+            self.watchdog.tick(time.time())
+        except Exception as error:  # noqa: BLE001 - the watchdog must never kill the service
+            log(f"kitty-resurrect watchdog: tick error {error!r}")
+        return True
 
     def rematch(self):
         if self.off():
@@ -256,6 +315,7 @@ class Service(dbus.service.Object):
     @dbus.service.method(NAME, in_signature="", out_signature="s")
     def Reset(self):
         self.ledger.reset()
+        self.watchdog.ledger.reset()
         return "breaker closed, attempts cleared"
 
     @dbus.service.method(NAME, in_signature="", out_signature="s")
@@ -264,7 +324,10 @@ class Service(dbus.service.Object):
         return json.dumps({"disabled": self.off_reason, "breaker": self.ledger.breaker,
                            "attempts": self.ledger.attempts, "max_attempts": sg.MAX_ATTEMPTS,
                            "restoring": self.restoring, "outputs": self.outputs,
-                           "unhealthy": self.unhealthy()}, indent=1)
+                           "unhealthy": self.unhealthy(),
+                           "watchdog": {"breaker": self.watchdog.ledger.breaker,
+                                        "attempts": self.watchdog.ledger.attempts,
+                                        "dry_run": self.watchdog.dry_run}}, indent=1)
 
     # ── pairing KWin windows with kitty OS windows ──
     def learn_focus(self, window_id, pid):

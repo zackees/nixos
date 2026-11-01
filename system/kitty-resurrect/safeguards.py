@@ -120,6 +120,15 @@ class Ledger:
         self.save()
         self.log("kitty-resurrect: breaker reset by operator")
 
+    def expire(self, now, window=WINDOW):
+        """Forget attempts older than `window`, so separate incidents an hour
+        apart are each recoverable; the breaker, once open, stays open."""
+        keep = [a for a in self.attempts
+                if a.get("outcome") == "started" or now - a.get("t", 0) <= window]
+        if keep != self.attempts:
+            self.attempts = keep
+            self.save()
+
     def gate(self, now):
         self._check_breaker(now)
         n = len(self.attempts) + 1

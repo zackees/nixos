@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Switch in kitty-resurrect + its watchdog and turn it on, verifying each step.
+# Any failure re-masks the service: nothing may be left running unattended.
+# See docs/kitty-resurrect-watchdog.md section 5.
+set -uo pipefail
+cd "$(dirname "$0")/.."
+unit=kitty-resurrect
+remask() { echo "FAIL: $*; re-masking $unit" >&2
+           systemctl --user mask --now "$unit" >/dev/null 2>&1; exit 1; }
+
+log=$(mktemp); trap 'rm -f "$log"' EXIT
+sudo -A nixos-rebuild switch --flake .#nixos >"$log" 2>&1 || { tail -20 "$log"; remask "switch failed"; }
+want=$(readlink -f result 2>/dev/null || true)
+nixos-rebuild build --flake .#nixos >"$log" 2>&1 || remask "build for verification failed"
+[ "$(readlink -f /run/current-system)" = "$(readlink -f result)" ] || remask "current-system is not the new generation"
+echo "generation: $(readlink -f /run/current-system) ${want:+(was result: $want)}"
+
+since=$(date +%s)
+systemctl --user unmask "$unit" && systemctl --user daemon-reload
+systemctl --user enable --now "$unit" || remask "enable failed"
+sleep 20
+systemctl --user is-active -q "$unit" || remask "service not active"
+journal=$(journalctl --user -u "$unit" -u plasma-kwin_wayland --since "@$since" -o cat --no-pager)
+grep -q "kitty-resurrect KWin script loaded" <<<"$journal" || remask "script did not load"
+grep -q "LogicalOutput" <<<"$journal" && remask "LogicalOutput error in journal"
+grep -Eq "atomic commit failed|Applying output configuration failed" <<<"$journal" && remask "KWin output errors"
+
+sid=$(loginctl show-user "$(id -u)" -p Display --value)
+[ "$(loginctl show-session "$sid" -p Active --value)" = yes ] || remask "session not active"
+shot=${XDG_RUNTIME_DIR:-/tmp}/kitty-resurrect-verify.png
+spectacle -f -b -n -o "$shot" || remask "screenshot failed"
+mean=$(magick "$shot" -colorspace Gray -format '%[fx:mean]' info:)
+echo "screenshot $shot mean luminance $mean"
+awk -v m="$mean" 'BEGIN{exit !(m > 0.02)}' || remask "screenshot is black"
+# Optional single, bounded restore check: pass a saved state (e.g. a retired one).
+if [ -n "${1:-}" ]; then
+  kitty-resurrect "$1" | tee /dev/stderr | grep -q '^restoring' || remask "restore refused"
+  sleep 15
+  [ "$(loginctl show-session "$sid" -p Active --value)" = yes ] || remask "session lost after restore"
+  journalctl --user -u plasma-kwin_wayland --since "@$since" -o cat --no-pager |
+    grep -Eq "atomic commit failed|LogicalOutput" && remask "KWin errors after restore"
+fi
+echo "OK: $unit enabled; rollback: systemctl --user mask --now $unit"
