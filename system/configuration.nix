@@ -32,9 +32,17 @@ let
   # kitty's OS windows come back after a crash on the screen and desktop they
   # were on; system/kitty-resurrect/service.py explains the three parts.
   # Same python as launch-origin: both are dbus + GLib services.
-  kittyResurrect = pkgs.runCommand "kitty-resurrect" { } ''
+  # The safeguards' tests (docs/kitty-resurrect-safeguards.md) run here, so a
+  # failing one fails the rebuild instead of reaching KWin.
+  kittyResurrect = pkgs.runCommand "kitty-resurrect" {
+    nativeBuildInputs = [ pkgs.nodejs launchOriginPython ];
+  } ''
+    src=${./kitty-resurrect}
+    node --test $src/main.test.mjs
+    HOME=$TMPDIR python3 -B -m unittest discover -s $src -p 'test_*.py' -v
     mkdir -p $out/share/kitty-resurrect
-    cp ${./kitty-resurrect}/*.py ${./kitty-resurrect}/*.js $out/share/kitty-resurrect/
+    cp $src/service.py $src/safeguards.py $src/kitty_snapshot.py $src/main.js \
+      $out/share/kitty-resurrect/
   '';
   kittyResurrectCli = pkgs.writeShellApplication {
     name = "kitty-resurrect";
@@ -42,8 +50,23 @@ let
     text = ''
       # kitty-resurrect            restore the newest session that died
       # kitty-resurrect FILE       restore a saved one, e.g. from retired/
-      qdbus org.nixos.KittyResurrect /org/nixos/KittyResurrect \
-        org.nixos.KittyResurrect.Restore "''${1:+$(realpath -e "$1")}"
+      # kitty-resurrect disable    kill switch: stop all resurrect behaviour
+      # kitty-resurrect enable     remove the kill switch
+      # kitty-resurrect reset      close the circuit breaker, clear attempts
+      # kitty-resurrect status     safeguard state as JSON
+      kill="''${XDG_CONFIG_HOME:-$HOME/.config}/kitty-resurrect/disabled"
+      call() {
+        qdbus org.nixos.KittyResurrect /org/nixos/KittyResurrect \
+          "org.nixos.KittyResurrect.$1" "''${@:2}"
+      }
+      case "''${1:-}" in
+        disable) mkdir -p "$(dirname "$kill")"; touch "$kill"
+                 echo "kitty-resurrect disabled (takes effect within 10 s): $kill" ;;
+        enable)  rm -f "$kill"; echo "kitty-resurrect kill switch removed" ;;
+        reset)   call Reset ;;
+        status)  call Status ;;
+        *)       call Restore "''${1:+$(realpath -e "$1")}" ;;
+      esac
     '';
   };
   # TMOG (https://tmog.org) is a third-party Qt 6 task manager shipped only as an
@@ -2770,7 +2793,12 @@ in
     serviceConfig = {
       ExecStart = "${launchOriginPython}/bin/python ${kittyResurrect}/share/kitty-resurrect/service.py ${kittyResurrect}/share/kitty-resurrect/main.js";
       Restart = "on-failure";
-      RestartSec = 2;
+      RestartSec = 5;
+    };
+    # A crashing service stops after three tries instead of respawning forever.
+    unitConfig = {
+      StartLimitIntervalSec = 300;
+      StartLimitBurst = 3;
     };
   };
 

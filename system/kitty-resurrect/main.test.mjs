@@ -110,3 +110,33 @@ test("an exception in a handler is logged once, never thrown into KWin", () => {
     assert.doesNotThrow(() => h.ws.windowActivated(h.kitty));
     assert.ok(h.warnings.some(w => /kitty-resurrect.*boom/.test(w)), h.warnings.join("\n"));
 });
+
+test("outputs are reported to the service, and again when they change", () => {
+    const h = harness();
+    h.ws.screensChanged = signal();
+    vm.runInContext(SRC, h.ctx);
+    const before = h.dbus.filter(m => m === "Outputs").length;
+    assert.ok(before >= 1, "reported at startup: " + h.dbus.join(","));
+    h.ws.screens = h.mkOutputs();
+    h.ws.screensChanged();
+    assert.equal(h.dbus.filter(m => m === "Outputs").length, before + 1);
+});
+
+test("a workspace that throws everywhere cannot push an exception into KWin", () => {
+    const h = harness();
+    h.ws.screensChanged = signal();
+    vm.runInContext(SRC, h.ctx);
+    h.ws.windows.push(h.kitty);
+    for (const k of ["windowList", "currentDesktopForScreen", "rootTile", "sendClientToScreen"])
+        h.ws[k] = () => { throw new TypeError("Passing incompatible arguments to C++ function"); };
+    Object.defineProperty(h.ws, "screens", { get() { throw new TypeError("gone"); } });
+    for (const s of ["currentDesktopChanged", "screensChanged", "windowActivated", "windowRemoved", "windowAdded"])
+        assert.doesNotThrow(() => h.ws[s](h.kitty), s);
+    for (const s of ["outputChanged", "desktopsChanged", "tileChanged", "captionChanged"])
+        assert.doesNotThrow(() => h.kitty[s](), s);
+});
+
+test("startup without screensChanged (older KWin) does not throw", () => {
+    const h = harness();
+    assert.doesNotThrow(() => vm.runInContext(SRC, h.ctx));
+});

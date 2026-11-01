@@ -185,3 +185,17 @@ workspace.windowRemoved.connect(guard("windowRemoved", function (w) {
 }));
 workspace.windowActivated.connect(guard("windowActivated", function (w) { if (isKitty(w)) push(); }));
 guard("startup", push)();
+
+// The service restores only while the outputs look healthy and settled
+// (safeguards.outputs_unhealthy); this is what it judges them by.
+function reportOutputs() {
+    const outs = workspace.screens.map(s => ({
+        name: String(s.name), width: s.geometry.width, height: s.geometry.height,
+    }));
+    callDBus(NAME, PATH, NAME, "Outputs", JSON.stringify(outs));
+}
+guard("startup", function () {
+    if (workspace.screensChanged)
+        workspace.screensChanged.connect(guard("screensChanged", reportOutputs));
+    reportOutputs();
+})();
