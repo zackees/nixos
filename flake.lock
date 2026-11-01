@@ -313,16 +313,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1793503713,
-        "narHash": "sha256-GL/fc1abag7FXWDQD5JKBFO0KG/Vr8k23i2ZOP8SxKE=",
-        "ref": "feat/searchd",
-        "rev": "8049b2bf3d9b87d2647e8765484ec5e684fa0359",
-        "revCount": 36,
+        "lastModified": 1793505676,
+        "narHash": "sha256-2uh3YMweZAOIdtpNTX2M0sMEu9+cpMx5CGqid2AHrbI=",
+        "ref": "refs/heads/main",
+        "rev": "fd01b609a271d96c98792d705fd03900a4b6340e",
+        "revCount": 41,
         "type": "git",
         "url": "https://github.com/talos-hq/talos-bar"
       },
       "original": {
-        "ref": "feat/searchd",
         "type": "git",
         "url": "https://github.com/talos-hq/talos-bar"
       }

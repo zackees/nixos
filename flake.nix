@@ -79,10 +79,9 @@
     };
 
     # talos-bar, the Python/Qt bar replacing the Plasma top panel, with the
-    # Meta+Space search popup (feat/searchd until talos-hq/talos-bar#30 lands);
-    # flake.lock pins the commit.
+    # Meta+Space search popup; flake.lock pins the commit.
     talos-bar = {
-      url = "git+https://github.com/talos-hq/talos-bar?ref=feat/searchd";
+      url = "git+https://github.com/talos-hq/talos-bar";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
