@@ -27,6 +27,8 @@ import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, GLibUnix
 
+import safeguards as sg
+
 
 NAME = "org.nixos.KittyResurrect"
 PLUGIN = "nixos-kitty-resurrect"
@@ -35,6 +37,7 @@ RUNTIME = Path(os.environ["XDG_RUNTIME_DIR"])
 CLOSED_GRACE_MS = 30_000   # all windows gone this long with KWin alive = closed on purpose
 CLAIM_TIMEOUT_MS = 60_000   # how long restored windows have to appear
 KEEP_RETIRED = 10
+GUARD = STATE / "guard.json"   # attempts + breaker, see safeguards.py
 
 
 def log(*args):
@@ -80,6 +83,39 @@ def session_env():
     return env
 
 
+def loginctl(*args):
+    try:
+        return subprocess.run(["loginctl", *args], capture_output=True, text=True,
+                              timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def graphical_session():
+    return loginctl("show-user", str(os.getuid()), "-p", "Display", "--value")
+
+
+def session_token():
+    """Identifies one login: a new one closes the breaker and resets the cap."""
+    try:
+        boot = Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+    except OSError:
+        boot = ""
+    return f"{boot}:{graphical_session()}"
+
+
+def session_active():
+    """logind's view of the graphical session; None when it cannot say.
+
+    Inactive means a VT switch took DRM master away from KWin -- the state
+    the 2026-10-31 black screens were in. Never restore into it.
+    """
+    sid = graphical_session()
+    if not sid:
+        return None
+    return loginctl("show-session", sid, "-p", "Active", "--value") == "yes"
+
+
 def retire(path):
     """Keep a few old states for a manual `kitty-resurrect restore FILE`."""
     retired = STATE / "retired"
@@ -108,11 +144,36 @@ class Service(dbus.service.Object):
         self.claimed = 0
         self.restoring = False
         self.closed_timer = None
+        # Safeguards (docs/kitty-resurrect-safeguards.md).
+        self.outputs = None    # KWin script's last output report
+        self.outputs_changed = 0.0
+        self.attempt_timer = None
+        self.off_reason = None
+        self.load_script = self.unload_script = lambda: None   # set by main()
+        self.ledger = sg.Ledger(GUARD, log=log)
+        self.ledger.begin_session(session_token())
         # kitty's file can trail a new window by one 5 s snapshot, so the
         # pairing that failed on KWin's update gets another go here.
         GLib.timeout_add_seconds(10, self.rematch)
 
+    def off(self):
+        """Kill switch, honored before any work. Logs and unloads once."""
+        reason = sg.disabled(os.environ, sg.kill_file())
+        if reason and not self.off_reason:
+            log(f"kitty-resurrect: disabled ({reason}); KWin script unloaded, doing nothing")
+            if self.attempt_timer is not None:
+                GLib.source_remove(self.attempt_timer)
+                self.attempt_timer = None
+            self.unload_script()
+        elif not reason and self.off_reason:
+            log("kitty-resurrect: kill switch removed; loading the KWin script again")
+            GLib.idle_add(self.load_script)
+        self.off_reason = reason
+        return reason is not None
+
     def rematch(self):
+        if self.off():
+            return True
         self.match_titles()
         self.save_placements()
         return True
@@ -120,6 +181,8 @@ class Service(dbus.service.Object):
     # ── KWin -> service ──
     @dbus.service.method(NAME, in_signature="s", out_signature="")
     def Update(self, payload):
+        if self.off():
+            return
         windows = read_json_str(payload)
         if windows is None:
             return
@@ -145,7 +208,7 @@ class Service(dbus.service.Object):
         order: one slow or failed launch used to shift every later window
         into its neighbour's place.
         """
-        if tag not in self.pending:
+        if self.off() or tag not in self.pending:
             return ""
         placement = self.pending.pop(tag)
         self.claimed += 1
@@ -165,16 +228,43 @@ class Service(dbus.service.Object):
     def Delay(self, ms, reply, error):
         GLib.timeout_add(max(0, min(int(ms), 10_000)), lambda: reply() and False)
 
+    @dbus.service.method(NAME, in_signature="s", out_signature="")
+    def Outputs(self, payload):
+        outputs = read_json_str(payload)
+        if outputs is not None and outputs != self.outputs:
+            self.outputs = outputs
+            self.outputs_changed = time.monotonic()
+
     # ── kitty-resurrect CLI -> service ──
     @dbus.service.method(NAME, in_signature="s", out_signature="s")
     def Restore(self, path):
+        # An explicit operator request skips the attempt cap and the breaker,
+        # never the kill switch or the output check.
+        if self.off():
+            return f"disabled ({self.off_reason})"
         if self.restoring:
             return "a restore is already running"
+        why = self.unhealthy()
+        if why:
+            return f"not now: {why}"
         target = Path(path) if path else self.newest_dead()
         if not target or not target.exists():
             return "nothing to restore"
         self.restore(target, retire_after=not path)
         return f"restoring {target}"
+
+    @dbus.service.method(NAME, in_signature="", out_signature="s")
+    def Reset(self):
+        self.ledger.reset()
+        return "breaker closed, attempts cleared"
+
+    @dbus.service.method(NAME, in_signature="", out_signature="s")
+    def Status(self):
+        self.off()
+        return json.dumps({"disabled": self.off_reason, "breaker": self.ledger.breaker,
+                           "attempts": self.ledger.attempts, "max_attempts": sg.MAX_ATTEMPTS,
+                           "restoring": self.restoring, "outputs": self.outputs,
+                           "unhealthy": self.unhealthy()}, indent=1)
 
     # ── pairing KWin windows with kitty OS windows ──
     def learn_focus(self, window_id, pid):
@@ -258,14 +348,66 @@ class Service(dbus.service.Object):
             retire(older)
         return dead[-1][1] if dead else None
 
+    # ── guarded automatic restore ──
+    def unhealthy(self):
+        return sg.outputs_unhealthy(self.outputs, session_active(),
+                                    self.outputs_changed, time.monotonic())
+
     def check_restore(self):
-        target = self.newest_dead()
-        if target and not self.restoring:
-            log(f"restoring {target}")
-            self.restore(target, retire_after=True)
+        """KWin (re)started: schedule an attempt if a session died.
+
+        Bounded by the ledger: a KWin crash loop calls this on every restart,
+        and each call either waits out its backoff or is refused.
+        """
+        if self.off() or self.restoring or self.attempt_timer is not None:
+            return False
+        if not self.newest_dead():
+            return False
+        self.schedule(note="dead-session")
         return False
 
-    def restore(self, target, retire_after):
+    def schedule(self, note):
+        d = self.ledger.gate(time.time())
+        if not d.allowed:
+            log(sg.summary(d.attempt, sg.MAX_ATTEMPTS, "refused", d.reason, None))
+            return
+        log(sg.summary(d.attempt, sg.MAX_ATTEMPTS, "scheduled", note, d.delay))
+        self.attempt_timer = GLib.timeout_add_seconds(d.delay, self.attempt)
+
+    def attempt(self):
+        self.attempt_timer = None
+        if self.off() or self.restoring:
+            return False
+        d = self.ledger.gate(time.time())
+        if not d.allowed:
+            log(sg.summary(d.attempt, sg.MAX_ATTEMPTS, "refused", d.reason, None))
+            return False
+        target = self.newest_dead()
+        if not target:
+            return False
+        self.ledger.start(time.time())
+        why = self.unhealthy()
+        if why:
+            self.ledger.finish("skipped", time.time(), why)
+            nxt = self.ledger.gate(time.time())
+            log(sg.summary(d.attempt, sg.MAX_ATTEMPTS, "skipped", why,
+                           nxt.delay if nxt.allowed else None))
+            if nxt.allowed:
+                self.attempt_timer = GLib.timeout_add_seconds(nxt.delay, self.attempt)
+            return False
+        log(sg.summary(d.attempt, sg.MAX_ATTEMPTS, "started", target.name, None))
+        self.restore(target, retire_after=True, attempt=d.attempt)
+        return False
+
+    def kwin_restarted(self):
+        """KWin went away mid-restore: that attempt failed (crash-loop signal)."""
+        if self.restoring and self.ledger.attempts and \
+                self.ledger.attempts[-1].get("outcome") == "started":
+            self.ledger.finish("failed", time.time(), "kwin-restarted")
+            log(sg.summary(len(self.ledger.attempts), sg.MAX_ATTEMPTS, "failed",
+                           "kwin-restarted", None))
+
+    def restore(self, target, retire_after, attempt=None):
         data = read_json(target, {})
         pid = data.get("pid")
         places = read_json(STATE / f"placement-{pid}.json", {}) if pid else {}
@@ -302,6 +444,12 @@ class Service(dbus.service.Object):
         def finish():
             if self.pending:
                 log(f"{len(self.pending)} restored window(s) never claimed a place")
+            if attempt is not None and self.ledger.attempts and \
+                    self.ledger.attempts[-1].get("outcome") == "started":
+                outcome = "failed" if self.pending else "ok"
+                reason = f"unclaimed={len(self.pending)}" if self.pending else "all-claimed"
+                self.ledger.finish(outcome, time.time(), reason)
+                log(sg.summary(attempt, sg.MAX_ATTEMPTS, outcome, reason, None))
             self.restoring = False
             self.pending.clear()
             shutil.rmtree(sessions, ignore_errors=True)
@@ -346,7 +494,15 @@ def main():
         return dbus.Interface(bus.get_object("org.kde.KWin", "/Scripting"),
                               "org.kde.kwin.Scripting")
 
+    def unload():
+        try:
+            scripting().unloadScript(PLUGIN)
+        except dbus.DBusException:
+            pass
+
     def load():
+        if service.off():
+            return False
         try:
             scripting().unloadScript(PLUGIN)
             # Same two-argument overload trap as launch-origin's service.py.
@@ -366,6 +522,7 @@ def main():
 
     def owner_changed(name, old, new):
         if name == "org.kde.KWin" and new:
+            service.kwin_restarted()
             GLib.idle_add(load)
 
     bus.add_signal_receiver(owner_changed, signal_name="NameOwnerChanged",
@@ -379,6 +536,7 @@ def main():
         loop.quit()
         return False
 
+    service.load_script, service.unload_script = load, unload
     GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, stop)
     GLibUnix.signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, stop)
     GLib.idle_add(load)
