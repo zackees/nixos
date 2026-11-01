@@ -41,7 +41,7 @@ let
     node --test $src/main.test.mjs
     HOME=$TMPDIR python3 -B -m unittest discover -s $src -p 'test_*.py' -v
     mkdir -p $out/share/kitty-resurrect
-    cp $src/service.py $src/safeguards.py $src/kitty_snapshot.py $src/main.js \
+    cp $src/service.py $src/safeguards.py $src/watchdog.py $src/kitty_snapshot.py $src/main.js \
       $out/share/kitty-resurrect/
   '';
   kittyResurrectCli = pkgs.writeShellApplication {
@@ -2789,7 +2789,8 @@ in
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
-    path = [ pkgs.systemd pkgs.bash pkgs.libnotify ];
+    # imagemagick + spectacle: the watchdog's opt-in luminance signal.
+    path = [ pkgs.systemd pkgs.bash pkgs.libnotify pkgs.imagemagick pkgs.kdePackages.spectacle ];
     serviceConfig = {
       ExecStart = "${launchOriginPython}/bin/python ${kittyResurrect}/share/kitty-resurrect/service.py ${kittyResurrect}/share/kitty-resurrect/main.js";
       Restart = "on-failure";
