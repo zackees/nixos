@@ -76,19 +76,19 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1793467935,
-        "narHash": "sha256-7U78c6KXQk3JSxosRhjbXk4Zg5PR8hkonLBJMxjpNqY=",
-        "ref": "nix/consent-tap-deploy",
-        "rev": "e7ab2444cdd687c5b1931fa7c1e1f42d56c91a97",
-        "revCount": 58537,
+        "lastModified": 1793560426,
+        "narHash": "sha256-x4tHfX3VvxExsPC6USwuDF6r3NoRbpuJKCKecDXUiDA=",
+        "ref": "main",
+        "rev": "4411beecb9289f858b841400c6c8ed6c3bec9e02",
+        "revCount": 61068,
         "type": "git",
-        "url": "https://github.com/zackees/hermes-agent"
+        "url": "https://github.com/talos-hq/hermes-slim"
       },
       "original": {
-        "ref": "nix/consent-tap-deploy",
-        "rev": "e7ab2444cdd687c5b1931fa7c1e1f42d56c91a97",
+        "ref": "main",
+        "rev": "4411beecb9289f858b841400c6c8ed6c3bec9e02",
         "type": "git",
-        "url": "https://github.com/zackees/hermes-agent"
+        "url": "https://github.com/talos-hq/hermes-slim"
       }
     },
     "home-manager": {
