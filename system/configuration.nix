@@ -1668,7 +1668,7 @@ in
           # Fixed hashes fetch just these commits; allowBuiltinFetchGit made
           # the root-run switch clone kernal-api's whole history per crate.
           outputHashes = {
-            "kernal-api-0.1.36" = "sha256-WgFBnd1nYSetaLpAMGhcBiNTw+BDBWyb5Cni9oztWrw=";
+            "kernal-api-0.1.36" = "sha256-ISB029+PIldMtY7LmrNwZ5BT8YpnR4BOLFzLPAPjFXk=";
             "openvino-finder-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";
             "openvino-genai-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";
             "openvino-genai-sys-0.11.0" = "sha256-nQWeHNdLlRk+owh3B6VpArAG2dr66HeBI2RHfDhyvvU=";

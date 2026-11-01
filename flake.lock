@@ -329,11 +329,11 @@
     "talos-vox": {
       "flake": false,
       "locked": {
-        "lastModified": 1793489722,
-        "narHash": "sha256-0o8du5/luBAN7S7Hy2L/QwHObuirmdlZpqMnTiiafNQ=",
+        "lastModified": 1793522275,
+        "narHash": "sha256-1QIV6rXWN6IVnv4I2BvWkLCyDJexTSScSfqQNzJbTQA=",
         "ref": "feat/kernal-api-audio",
-        "rev": "97f2b4791abc39a29c35e74f351f5f29c7d08918",
-        "revCount": 1316,
+        "rev": "cd0ec20b9cc5cdbee6e403cc5dee5b37a18337f0",
+        "revCount": 1321,
         "type": "git",
         "url": "https://github.com/talos-hq/talos-vox"
       },
