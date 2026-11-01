@@ -69,7 +69,11 @@
     # ~/.hermes/consent/<id>.approved for hermes-consent-exec, plus #2's
     # bounded gateway restarts) merged with nix/gpu-boot-ledger. The two had
     # diverged by one commit each, so pinning either alone dropped a fix.
-    hermes-agent.url = "git+https://github.com/zackees/hermes-agent?ref=nix/consent-tap-deploy&rev=e7ab2444cdd687c5b1931fa7c1e1f42d56c91a97";
+    # 2026-11-01: the install now builds from talos-hq/hermes-slim, the fork that
+    # carries all of the fixes above (browse.sh fallback, GPU boot ledger,
+    # consent tap) and is where desktop fixes land. Bump with
+    # `git -C ~/dev/talos-hq/hermes-slim rev-parse origin/main`.
+    hermes-agent.url = "git+https://github.com/talos-hq/hermes-slim?ref=main&rev=4411beecb9289f858b841400c6c8ed6c3bec9e02";
 
     # The private-desktop application tracks main (with its noVNC submodule);
     # flake.lock pins the exact revision, and scripts/apply.sh advances it.
