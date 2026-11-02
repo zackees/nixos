@@ -1228,8 +1228,37 @@ in
     })
     signal-desktop
     slack               # unfree; allowUnfree below covers it
-    zoom-us             # meetings; unfree. Screen share and camera go through
-                        # PipeWire and xdg-desktop-portal-kde, as OBS's do
+    # Zoom meetings; unfree. Screen share and camera go through PipeWire and
+    # xdg-desktop-portal-kde, as OBS's do.
+    #
+    # Zoom is prioritised however it starts. The dock launches it as
+    # app-Zoom@<id>.service, which the drop-in further down covers. A
+    # zoommtg:// link clicked in a browser does not: the portal execs
+    # Zoom.desktop itself, so Zoom ran inside xdg-desktop-portal.service at
+    # default weight and lost to builds (2026-11-02). This wrapper moves any
+    # Zoom not already in an app-Zoom@ unit into its own scope at the
+    # maximum CPUWeight before exec.
+    # Check: `cat /proc/$(pgrep -o -f /opt/zoom/zoom)/cgroup` names
+    # app-Zoom-*.scope or app-Zoom@*.service, and `systemctl --user show
+    # <unit> -p CPUWeight` says 10000.
+    (pkgs.symlinkJoin {
+      name = "zoom-us-prioritised";
+      paths = [ zoom-us ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        rm "$out/bin/zoom"
+        cat > "$out/bin/zoom" <<EOF
+        #!${pkgs.bash}/bin/bash
+        if ${pkgs.gnugrep}/bin/grep -q 'app-Zoom' /proc/self/cgroup; then
+          exec ${zoom-us}/bin/zoom "\$@"
+        fi
+        exec ${pkgs.systemd}/bin/systemd-run --user --scope --quiet --collect \
+          --unit="app-Zoom-\$\$.scope" -p CPUWeight=10000 -p IOWeight=10000 \
+          ${zoom-us}/bin/zoom "\$@"
+        EOF
+        chmod +x "$out/bin/zoom"
+      '';
+    })
     dbeaver-bin         # SQL client; binary release, unfree
     vscode.fhs          # `code`; the FHS variant so extensions that ship
                         # their own binaries (language servers, debuggers) run
@@ -2067,6 +2096,10 @@ in
     serviceConfig = {
       Nice = -10;
       LimitNICE = "-10";
+      # Nice only ranks threads inside one cgroup; builds run in sibling
+      # cgroups, where CPUWeight is what decides. 10000 is the systemd max.
+      CPUWeight = 10000;
+      IOWeight = 10000;
       # Enable GPU rendering for Zoom’s embedded Chromium UI.
       # Set only this preference before launch; keep account data out of Nix.
       # This accelerates the web UI, not meeting video encoding/decoding.
