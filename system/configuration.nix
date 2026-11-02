@@ -401,7 +401,8 @@ let
     '';
   };
 
-  # ── Links from kitty open in the Brave window on THIS desktop ──
+  # ── Links from kitty open in the browser window on THIS desktop ──
+  # The browser is Chromium with its CDP port open (system/chromium-cdp.nix).
   # Chromium opens a URL in whichever of its windows was focused most
   # recently, which with per-screen virtual desktops is usually one on
   # another desktop. So: focus the Brave window closest to the terminal you
@@ -411,7 +412,7 @@ let
   # wrapped as an xdotool-alike; it works on Wayland where xdotool cannot.
   kittyOpenUrl = pkgs.writeShellApplication {
     name = "kitty-open-url";
-    runtimeInputs = [ pkgs.kdotool pkgs.brave pkgs.coreutils pkgs.gawk pkgs.util-linux ];
+    runtimeInputs = [ pkgs.kdotool pkgs.coreutils pkgs.gawk pkgs.util-linux ];
     text = ''
       url="$1"
       # The window that got the click is still the active one.
@@ -423,7 +424,7 @@ let
       }
       read -r mx my <<< "$(center "$me")"
       best=""; bestd=""
-      for w in $(kdotool search --class brave-browser 2>/dev/null); do
+      for w in $(kdotool search --class chromium-browser 2>/dev/null); do
         [ "$(kdotool get_desktop_for_window "$w" 2>/dev/null)" = "$desk" ] || continue
         read -r bx by <<< "$(center "$w")"
         d=$(( (bx-mx)*(bx-mx) + (by-my)*(by-my) ))
@@ -432,9 +433,9 @@ let
       if [ -n "$best" ]; then
         kdotool windowactivate "$best"
         sleep 0.15
-        setsid -f brave "$url" >/dev/null 2>&1
+        setsid -f /run/current-system/sw/bin/chromium-cdp "$url" >/dev/null 2>&1
       else
-        setsid -f brave --new-window "$url" >/dev/null 2>&1
+        setsid -f /run/current-system/sw/bin/chromium-cdp --new-window "$url" >/dev/null 2>&1
       fi
     '';
   };
@@ -444,10 +445,10 @@ let
   # window, usually on another desktop. Registered below as the http/https
   # handler, so xdg-open lands here.
   browserHere = pkgs.makeDesktopItem {
-    name = "brave-here";
-    desktopName = "Brave (this desktop)";
+    name = "browser-here";
+    desktopName = "Chromium (this desktop)";
     exec = "${kittyOpenUrl}/bin/kitty-open-url %u";
-    icon = "brave-browser";
+    icon = "${pkgs.chromium}/share/icons/hicolor/256x256/apps/chromium.png";
     noDisplay = true;
     mimeTypes = [ "x-scheme-handler/http" "x-scheme-handler/https" "text/html" "application/xhtml+xml" ];
   };
@@ -522,7 +523,7 @@ let
   dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
     "systemsettings.desktop"
     "org.kde.dolphin.desktop"
-    "brave-browser.desktop"
+    "chromium-cdp.desktop"
     "org.kde.korganizer.desktop"
     "kitty.desktop"
   ];
@@ -849,6 +850,7 @@ in
       ./go-runner.nix
       ./shader-wallpaper.nix
       ./voxtype-popups.nix
+      ./chromium-cdp.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -1011,19 +1013,21 @@ in
   services.desktopManager.plasma6.enable = true;
 
   # ── Default web browser ──
-  # With Brave and Firefox both installed, nothing used to claim the web
+  # Chromium with its CDP port (system/chromium-cdp.nix), so an agent can
+  # attach to the logged-in session. Brave stays installed, no longer default.
+  # With several browsers installed, nothing used to claim the web
   # mimetypes, so the "default" browser was whatever desktop-file cache order
   # served that day and flipped between rebuilds (the same instability the
   # dock and Stream Deck comments note where they invoke Brave by name).
   # This is the distro-level default; ~/.config/mimeapps.list (captured in
   # home/kde/) carries the same entries at the user level.
   xdg.mime.defaultApplications = {
-    "text/html" = "brave-here.desktop";
-    "application/xhtml+xml" = "brave-here.desktop";
-    "x-scheme-handler/http" = "brave-here.desktop";
-    "x-scheme-handler/https" = "brave-here.desktop";
-    "x-scheme-handler/about" = "brave-browser.desktop";
-    "x-scheme-handler/unknown" = "brave-browser.desktop";
+    "text/html" = "browser-here.desktop";
+    "application/xhtml+xml" = "browser-here.desktop";
+    "x-scheme-handler/http" = "browser-here.desktop";
+    "x-scheme-handler/https" = "browser-here.desktop";
+    "x-scheme-handler/about" = "chromium-cdp.desktop";
+    "x-scheme-handler/unknown" = "chromium-cdp.desktop";
 
     # ── Default video player: VLC ──
     "video/mp4" = "vlc.desktop";

@@ -12,7 +12,7 @@ in {
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
-    path = [ pkgs.uv pkgs.brave pkgs.kdePackages.qttools ];
+    path = [ pkgs.uv pkgs.kdePackages.qttools ];
     serviceConfig = {
       ExecStart = "${pkgs.uv}/bin/uv run --quiet --python-preference only-managed --script ${goRunner}/share/go-runner/runner.py";
       Restart = "always";

@@ -52,7 +52,7 @@ in
     path = [ "/run/current-system/sw" ];
     serviceConfig = {
       # go/ links open in a new Brave window, as the KRunner go-runner did.
-      ExecStart = "${talos-searchd}/bin/talos-searchd --hotkey Meta+Space --browser brave-browser.desktop";
+      ExecStart = "${talos-searchd}/bin/talos-searchd --hotkey Meta+Space --browser chromium-cdp.desktop";
       Restart = "always";
       RestartSec = 3;
     };

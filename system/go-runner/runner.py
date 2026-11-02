@@ -61,7 +61,7 @@ class Runner(ServiceInterface):
             cmd = ["qdbus", "org.kde.kglobalaccel", "/component/kwin",
                    "org.kde.kglobalaccel.Component.invokeShortcut", "Edit Tiles"]
         else:
-            cmd = ["brave", "--new-window", match_id]
+            cmd = ["/run/current-system/sw/bin/chromium-cdp", "--new-window", match_id]
         subprocess.Popen(cmd, start_new_session=True,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
