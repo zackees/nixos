@@ -1,26 +1,26 @@
-[PlasmaViews][Panel 1973]
+[PlasmaViews][Panel 2009]
 alignment=1
 floating=0
 panelLengthMode=2
 panelVisibility=3
 shell=org.kde.plasma.desktop
 
-[PlasmaViews][Panel 1973][Defaults]
+[PlasmaViews][Panel 2009][Defaults]
 maxLength=600
 minLength=600
 offset=340
 thickness=36
 
-[PlasmaViews][Panel 1973][Horizontal2560]
+[PlasmaViews][Panel 2009][Horizontal2560]
 maxLength=600
 minLength=600
 offset=340
 
-[PlasmaViews][Panel 1975]
+[PlasmaViews][Panel 2011]
 floating=0
 shell=org.kde.plasma.desktop
 
-[PlasmaViews][Panel 1975][Defaults]
+[PlasmaViews][Panel 2011][Defaults]
 thickness=44
 
 [PlasmaViews][Panel 656]

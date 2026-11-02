@@ -8,7 +8,10 @@ Switch to Next Keyboard Layout=Meta+Alt+K,Meta+Alt+K,
 _k_friendly_name=Keyboard Layout Switcher
 
 [hermes]
+65B218E5A748F9F3CB16BEF40AB83A7A-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
+71894EF51B8BEC25A4D79657FCDB3E16-Ctrl+Shift+Space=Ctrl+Shift+Space,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
 7C059A9905597642D42AF74372033857-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
+823B815EE35A4E9ED3C7C186D45DCE9C-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
 D4FCF2D050942F5BDD9FCDAF01CC5AB3-Ctrl+Shift+Space=Ctrl+Shift+Space,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
 _k_friendly_name=hermes
 
@@ -278,7 +281,7 @@ switch to previous activity=none,none,Switch to Previous Activity
 toggle do not disturb=none,none,Toggle do not disturb
 
 [services][org.kde.krunner.desktop]
-_launch=Alt+Space\tMeta+Space
+_launch=Alt+Space
 
 [services][org.kde.spectacle.desktop]
 CurrentMonitorScreenShot=none
@@ -287,3 +290,27 @@ OpenWithoutScreenshot=none
 [services][plasma-manager-commands.desktop]
 desktop-move-left=Meta+Ctrl+Alt+Left
 desktop-move-right=Meta+Ctrl+Alt+Right
+
+[token_kernal_api_2240489_1]
+_k_friendly_name=token_kernal_api_2240489_1
+kernal-api-example=none,Ctrl+Alt+F9,kernal-api global-hotkey example
+
+[token_kernal_api_2256365_1]
+_k_friendly_name=token_kernal_api_2256365_1
+kernal-api-example=none,Ctrl+Alt+F9,kernal-api global-hotkey example
+
+[token_kernal_api_2268574_1]
+_k_friendly_name=token_kernal_api_2268574_1
+kernal-api-example=none,Ctrl+Alt+F9,kernal-api global-hotkey example
+
+[token_kernal_api_2294042_1]
+_k_friendly_name=token_kernal_api_2294042_1
+kernal-api-example=Ctrl+Alt+F9,Ctrl+Alt+F9,kernal-api global-hotkey example
+
+[token_kernal_api_example]
+_k_friendly_name=token_kernal_api_example
+kernal-api-example=Ctrl+Alt+F9,Ctrl+Alt+F9,kernal-api global-hotkey example
+
+[token_talos_search]
+_k_friendly_name=token_talos_search
+talos-search=Meta+Space,,
