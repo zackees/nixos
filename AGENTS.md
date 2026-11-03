@@ -328,6 +328,21 @@ Zoom to -10, logging a WARNING whenever Zoom needed it -- a warning means a
 new launch path got past the wrapper. A build daemon it does not know runs
 at normal priority: add its process name to `BUILD_TOOLS`.
 
+**Zoom's sandbox hides the GPU's config files, and it fails silently.**
+nixpkgs runs Zoom in a bwrap FHS sandbox whose `/etc` is a tmpfs: no
+`/etc/egl` (NVIDIA EGL then has no Wayland platform and glvnd falls back to
+llvmpipe, software rendering) and no `/etc/OpenCL/vendors` (blur,
+backgrounds and denoise run on the CPU). The zoom wrapper points
+`__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS` and `OCL_ICD_VENDORS` at
+`/run/opengl-driver`, which the sandbox does see. Native Wayland on NVIDIA
+then rendered the camera self-view black while the capture was fine, so the
+wrapper also forces `xwayland=true` (desktop GL via GLX, still the GPU).
+Test a change inside the sandbox itself: copy Zoom's bwrap script and swap
+its `container-init "$@"` for `eglinfo -B -p wayland` or `clinfo -l`. There
+is no NVENC to enable -- Zoom's Linux client encodes in software with its
+own codec. Zoom rewrites `zoomus.conf` on exit, so a setting that must hold
+is set by the wrapper before each start, not edited once.
+
 **kitty's windows come back after a crash -- `system/kitty-resurrect/`.**
 kitty saves each OS window as a session every 5 s (loaded from
 `home/kitty/tab_bar.py`), a KWin script reports each kitty window's screen,

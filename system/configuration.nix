@@ -157,6 +157,20 @@ let
     profile = ''
       if [ -z "''${__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS:-}" ] && [ -d /run/opengl-driver/share/egl/egl_external_platform.d ]; then
         export __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS=/run/opengl-driver/share/egl/egl_external_platform.d
+        # Same gap for OpenCL: the sandbox has no /etc/OpenCL/vendors, so
+        # Zoom's bundled loader found no platform and its clDNN effects
+        # (blur, backgrounds, denoise) ran on the CPU. This finds the RTX.
+        export OCL_ICD_VENDORS=/run/opengl-driver/etc/OpenCL/vendors
+        # Settings Zoom rewrites on exit, so they are set before every start.
+        # xwayland=true: native Wayland draws through NVIDIA's GLES path,
+        # where the camera self-view rendered black (2026-11-03); XWayland
+        # uses desktop GL via GLX, still on the GPU, and the camera works.
+        # enablegpucomputeutilization lets those effects use the GPU.
+        conf="\''${XDG_CONFIG_HOME:-\$HOME/.config}/zoomus.conf"
+        if [ -f "\$conf" ]; then
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General xwayland true
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablegpucomputeutilization true
+        fi
       fi
     '';
     extraInstallCommands = ''
@@ -1278,12 +1292,27 @@ in
         # (2026-11-02). /run/opengl-driver is visible inside the sandbox.
         # Check: no thread of the zoom process is named llvmpipe-N.
         export __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS=/run/opengl-driver/share/egl/egl_external_platform.d
+        # Same gap for OpenCL: the sandbox has no /etc/OpenCL/vendors, so
+        # Zoom's bundled loader found no platform and its clDNN effects
+        # (blur, backgrounds, denoise) ran on the CPU. This finds the RTX.
+        export OCL_ICD_VENDORS=/run/opengl-driver/etc/OpenCL/vendors
+        # Settings Zoom rewrites on exit, so they are set before every start.
+        # xwayland=true: native Wayland draws through NVIDIA's GLES path,
+        # where the camera self-view rendered black (2026-11-03); XWayland
+        # uses desktop GL via GLX, still on the GPU, and the camera works.
+        # enablegpucomputeutilization lets those effects use the GPU.
+        conf="\''${XDG_CONFIG_HOME:-\$HOME/.config}/zoomus.conf"
+        if [ -f "\$conf" ]; then
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General xwayland true
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablegpucomputeutilization true
+        fi
         if ${pkgs.gnugrep}/bin/grep -q 'app-Zoom' /proc/self/cgroup; then
           exec ${zoom-us}/bin/zoom "\$@"
         fi
         exec ${pkgs.systemd}/bin/systemd-run --user --quiet --collect \
           --unit="app-Zoom@\$\$.service" \\
           -E __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS="\$__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS" \\
+          -E OCL_ICD_VENDORS="\$OCL_ICD_VENDORS" \\
           ${zoom-us}/bin/zoom "\$@"
         EOF
         chmod +x "$out/bin/zoom"
