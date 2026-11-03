@@ -863,6 +863,7 @@ in
       ./voxtype-popups.nix
       ./chromium-cdp.nix
       ./rustdesk.nix
+      ./priority-guard.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -1258,7 +1259,8 @@ in
     # caller's nice and cgroup and so fixed neither; this asks the user
     # manager to start Zoom as a fresh app-Zoom@<pid>.service, which the
     # drop-in gives Nice -10 and CPUWeight 10000 whatever launched it.
-    # zoom-priority-guard (root, below) catches anything that slips past.
+    # desktop-priority-guard (system/priority-guard.nix) catches anything
+    # that slips past.
     # Check: `cat /proc/$(pgrep -o -f /opt/zoom/zoom)/cgroup` names
     # app-Zoom@*.service, and `ps -o ni= -p <that pid>` says -10.
     (pkgs.symlinkJoin {
@@ -2130,36 +2132,6 @@ in
     };
   };
 
-  # ── Zoom priority guard ──
-  # Belt and braces for the app-Zoom@ drop-in and the zoom wrapper: every
-  # 15 s, any Zoom thread not at nice -10 is put there, and the journal says
-  # so. The session cannot do this itself (DefaultLimitNICE=0), so it runs as
-  # root. A warning here means a launch path got past the wrapper -- the
-  # 2026-11-02 call ran at nice 19 for days before anyone looked.
-  # Check: `journalctl -u zoom-priority-guard` is quiet during a call.
-  systemd.services.zoom-priority-guard = {
-    description = "Keep Zoom at nice -10";
-    serviceConfig.Type = "oneshot";
-    path = [ pkgs.procps pkgs.util-linux ];
-    script = ''
-      # ps, not /proc/<tid>/stat field 19: a thread name with a space in it
-      # shifts the fields, and Zoom's Chromium threads have them.
-      for pid in $(pgrep -f '^/opt/zoom/' || true); do
-        while read -r tid ni; do
-          [ "$ni" -gt -10 ] 2>/dev/null || continue
-          renice -n -10 -p "$tid" >/dev/null 2>&1 && fixed=1
-        done < <(ps -L -o tid=,ni= -p "$pid" || true)
-      done
-      if [ -n "''${fixed:-}" ]; then
-        echo "WARNING: Zoom threads were above nice -10 and were reniced; a launch path bypassed app-Zoom@" >&2
-      fi
-    '';
-  };
-  systemd.timers.zoom-priority-guard = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = { OnBootSec = "1min"; OnUnitActiveSec = "15s"; AccuracySec = "1s"; };
-  };
-
   # ── voxtype heals a wedged CUDA, and says so when it cannot ──
   # A KWin GPU fault (Xid 13 -> 31, "uvm encountered global fatal error")
   # leaves every new CUDA context failing with `CUDA failure 999: unknown
@@ -2434,7 +2406,10 @@ in
   systemd.slices.bosn = {
     description = "Containers (low priority)";
     sliceConfig = {
-      CPUWeight = 10;
+      # idle, not merely low: cgroup cpu.idle makes the whole slice
+      # SCHED_IDLE against its siblings, so a container build yields to a
+      # click at once instead of after its slice on every CPU.
+      CPUWeight = "idle";
       IOWeight = 10;
     };
   };
@@ -2456,6 +2431,9 @@ in
     enableOnBoot = false;
     daemon.settings.cgroup-parent = "bosn.slice";
   };
+  # dockerd and containerd themselves ran at ~250% CPU at nice 0 while
+  # streaming build output; they serve batch work, so they rank as it.
+  systemd.services.docker.serviceConfig.CPUWeight = 20;
 
   # GPU passthrough for containers, via CDI rather than the old runtime shim.
   # This generates a Container Device Interface spec describing the 3060 and
@@ -3228,10 +3206,10 @@ in
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # nix-daemon builds run in system.slice, out of reach of every user-side
-  # weight, and used to compete with the desktop as an equal. Batch policy
-  # plus a low weight keeps a rebuild from stuttering a call; idle, it still
-  # gets every core.
-  nix.daemonCPUSchedPolicy = "batch";
+  # weight, and used to compete with the desktop as an equal. SCHED_IDLE
+  # plus a low weight keeps a rebuild from stuttering a call; on an idle
+  # machine it still gets every core.
+  nix.daemonCPUSchedPolicy = "idle";
   systemd.services.nix-daemon.serviceConfig.CPUWeight = 20;
 
   # The NixOS CUDA team's cache. CUDA is unfree, so cache.nixos.org never

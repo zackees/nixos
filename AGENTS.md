@@ -317,10 +317,16 @@ cgroup. Launch GUI apps as a transient *service* (`systemd-run --user
 zoom wrapper and `kitty-open-url` do this. CPU contention lives at three
 levels and each needs its own answer: nice inside a cgroup, `CPUWeight`
 between sibling cgroups, and `system.slice` (Docker containers, nix-daemon)
-against `user.slice` at the top -- containers default to `bosn.slice` and
-nix-daemon runs at weight 20 for that reason. `zoom-priority-guard` renices
-Zoom to -10 every 15 s and logs a WARNING whenever it had to; a warning
-there means a new launch path got past the wrapper.
+against `user.slice` at the top -- containers default to `bosn.slice`
+(`CPUWeight=idle`) and nix-daemon is idle-scheduled for that reason. Low
+nice and low weight were not enough on their own: with ~150 runnable build
+threads every one still gets a slice on each CPU before a click is served,
+so Zoom's Start button stopped responding. `desktop-priority-guard`
+(`system/priority-guard/`) therefore puts build tools (by process name, any
+user) and the user's nice >= 10 work into SCHED_IDLE every 3 s, and renices
+Zoom to -10, logging a WARNING whenever Zoom needed it -- a warning means a
+new launch path got past the wrapper. A build daemon it does not know runs
+at normal priority: add its process name to `BUILD_TOOLS`.
 
 **kitty's windows come back after a crash -- `system/kitty-resurrect/`.**
 kitty saves each OS window as a session every 5 s (loaded from
