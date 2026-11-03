@@ -170,6 +170,12 @@ let
         if [ -f "\$conf" ]; then
           ${pkgs.crudini}/bin/crudini --set "\$conf" General xwayland true
           ${pkgs.crudini}/bin/crudini --set "\$conf" General enablegpucomputeutilization true
+          # Hardware video encode/decode keys from the Win/Mac client. The
+          # Linux build links no NVENC/NVDEC/VA-API backend, so these are
+          # expected to do nothing; set on the off chance a later build
+          # wires one up. Check: the zoom process maps no libnvidia-encode.
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablehardwareaccforvideosend true
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablehardwareaccforvideoreceive true
         fi
       fi
     '';
@@ -1305,6 +1311,12 @@ in
         if [ -f "\$conf" ]; then
           ${pkgs.crudini}/bin/crudini --set "\$conf" General xwayland true
           ${pkgs.crudini}/bin/crudini --set "\$conf" General enablegpucomputeutilization true
+          # Hardware video encode/decode keys from the Win/Mac client. The
+          # Linux build links no NVENC/NVDEC/VA-API backend, so these are
+          # expected to do nothing; set on the off chance a later build
+          # wires one up. Check: the zoom process maps no libnvidia-encode.
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablehardwareaccforvideosend true
+          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablehardwareaccforvideoreceive true
         fi
         if ${pkgs.gnugrep}/bin/grep -q 'app-Zoom' /proc/self/cgroup; then
           exec ${zoom-us}/bin/zoom "\$@"
