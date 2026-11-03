@@ -1271,11 +1271,20 @@ in
         rm "$out/bin/zoom"
         cat > "$out/bin/zoom" <<EOF
         #!${pkgs.bash}/bin/bash
+        # Render on the GPU. Zoom's FHS sandbox mounts a tmpfs /etc without
+        # /etc/egl, so NVIDIA's EGL found no Wayland platform and glvnd fell
+        # back to Mesa -- llvmpipe, every frame drawn on the CPU, and Zoom
+        # became the biggest CPU consumer in a call under build load
+        # (2026-11-02). /run/opengl-driver is visible inside the sandbox.
+        # Check: no thread of the zoom process is named llvmpipe-N.
+        export __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS=/run/opengl-driver/share/egl/egl_external_platform.d
         if ${pkgs.gnugrep}/bin/grep -q 'app-Zoom' /proc/self/cgroup; then
           exec ${zoom-us}/bin/zoom "\$@"
         fi
         exec ${pkgs.systemd}/bin/systemd-run --user --quiet --collect \
-          --unit="app-Zoom@\$\$.service" ${zoom-us}/bin/zoom "\$@"
+          --unit="app-Zoom@\$\$.service" \\
+          -E __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS="\$__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS" \\
+          ${zoom-us}/bin/zoom "\$@"
         EOF
         chmod +x "$out/bin/zoom"
       '';
