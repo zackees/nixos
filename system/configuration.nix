@@ -4,6 +4,8 @@
 
 { config, pkgs, lib, inputs, ... }:
 let
+  # Settings-profile ladder for Zoom; see zoom-guard.nix.
+  zoomGuard = import ./zoom-guard.nix { inherit pkgs; };
   # UUIDs keep CUDA assignments stable when its performance ordering or
   # nvidia-smi's PCI ordering changes. The modified 2080 Ti is for models.
   desktopGpuUuid = "GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd";
@@ -1287,49 +1289,23 @@ in
       name = "zoom-us-prioritised";
       paths = [ zoom-us ];
       nativeBuildInputs = [ pkgs.makeWrapper ];
+      # The launcher script itself, with its rationale, is
+      # zoom-guard/zoom-launch.sh; zoom-guard picks its settings profile.
       postBuild = ''
         rm "$out/bin/zoom"
-        cat > "$out/bin/zoom" <<EOF
-        #!${pkgs.bash}/bin/bash
-        # Render on the GPU. Zoom's FHS sandbox mounts a tmpfs /etc without
-        # /etc/egl, so NVIDIA's EGL found no Wayland platform and glvnd fell
-        # back to Mesa -- llvmpipe, every frame drawn on the CPU, and Zoom
-        # became the biggest CPU consumer in a call under build load
-        # (2026-11-02). /run/opengl-driver is visible inside the sandbox.
-        # Check: no thread of the zoom process is named llvmpipe-N.
-        export __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS=/run/opengl-driver/share/egl/egl_external_platform.d
-        # Same gap for OpenCL: the sandbox has no /etc/OpenCL/vendors, so
-        # Zoom's bundled loader found no platform and its clDNN effects
-        # (blur, backgrounds, denoise) ran on the CPU. This finds the RTX.
-        export OCL_ICD_VENDORS=/run/opengl-driver/etc/OpenCL/vendors
-        # Settings Zoom rewrites on exit, so they are set before every start.
-        # xwayland=true: native Wayland draws through NVIDIA's GLES path,
-        # where the camera self-view rendered black (2026-11-03); XWayland
-        # uses desktop GL via GLX, still on the GPU, and the camera works.
-        # enablegpucomputeutilization lets those effects use the GPU.
-        conf="\''${XDG_CONFIG_HOME:-\$HOME/.config}/zoomus.conf"
-        if [ -f "\$conf" ]; then
-          ${pkgs.crudini}/bin/crudini --set "\$conf" General xwayland true
-          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablegpucomputeutilization true
-          # Hardware video encode/decode keys from the Win/Mac client. The
-          # Linux build links no NVENC/NVDEC/VA-API backend, so these are
-          # expected to do nothing; set on the off chance a later build
-          # wires one up. Check: the zoom process maps no libnvidia-encode.
-          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablehardwareaccforvideosend true
-          ${pkgs.crudini}/bin/crudini --set "\$conf" General enablehardwareaccforvideoreceive true
-        fi
-        if ${pkgs.gnugrep}/bin/grep -q 'app-Zoom' /proc/self/cgroup; then
-          exec ${zoom-us}/bin/zoom "\$@"
-        fi
-        exec ${pkgs.systemd}/bin/systemd-run --user --quiet --collect \
-          --unit="app-Zoom@\$\$.service" \\
-          -E __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS="\$__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS" \\
-          -E OCL_ICD_VENDORS="\$OCL_ICD_VENDORS" \\
-          ${zoom-us}/bin/zoom "\$@"
-        EOF
-        chmod +x "$out/bin/zoom"
+        install -m755 ${pkgs.replaceVars ./zoom-guard/zoom-launch.sh {
+          bash = "${pkgs.bash}/bin/bash";
+          zoom = "${zoom-us}/bin/zoom";
+          guard = "${zoomGuard}/bin/zoom-guard";
+          crudini = "${pkgs.crudini}/bin/crudini";
+          grep = "${pkgs.gnugrep}/bin/grep";
+          pgrep = "${pkgs.procps}/bin/pgrep";
+          timeout = "${pkgs.coreutils}/bin/timeout";
+          systemd_run = "${pkgs.systemd}/bin/systemd-run";
+        }} "$out/bin/zoom"
       '';
     })
+    zoomGuard           # `zoom-guard status | step-down | reset`
     dbeaver-bin         # SQL client; binary release, unfree
     vscode.fhs          # `code`; the FHS variant so extensions that ship
                         # their own binaries (language servers, debuggers) run
