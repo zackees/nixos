@@ -535,6 +535,8 @@ let
     "chromium-cdp.desktop"
     "org.kde.korganizer.desktop"
     "kitty.desktop"
+    # Remote support: taking over someone else's machine (system/rustdesk.nix).
+    "rustdesk.desktop"
   ];
   # Dock folders (#39): the rest of what was one long strip, grouped so the
   # dock reads as a handful of targets. Same hover-open shape as Media and
@@ -860,6 +862,7 @@ in
       ./shader-wallpaper.nix
       ./voxtype-popups.nix
       ./chromium-cdp.nix
+      ./rustdesk.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
