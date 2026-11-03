@@ -306,6 +306,22 @@ module-rt never reads the reply. Judge it by the thread, not the log:
 as RR/FF. Note too that the NVMe runs the `none` I/O scheduler, so any
 `IOWeight` (bosn.slice, hermes-gateway) is inert; only CPUWeight takes effect.
 
+**An app launched by an agent runs at nice 19, and so does everything it
+opens.** Agent sessions run at nice 19, nice is inherited, and
+`DefaultLimitNICE=0` stops anything in the session lowering it again -- so a
+browser an agent opened, and a Zoom meeting clicked in that browser, ran the
+whole call at 19 with its video threads losing to every build (2026-11-02).
+A `systemd-run --scope` does not help: a scope keeps the caller's nice and
+cgroup. Launch GUI apps as a transient *service* (`systemd-run --user
+--unit=app-<name>@$$.service`), which the user manager starts fresh; the
+zoom wrapper and `kitty-open-url` do this. CPU contention lives at three
+levels and each needs its own answer: nice inside a cgroup, `CPUWeight`
+between sibling cgroups, and `system.slice` (Docker containers, nix-daemon)
+against `user.slice` at the top -- containers default to `bosn.slice` and
+nix-daemon runs at weight 20 for that reason. `zoom-priority-guard` renices
+Zoom to -10 every 15 s and logs a WARNING whenever it had to; a warning
+there means a new launch path got past the wrapper.
+
 **kitty's windows come back after a crash -- `system/kitty-resurrect/`.**
 kitty saves each OS window as a session every 5 s (loaded from
 `home/kitty/tab_bar.py`), a KWin script reports each kitty window's screen,
