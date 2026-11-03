@@ -415,6 +415,15 @@ let
     runtimeInputs = [ pkgs.kdotool pkgs.coreutils pkgs.gawk pkgs.util-linux ];
     text = ''
       url="$1"
+      # Started by the user manager, not as our child: a link opened by an
+      # agent (nice 19, inside a weight-10 kitty build scope) would otherwise
+      # put the whole browser there, and Zoom after it when a meeting link is
+      # clicked -- see the zoom wrapper. A running Chromium just takes the
+      # URL and the unit exits at once.
+      open_in_browser() {
+        systemd-run --user --quiet --collect --unit="app-chromium-cdp@$$.service" \
+          /run/current-system/sw/bin/chromium-cdp "$@" >/dev/null 2>&1
+      }
       # The window that got the click is still the active one.
       me="$(kdotool getactivewindow || true)"
       desk="$(kdotool get_desktop_for_window "$me" 2>/dev/null || echo "")"
@@ -433,9 +442,9 @@ let
       if [ -n "$best" ]; then
         kdotool windowactivate "$best"
         sleep 0.15
-        setsid -f /run/current-system/sw/bin/chromium-cdp "$url" >/dev/null 2>&1
+        open_in_browser "$url"
       else
-        setsid -f /run/current-system/sw/bin/chromium-cdp --new-window "$url" >/dev/null 2>&1
+        open_in_browser --new-window "$url"
       fi
     '';
   };
@@ -1237,14 +1246,18 @@ in
     #
     # Zoom is prioritised however it starts. The dock launches it as
     # app-Zoom@<id>.service, which the drop-in further down covers. A
-    # zoommtg:// link clicked in a browser does not: the portal execs
-    # Zoom.desktop itself, so Zoom ran inside xdg-desktop-portal.service at
-    # default weight and lost to builds (2026-11-02). This wrapper moves any
-    # Zoom not already in an app-Zoom@ unit into its own scope at the
-    # maximum CPUWeight before exec.
+    # zoommtg:// link clicked in a browser does not: Zoom ran inside
+    # xdg-desktop-portal.service at default weight, and at NICE 19 -- the
+    # browser that opened the link had been started by an agent, agents run
+    # at 19, and every child inherits it. DefaultLimitNICE=0 means nothing in
+    # the session can lower it again, so the call's render and video-decode
+    # threads lost to every build (2026-11-02). A `--scope` keeps the
+    # caller's nice and cgroup and so fixed neither; this asks the user
+    # manager to start Zoom as a fresh app-Zoom@<pid>.service, which the
+    # drop-in gives Nice -10 and CPUWeight 10000 whatever launched it.
+    # zoom-priority-guard (root, below) catches anything that slips past.
     # Check: `cat /proc/$(pgrep -o -f /opt/zoom/zoom)/cgroup` names
-    # app-Zoom-*.scope or app-Zoom@*.service, and `systemctl --user show
-    # <unit> -p CPUWeight` says 10000.
+    # app-Zoom@*.service, and `ps -o ni= -p <that pid>` says -10.
     (pkgs.symlinkJoin {
       name = "zoom-us-prioritised";
       paths = [ zoom-us ];
@@ -1256,9 +1269,8 @@ in
         if ${pkgs.gnugrep}/bin/grep -q 'app-Zoom' /proc/self/cgroup; then
           exec ${zoom-us}/bin/zoom "\$@"
         fi
-        exec ${pkgs.systemd}/bin/systemd-run --user --scope --quiet --collect \
-          --unit="app-Zoom-\$\$.scope" -p CPUWeight=10000 -p IOWeight=10000 \
-          ${zoom-us}/bin/zoom "\$@"
+        exec ${pkgs.systemd}/bin/systemd-run --user --quiet --collect \
+          --unit="app-Zoom@\$\$.service" ${zoom-us}/bin/zoom "\$@"
         EOF
         chmod +x "$out/bin/zoom"
       '';
@@ -2115,6 +2127,36 @@ in
     };
   };
 
+  # ── Zoom priority guard ──
+  # Belt and braces for the app-Zoom@ drop-in and the zoom wrapper: every
+  # 15 s, any Zoom thread not at nice -10 is put there, and the journal says
+  # so. The session cannot do this itself (DefaultLimitNICE=0), so it runs as
+  # root. A warning here means a launch path got past the wrapper -- the
+  # 2026-11-02 call ran at nice 19 for days before anyone looked.
+  # Check: `journalctl -u zoom-priority-guard` is quiet during a call.
+  systemd.services.zoom-priority-guard = {
+    description = "Keep Zoom at nice -10";
+    serviceConfig.Type = "oneshot";
+    path = [ pkgs.procps pkgs.util-linux ];
+    script = ''
+      # ps, not /proc/<tid>/stat field 19: a thread name with a space in it
+      # shifts the fields, and Zoom's Chromium threads have them.
+      for pid in $(pgrep -f '^/opt/zoom/' || true); do
+        while read -r tid ni; do
+          [ "$ni" -gt -10 ] 2>/dev/null || continue
+          renice -n -10 -p "$tid" >/dev/null 2>&1 && fixed=1
+        done < <(ps -L -o tid=,ni= -p "$pid" || true)
+      done
+      if [ -n "''${fixed:-}" ]; then
+        echo "WARNING: Zoom threads were above nice -10 and were reniced; a launch path bypassed app-Zoom@" >&2
+      fi
+    '';
+  };
+  systemd.timers.zoom-priority-guard = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = { OnBootSec = "1min"; OnUnitActiveSec = "15s"; AccuracySec = "1s"; };
+  };
+
   # ── voxtype heals a wedged CUDA, and says so when it cannot ──
   # A KWin GPU fault (Xid 13 -> 31, "uvm encountered global fatal error")
   # leaves every new CUDA context failing with `CUDA failure 999: unknown
@@ -2379,12 +2421,15 @@ in
   # is podman-desktop, in systemPackages above -- despite the name it drives a
   # plain Docker socket, so it is the containers/images/volumes UI without the
   # VM.
-  # Low-priority home for every container Bosn creates (zackees/bosn#645).
-  # Bosn joins it with --cgroup-parent=bosn.slice when this weight is below
-  # the default 100; at CPUWeight 10 its builds sit beside user.slice and
-  # yield to the desktop under contention, yet still use idle CPUs fully.
+  # Low-priority home for every container (zackees/bosn#645). Bosn joins it
+  # with --cgroup-parent=bosn.slice when this weight is below the default
+  # 100; at CPUWeight 10 its builds sit beside user.slice and yield to the
+  # desktop under contention, yet still use idle CPUs fully. Containers
+  # started any other way used to land in system.slice at weight 100,
+  # competing with the whole desktop as an equal (two of them during the
+  # 2026-11-02 Zoom stutter), so the daemon now defaults to it as well.
   systemd.slices.bosn = {
-    description = "Bosn containers (low priority)";
+    description = "Containers (low priority)";
     sliceConfig = {
       CPUWeight = 10;
       IOWeight = 10;
@@ -2406,6 +2451,7 @@ in
     # this to true if a long-lived container -- a local registry, a database
     # -- ever needs to survive on its own.
     enableOnBoot = false;
+    daemon.settings.cgroup-parent = "bosn.slice";
   };
 
   # GPU passthrough for containers, via CDI rather than the old runtime shim.
@@ -3178,6 +3224,12 @@ in
   #     $(nix eval --raw .#nixosConfigurations.nixos.pkgs.openssl_1_1)
   nixpkgs.config.permittedInsecurePackages = [ "openssl-1.1.1w" ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  # nix-daemon builds run in system.slice, out of reach of every user-side
+  # weight, and used to compete with the desktop as an equal. Batch policy
+  # plus a low weight keeps a rebuild from stuttering a call; idle, it still
+  # gets every core.
+  nix.daemonCPUSchedPolicy = "batch";
+  systemd.services.nix-daemon.serviceConfig.CPUWeight = 20;
 
   # The NixOS CUDA team's cache. CUDA is unfree, so cache.nixos.org never
   # carries it, and anything built with cudaSupport otherwise compiles
