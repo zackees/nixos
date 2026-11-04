@@ -195,6 +195,33 @@ let
     '';
   };
 
+  # ghd (https://github.com/forge-ci/ghd) is the gh backend the fbuild repo
+  # selects with `gh.backend = "ghd"` in its own gh config; without the binary
+  # every `gh run watch`-style call in that repo fails asking for it. Upstream
+  # publishes no nixpkgs attribute and no release binary, only PyPI wheels, and
+  # the shipped abi3 wheel is a real build: `_native.abi3.so` and the bundled
+  # `bin/ghd` are glibc-linked ELFs carrying maturin's `/work/package/lib`
+  # RPATH, so autoPatchelfHook is required or the console script dies looking
+  # for libgcc_s at a path that never existed. wheel tag cp310-abi3 loads on
+  # this python3 (3.13). Pinned by hash: bump url and hash together.
+  ghdVersion = "0.2.1";
+  ghdSrc = pkgs.fetchurl {
+    url = "https://github.com/forge-ci/ghd/releases/download/v${ghdVersion}/ghd-${ghdVersion}-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl";
+    hash = "sha256-IWmD8m2QKkyqa+c+7ilfwe2AhPEfiGqPQwJRZzUQGE4=";
+  };
+  ghd = pkgs.python3.pkgs.buildPythonPackage {
+    pname = "ghd";
+    version = ghdVersion;
+    format = "wheel";
+    src = ghdSrc;
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+    buildInputs = [ pkgs.stdenv.cc.cc.lib ];
+    # Both ELFs really do import and run; this catches a wheel whose abi3 tag
+    # stops matching the python3 we build against.
+    pythonImportsCheck = [ "ghd" ];
+    meta.mainProgram = "ghd";
+  };
+
   # Hermes Agent, from the flake input pinned in flake.nix. `bin/hermes` is a
   # wrapper that carries its own sealed uv2nix venv and runtime tools (node,
   # git, ripgrep, ffmpeg) on PATH, so the units below do not need VIRTUAL_ENV
@@ -1215,6 +1242,7 @@ in
     photon              # pinned Photon Studio AppImage; see let-block above
     obsRust             # pinned OBS-Studio-Rust AppImage; see let-block above
     tmog                # tmog.org AppImage; see let-block above
+    ghd                 # cached/batched gh backend for `gh.backend = "ghd"`; see let-block above
     python3
     # Newest Node the pinned nixpkgs carries (26.x), npm included. Global
     # installs go to ~/.npm-global via NPM_CONFIG_PREFIX below, because npm's
