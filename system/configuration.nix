@@ -2642,6 +2642,20 @@ in
   # lives in the bridge's own store plus ~/.config/himalaya, never here.
   services.protonmail-bridge.enable = true;
 
+  # Start Bridge at LOGIN, not at boot. Its vault key lives in KWallet, which
+  # only exists once someone signs in: on 2026-10-30 the unit started at boot
+  # (pulled up by protonmail-render-tunnel's Wants=), logged `could not create
+  # keychain: no keychain`, wrote an UNENCRYPTED insecure/vault.enc, and never
+  # retried after KWallet appeared -- Bridge was unusable for eight hours until
+  # a manual restart. Requisite makes the boot-time start fail harmlessly,
+  # wantedBy makes the login-time start happen. Residual limit: with nobody
+  # logged in there is no Bridge, which is the price of keeping the vault key
+  # in KWallet rather than in an unprotected key store.
+  systemd.user.services.protonmail-bridge = {
+    wantedBy = [ "graphical-session.target" ];
+    unitConfig.Requisite = [ "graphical-session.target" ];
+  };
+
   # Newsletter retention: drop approved Epoch Times mail once it is seven days
   # old, so the mailbox never fills Proton's quota and nobody sweeps by hand.
   # The script belongs to the website repo
