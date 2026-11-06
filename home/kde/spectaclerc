@@ -1,5 +1,4 @@
 [Annotations]
-annotationToolType=3
 freehandStrokeWidth=5
 highlighterStrokeColor=170,0,0
 highlighterStrokeWidth=10
@@ -7,7 +6,7 @@ rectangleFillColor=255,0,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///home/niteris/.clud/tmp/claude-1000/-home-niteris-dev-nixos/4162fa66-b16a-4778-a6fd-dddff5c581d6/scratchpad/full.png
+lastImageSaveLocation=file:///home/niteris/.clud/tmp/dock-full.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 
