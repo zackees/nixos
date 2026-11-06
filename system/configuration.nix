@@ -116,14 +116,24 @@ let
       };
     };
   };
-  # XWayland, not native Wayland. Screen sharing is the deciding factor: that
-  # is Discord's long-standing broken case under Ozone/Wayland (it captures
-  # through its own X11 path), and voice + screen share is what Discord is for
-  # here. The tray icon and the window grouping work either way. The flag sits
-  # in `commandLineArgs`, which the wrapper appends *after* its own
-  # `--ozone-platform=wayland`, so a stray NIXOS_OZONE_WL=1 in the environment
-  # cannot flip it back to the broken path.
+  # Native Wayland, not XWayland. This desktop runs three monitors at
+  # *fractional* scales (1.5 / 1.8 / 1.95), and Chromium-on-X11 cannot be told
+  # about fractional scaling: it reads Xft.dpi (187 here, i.e. 1.95) while KWin
+  # scales the surface itself, so Discord's UI came out at the wrong size for
+  # the desktop -- and maximising it sized the window to the whole 3983x1539
+  # multi-monitor area, pushing the login card off the visible viewport. Both
+  # are the X11 path's fault, not Discord's. Ozone/Wayland gets the real
+  # per-monitor scale from plasma and renders 1:1, so the window fits the
+  # screen it is on and text is crisp.
   #
+  # The trade-off is screen sharing: Discord's capture is the long-standing
+  # broken case under Ozone/Wayland. If that turns out to matter more than
+  # correct sizing, flip this one flag back to x11 -- everything else here is
+  # independent of the choice.
+  #
+  # NIXOS_OZONE_WL is deliberately NOT relied on: it is unset system-wide, and
+  # spelling the flags here keeps the choice visible and independent of the
+  # environment.
   # ── Why the modules are staged differently from nixpkgs' wrapper ──
   # Discord checks every native module's resolved realpath against the module
   # root. This revision of nixpkgs stages modules as one symlink *per module*
@@ -159,7 +169,7 @@ let
   discordPinned =
     (pkgs.discord.override {
       source = discordSource;
-      commandLineArgs = "--ozone-platform=x11";
+      commandLineArgs = "--ozone-platform=wayland --enable-features=WaylandWindowDecorations --enable-wayland-ime=true";
     }).overrideAttrs
       (old: {
         # The moduleUpdater reads installed.json from the modules dir before
