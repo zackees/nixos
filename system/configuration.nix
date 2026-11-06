@@ -117,17 +117,18 @@ let
     };
   };
   # Native Wayland, not XWayland. This desktop runs three monitors at
-  # *fractional* scales (1.5 / 1.8 / 1.95), and Chromium-on-X11 cannot be told
-  # about fractional scaling: it reads Xft.dpi (187 here, i.e. 1.95) while KWin
-  # scales the surface itself, so Discord's UI came out at the wrong size for
-  # the desktop -- and maximising it sized the window to the whole 3983x1539
-  # multi-monitor area, pushing the login card off the visible viewport. Both
-  # are the X11 path's fault, not Discord's. Ozone/Wayland gets the real
-  # per-monitor scale from plasma and renders 1:1, so the window fits the
-  # screen it is on and text is crisp.
+  # *fractional* scales (1.5 / 1.8 / 1.95), and Chromium on X11 gets no
+  # fractional-scale information: it reads Xft.dpi (187 here, i.e. 1.95) while
+  # KWin also scales the surface itself, so Discord came up at 656x369 instead
+  # of its 1280x720 default and rendered soft -- the tell is fractional window
+  # geometry, which is X11 scaling. Ozone/Wayland takes the real per-monitor
+  # scale from the compositor, so the window is placed and sized in whole
+  # logical pixels (1280x720, resizes cleanly to the primary's 1706x960) and
+  # the UI renders 1:1 instead of being upscaled. Verified against the login
+  # screen on the primary monitor.
   #
-  # The trade-off is screen sharing: Discord's capture is the long-standing
-  # broken case under Ozone/Wayland. If that turns out to matter more than
+  # The trade-off is screen sharing, which is widely reported broken for
+  # Discord under Ozone/Wayland. If that turns out to matter more than
   # correct sizing, flip this one flag back to x11 -- everything else here is
   # independent of the choice.
   #
