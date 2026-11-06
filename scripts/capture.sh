@@ -28,7 +28,9 @@ cp ~/.bash_profile home/bash/bash_profile
 cp ~/dotfiles/kitty/kitty.conf ~/dotfiles/kitty/tab_bar.py \
    ~/dotfiles/kitty/window_title_bar.py \
    ~/dotfiles/kitty/keys.py ~/dotfiles/kitty/paste.py \
-   ~/dotfiles/kitty/menu.py home/kitty/
+   ~/dotfiles/kitty/menu.py ~/dotfiles/kitty/gpu_effects.py home/kitty/
+mkdir -p home/kitty/shaders
+cp ~/dotfiles/kitty/shaders/*.pipeline home/kitty/shaders/
 cp ~/.config/voxtype/config.toml home/voxtype/config.toml
 cp ~/.local/share/applications/voxtype-toggle.desktop home/applications/
 

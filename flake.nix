@@ -16,6 +16,11 @@
     # bump it on purpose. See issue #10 for the options that were weighed.
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/3ed67ec0a4d3c7ab4ae1f04f8ee8df07bfa506a2";
 
+    # kitty alone, from a newer unstable: 0.50 (custom shaders, docks) is not
+    # in the revision above, and bumping that one moves all of Plasma/Qt.
+    # Only `kitty` is taken from it, by the overlay in configuration.nix.
+    nixpkgs-kitty.url = "github:NixOS/nixpkgs/6dadaf4375be35033e1c84395adbd53ff5fded96";
+
     # Was builtins.fetchTarball of release-26.05.tar.gz pinned by sha256.
     # `follows` keeps it on the same nixpkgs as the system, which the tarball
     # form could not express -- it silently used whatever <nixpkgs> resolved to.

@@ -1,0 +1,28 @@
+# GPU-only effects (kitty >= 0.49 custom shaders). Enabled by gpu_effects.py
+# only when kitty is rendering on a GPU; under software GL (llvmpipe) every
+# one of these is a per-frame full-window pass on the CPU.
+
+# Smooth the cursor trail (cursor_trail in kitty.conf) along its motion,
+# instead of hopping cell to cell on fast jumps.
+startgroup
+    animation_start cursor-trail-move
+    animation_stop cursor-trail-stop
+    shaders cursor-trail-motion-blur
+endgroup
+
+# A short slide when switching tabs, so it is clear which way you went.
+startgroup
+    animation_start tab-change
+    animation_stop 600
+    animation_curve ease-out
+    animation_step 16
+    shaders tab-change
+endgroup
+
+# ctrl+shift+f1: spotlight the mouse pointer for two seconds (find it on
+# three monitors). Inactive groups are not drawn, so this costs nothing idle.
+startgroup
+    animation_start user:find-pointer
+    animation_stop 2000
+    shaders spotlight
+endgroup

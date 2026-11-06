@@ -30,6 +30,7 @@ let
     ../home/kitty/tab_bar.py
     ../home/kitty/window_title_bar.py
     ../home/kitty/paste.py
+    ../home/kitty/gpu_effects.py
     ./kitty-resurrect/kitty_snapshot.py
     ./launch-origin/kitty_bridge.py
     ./kitty-worker/kitty_async.py

@@ -36,8 +36,9 @@ say "dotfiles checkout + kitty symlinks"
 # kitty.conf points at absolute paths under ~/dotfiles, so the files live
 # there and ~/.config/kitty holds symlinks -- matching the original setup.
 mkdir -p "$HOME/dotfiles/kitty" "$HOME/.config/kitty"
-cp "$REPO"/home/kitty/* "$HOME/dotfiles/kitty/"
-for f in kitty.conf tab_bar.py window_title_bar.py keys.py paste.py menu.py; do
+cp -r "$REPO"/home/kitty/* "$HOME/dotfiles/kitty/"
+for f in kitty.conf tab_bar.py window_title_bar.py keys.py paste.py menu.py \
+         gpu_effects.py shaders; do
   ln -sfn "$HOME/dotfiles/kitty/$f" "$HOME/.config/kitty/$f"
 done
 
