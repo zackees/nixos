@@ -11,12 +11,13 @@ let
   # `spectacle -b` from a shell captures in-process and never touches the
   # D-Bus unit, so it stayed in the caller's cgroup at weight 100 and got
   # 1.5% CPU against 32 sibling burners (nice only ranks inside a cgroup).
-  # Give every CLI launch its own scope at weight 1000.
+  # Give every CLI launch its own scope at weight 10000 (the max:
+  # 1000 still took 2-4x baseline with load ~80 on 16 cores).
   spectacleWrapper = lib.hiPrio (pkgs.writeShellScriptBin "spectacle" ''
     real=${pkgs.kdePackages.spectacle}/bin/spectacle
     if [ -n "''${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
       exec ${pkgs.systemd}/bin/systemd-run --user --scope --quiet --collect \
-        --unit="spectacle-cli-$$" -p CPUWeight=1000 "$real" "$@"
+        --unit="spectacle-cli-$$" -p CPUWeight=10000 "$real" "$@"
     fi
     exec "$real" "$@"
   '');
@@ -50,6 +51,6 @@ in
   # file here has no ExecStart and fails as "bad unit file setting".
   systemd.user.services."app-org.kde.spectacle" = {
     overrideStrategy = "asDropin";
-    serviceConfig.CPUWeight = 1000;
+    serviceConfig.CPUWeight = 10000;
   };
 }

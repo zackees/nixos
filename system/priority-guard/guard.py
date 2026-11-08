@@ -56,6 +56,24 @@ def comm(path: str) -> str:
         return f.read().strip()
 
 
+def boost_spectacle(uid: int) -> None:
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        base = f"/proc/{pid}"
+        try:
+            if comm(base) != ".spectacle-wrap" or os.stat(base).st_uid != uid:
+                continue
+            for t in os.listdir(f"{base}/task"):
+                tid = int(t)
+                if os.sched_getscheduler(tid) == os.SCHED_IDLE:
+                    os.sched_setscheduler(tid, os.SCHED_OTHER, os.sched_param(0))
+                if os.getpriority(os.PRIO_PROCESS, tid) > NICE_ZOOM:
+                    os.setpriority(os.PRIO_PROCESS, tid, NICE_ZOOM)
+        except OSError:
+            continue
+
+
 def main() -> None:
     uid = pwd.getpwnam(USER).pw_uid
     while True:
@@ -116,7 +134,11 @@ def main() -> None:
         if zoom_fixed:
             print(f"WARNING: reniced {zoom_fixed} Zoom threads to {NICE_ZOOM}; "
                   "a launch path bypassed app-Zoom@", file=sys.stderr, flush=True)
-        time.sleep(INTERVAL)
+        # Between full scans, re-check only for Spectacle every 0.5 s: a
+        # capture lasts a few seconds, so a 3 s wait for nice -10 is most of it.
+        for _ in range(int(INTERVAL / 0.5)):
+            time.sleep(0.5)
+            boost_spectacle(uid)
 
 
 if __name__ == "__main__":
