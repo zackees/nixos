@@ -10,6 +10,11 @@ Every few seconds, as root:
   (DefaultLimitNICE=0), and a Zoom launched from an agent's browser inherits
   nice 19. Each correction is logged as a WARNING: it means a launch path got
   past the app-Zoom@ wrapper.
+- Spectacle (screenshots): every thread to nice -10 as well, silently. A
+  capture under a saturated box stalled or timed out at nice 0, and a user
+  unit cannot lower its own nice (DefaultLimitNICE=0), so only root can make
+  this stick. Its unit also carries CPUWeight=1000 (priority-guard.nix),
+  which covers the first seconds before this loop reaches it.
 - Batch work: SCHED_IDLE for the user's threads at nice >= 10 (agents run at
   19, build scopes at 10) and for known build tools at any nice, which also
   get at least nice 10. Nice and CPUWeight only shrink a build's share; a
@@ -71,6 +76,7 @@ def main() -> None:
             except OSError:
                 continue
             is_zoom = mine and exe.startswith("/opt/zoom/")
+            is_snap = mine and "-spectacle-" in exe
             for t in tids:
                 tid = int(t)
                 try:
@@ -79,6 +85,12 @@ def main() -> None:
                         if ni > NICE_ZOOM:
                             os.setpriority(os.PRIO_PROCESS, tid, NICE_ZOOM)
                             zoom_fixed += 1
+                        continue
+                    if is_snap:
+                        if os.sched_getscheduler(tid) == os.SCHED_IDLE:
+                            os.sched_setscheduler(tid, os.SCHED_OTHER, os.sched_param(0))
+                        if ni > NICE_ZOOM:
+                            os.setpriority(os.PRIO_PROCESS, tid, NICE_ZOOM)
                         continue
                     if os.sched_getscheduler(tid) != os.SCHED_OTHER:
                         continue  # already idle/batch, or real-time audio
