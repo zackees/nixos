@@ -3851,6 +3851,14 @@ in
                 };
               }
 
+              # Overview sits at the left end of the central app group;
+              # individual desktop buttons remain in the top strip.
+              {
+                name = "org.kde.plasma.icon";
+                config.General.url =
+                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
+              }
+
               # Windows, and only windows: `launchers = [ ]` is load-bearing,
               # not a placeholder. This is where a minimized window goes --
               # mid-panel, distinct from the launcher it came from.
@@ -3879,14 +3887,6 @@ in
                   appearance.highlightWindows = true;
                   behavior.grouping.clickAction = "showTooltips";
                 };
-              }
-
-              # Overview sits at the right end of the central app group;
-              # individual desktop buttons remain in the top strip.
-              {
-                name = "org.kde.plasma.icon";
-                config.General.url =
-                  "file:///run/current-system/sw/share/applications/grid-view.desktop";
               }
 
               {
