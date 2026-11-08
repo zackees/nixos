@@ -739,10 +739,6 @@ let
   # there is no scheme here that expands to a default application.
   # Both go through plasmoid.nix, which fails the build on QML that would
   # not load, rather than leaving it to fail when the widget is opened.
-  mediaLauncherApplet = import ./plasmoid.nix { inherit pkgs; } {
-    name = "media-launcher";
-    src = ./media-launcher;
-  };
   devLauncherApplet = import ./plasmoid.nix { inherit pkgs; } {
     name = "dev-launcher";
     src = ./dev-launcher;
@@ -789,6 +785,18 @@ let
       };
     };
   launcherGroups = {
+    media-launcher = mkLauncherGroup {
+      id = "media-launcher"; name = "Media Apps"; icon = "folder-videos";
+      apps = [
+        { name = "Photon Studio"; icon = "photon-studio"; desktop = "photon-studio.desktop"; }
+        { name = "Kdenlive"; icon = "org.kde.kdenlive"; desktop = "org.kde.kdenlive.desktop"; }
+        { name = "HandBrake"; icon = "fr.handbrake.ghb"; desktop = "fr.handbrake.ghb.desktop"; }
+        { name = "OBS Studio (Rust)"; icon = "obs-studio-rust"; desktop = "obs-studio-rust.desktop"; }
+        { name = "LosslessCut"; icon = "losslesscut"; desktop = "losslesscut.desktop"; }
+        { name = "Glaxnimate"; icon = "org.kde.glaxnimate"; desktop = "org.kde.glaxnimate.desktop"; }
+        { name = "VLC"; icon = "vlc"; desktop = "vlc.desktop"; }
+      ];
+    };
     chat-launcher = mkLauncherGroup {
       id = "chat-launcher"; name = "Chat"; icon = "org.telegram.desktop";
       apps = [
@@ -3511,7 +3519,7 @@ in
       imports = [ inputs.plasma-manager.homeModules.plasma-manager ];
       home.stateVersion = "26.05";
       home.file.".local/share/plasma/plasmoids/org.niteris.media-launcher".source =
-        mediaLauncherApplet;
+        launcherGroups.media-launcher;
       home.file.".local/share/plasma/plasmoids/org.niteris.dev-launcher".source =
         devLauncherApplet;
       home.file.".local/share/plasma/plasmoids/org.niteris.chat-launcher".source =
