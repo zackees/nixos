@@ -2,14 +2,28 @@
 # priority-guard/guard.py for the why; CLAUDE.md has the nice-19 trap.
 # Check: `journalctl -u desktop-priority-guard` is quiet during a call, and
 # `ps -L -o cls,ni,comm -p <a cc1plus pid>` says IDL.
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 let
   guard = pkgs.runCommand "priority-guard" { } ''
     install -Dm644 ${./priority-guard/guard.py} $out/share/priority-guard/guard.py
   '';
+  # `spectacle -b` from a shell captures in-process and never touches the
+  # D-Bus unit, so it stayed in the caller's cgroup at weight 100 and got
+  # 1.5% CPU against 32 sibling burners (nice only ranks inside a cgroup).
+  # Give every CLI launch its own scope at weight 1000.
+  spectacleWrapper = lib.hiPrio (pkgs.writeShellScriptBin "spectacle" ''
+    real=${pkgs.kdePackages.spectacle}/bin/spectacle
+    if [ -n "''${XDG_RUNTIME_DIR:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
+      exec ${pkgs.systemd}/bin/systemd-run --user --scope --quiet --collect \
+        --unit="spectacle-cli-$$" -p CPUWeight=1000 "$real" "$@"
+    fi
+    exec "$real" "$@"
+  '');
 in
 {
+  environment.systemPackages = [ spectacleWrapper ];
+
   systemd.services.desktop-priority-guard = {
     description = "Keep Zoom and Spectacle ahead of builds (Zoom nice -10, builds SCHED_IDLE)";
     wantedBy = [ "multi-user.target" ];
