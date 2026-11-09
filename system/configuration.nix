@@ -1084,6 +1084,7 @@ in
       ./hardware-configuration.nix
       ./calendar.nix
       ./tasks.nix
+      ./aux-screens-sticky.nix
       ./kitty-worker.nix
       ./go-runner.nix
       ./shader-wallpaper.nix

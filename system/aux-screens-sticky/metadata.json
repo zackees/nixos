@@ -1,0 +1,1 @@
+{"KPlugin":{"Id":"aux-screens-sticky","Name":"Aux screens on all desktops","Description":"Only HDMI-A-1 switches virtual desktops; windows on other screens are shown on all desktops.","Version":"1.0","License":"MIT","EnabledByDefault":true},"X-Plasma-API":"javascript","KPackageStructure":"KWin/Script"}
