@@ -6,8 +6,9 @@ changes a real computer someone uses. There is no staging environment.
 
 The separate `dell-fsx3mn2` flake output manages the Dell VxRail server under
 `hosts/dell-fsx3mn2/`; read that directory's README for server changes. Build
-and activate `.#dell-fsx3mn2` only on the Dell, and `.#nixos` only on the
-desktop. Desktop capture/sync scripts are not the server deployment procedure.
+the server with `.#dell-fsx3mn2` and the desktop with `.#nixos`; activate each
+output only on its intended machine. Desktop capture/sync scripts are not the
+server deployment procedure.
 
 Read [`README.md`](README.md) for the layout and [`RESTORE.md`](RESTORE.md) if
 you are rebuilding the machine from nothing.

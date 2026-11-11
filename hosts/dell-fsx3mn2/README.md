@@ -12,6 +12,20 @@ The hardware module was generated on the Dell after installing the Silicon
 Power 1 TB NVMe SSD, serial AA253710262. Its GPT layout is a 1 GiB EFI system
 partition, 32 GiB swap, and the remaining space as ext4 root. Boot is UEFI.
 
+## Boot status
+
+NixOS runs from the NVMe root, but BIOS 1.4.5 currently marks both the
+systemd-boot and GRUB entries on this retail SSD unavailable. The configured
+GRUB removable EFI loader is installed on its ESP; standalone disk boot has
+not passed. A temporary iDRAC virtual CD supplies the installed kernel and
+initrd. Keep the active system generation and bootstrap media available until
+a standalone boot path is verified. The bootstrap image must be regenerated
+when changing the kernel, initrd, or system generation.
+
+Do not treat a successful build or an online runner as proof of reboot
+readiness. Do not flash generic PowerEdge firmware onto the VxRail without
+verifying the exact supported package and upgrade sequence.
+
 SSH permits only `root` and `niteris`, using public keys provisioned outside
 this repository in their home directories. `niteris` has administrative sudo
 and Docker access. iDRAC credentials remain in the administrator workstation's

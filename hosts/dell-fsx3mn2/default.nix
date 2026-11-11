@@ -10,9 +10,15 @@
   networking.firewall.allowedTCPPorts = [ 22 ];
   time.timeZone = "America/Los_Angeles";
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 5;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub = {
+    enable = true;
+    device = "nodev";
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+    copyKernels = true;
+    configurationLimit = 5;
+  };
+  boot.loader.efi.canTouchEfiVariables = false;
   fileSystems."/boot".options = lib.mkForce [ "fmask=0077" "dmask=0077" ];
   boot.tmp.cleanOnBoot = true;
   hardware.cpu.intel.updateMicrocode = true;
