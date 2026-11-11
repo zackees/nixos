@@ -4,6 +4,11 @@ This repo *is* the machine `nixos` — an AMD Ryzen 7 3700X workstation running
 NixOS 26.05 with KDE Plasma 6 on Wayland. Changing a file here and applying it
 changes a real computer someone uses. There is no staging environment.
 
+The separate `dell-fsx3mn2` flake output manages the Dell VxRail server under
+`hosts/dell-fsx3mn2/`; read that directory's README for server changes. Build
+and activate `.#dell-fsx3mn2` only on the Dell, and `.#nixos` only on the
+desktop. Desktop capture/sync scripts are not the server deployment procedure.
+
 Read [`README.md`](README.md) for the layout and [`RESTORE.md`](RESTORE.md) if
 you are rebuilding the machine from nothing.
 
