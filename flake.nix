@@ -1,5 +1,5 @@
 {
-  description = "nixos -- an AMD Ryzen 7 3700X workstation, declared in full";
+  description = "NixOS workstation and Dell VxRail build server";
 
   inputs = {
     # Pinned to the exact revision the nixos-26.05 channel was at when this
@@ -114,6 +114,11 @@
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs: {
+    nixosConfigurations.dell-fsx3mn2 = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [ ./hosts/dell-fsx3mn2 ];
+    };
+
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
 

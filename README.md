@@ -3,7 +3,12 @@
 The complete configuration of `nixos`, an AMD Ryzen 7 3700X workstation
 running NixOS 26.05 with KDE Plasma 6 on Wayland.
 
-The repository is private, but it holds **no credentials** — no password
+The additional `dell-fsx3mn2` flake output manages the Dell VxRail build server;
+see [`hosts/dell-fsx3mn2/README.md`](hosts/dell-fsx3mn2/README.md) for its disk,
+administration, and Ubuntu-container GitHub runner setup. The desktop remains
+the `nixos` output; always select the intended host explicitly.
+
+The repository holds **no credentials** — no password
 hashes, no tokens, no keys. That is enforced, not just intended:
 `scripts/sync.sh` scans for them and refuses to push. See
 [Secrets](#secrets) for the two passwords a restore asks you to type instead.
