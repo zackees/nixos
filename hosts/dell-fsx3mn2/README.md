@@ -14,17 +14,33 @@ partition, 32 GiB swap, and the remaining space as ext4 root. Boot is UEFI.
 
 ## Boot status
 
-NixOS runs from the NVMe root, but BIOS 1.4.5 currently marks both the
-systemd-boot and GRUB entries on this retail SSD unavailable. The configured
+NixOS runs from the NVMe root, but both BIOS 1.4.5 and BIOS 2.29.2 mark
+the systemd-boot and GRUB entries on this retail SSD unavailable. The configured
 GRUB removable EFI loader is installed on its ESP; standalone disk boot has
 not passed. A temporary iDRAC virtual CD supplies the installed kernel and
 initrd. Keep the active system generation and bootstrap media available until
 a standalone boot path is verified. The bootstrap image must be regenerated
 when changing the kernel, initrd, or system generation.
 
+The 2.29.2 update completed successfully using Dell package JJ09G, matched
+to the live hardware system ID 0716 and verified against Dell catalog
+26.11.06. A subsequent full shutdown/start with virtual media detached still
+failed every installed disk boot entry. The live BIOS registry exposes no
+additional NVMe drive-selection setting.
+
+An internal boot-storage fallback requires hardware not currently installed.
+The existing PERC H740P Mini supports SAS/SATA drives and currently reports
+none. A compatible front-bay drive and carrier can provide an EFI partition
+and boot files while root and build storage stay on NVMe. Verify the drive,
+carrier, controller presentation, and disk erase scope before provisioning it.
+BOSS-S1 is another E560F boot option but requires a separate controller and
+SATA M.2 media; it does not accept this NVMe SSD. Update the `/boot` mount
+to the actual new filesystem UUID and regenerate the GRUB loader, then verify
+a cold boot with virtual media detached before declaring independence.
+
 Do not treat a successful build or an online runner as proof of reboot
-readiness. Do not flash generic PowerEdge firmware onto the VxRail without
-verifying the exact supported package and upgrade sequence.
+readiness. Firmware packages must match the live hardware ID, and their
+prerequisites and integrity must be checked before use.
 
 SSH permits only `root` and `niteris`, using public keys provisioned outside
 this repository in their home directories. `niteris` has administrative sudo
