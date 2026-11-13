@@ -38,7 +38,7 @@ let
       # Host and container see the workspace at the identical path, so local
       # `uses: ./...` actions and docker bind mounts from jobs resolve.
       serviceConfig = {
-        ExecStart = "${docker} run --rm --init --name ${name} --shm-size=2g --env OBS_RUNNER_STATE=${state} --env OBS_RUNNER_NAME=dell-fsx3mn2-${toString n} --volume ${state}:${state} --volume /var/lib/obs-runner-secrets:/run/obs-runner-secrets:ro --volume /var/run/docker.sock:/var/run/docker.sock ${runnerImageId}";
+        ExecStart = "${docker} run --rm --init --name ${name} --shm-size=2g --env OBS_RUNNER_STATE=${state} --env OBS_RUNNER_NAME=dell-fsx3mn2-${toString n} --volume ${state}:${state} --volume /var/lib/obs-runner-secrets:/run/obs-runner-secrets:ro --volume /var/cache/apt/archives:/var/cache/apt/archives --volume /var/run/docker.sock:/var/run/docker.sock ${runnerImageId}";
         ExecStop = "${docker} stop --timeout 30 ${name}";
         Restart = "on-failure";
         RestartSec = 10;
@@ -58,6 +58,13 @@ in
   systemd.tmpfiles.rules = [
     "d /var/lib/obs-runner 0750 obs-runner obs-runner -"
     "d /var/lib/obs-runner-secrets 0700 root root -"
+    # Jobs bind host paths into sibling containers through the host Docker
+    # socket (e.g. linux-validate ci-runtime.py mounts /var/cache/apt/archives);
+    # the daemon resolves bind sources on this host. Shared by all runners and
+    # bound into each runner container at the same path, so the job and its
+    # sibling containers see the same directory.
+    "d /var/cache/apt 0755 root root -"
+    "d /var/cache/apt/archives 0755 root root -"
   ] ++ map (n: "d /var/lib/obs-runner/r${toString n} 0750 obs-runner obs-runner -") instances;
 
   # Ubuntu matches obs-rust's apt-based CI while NixOS owns the host. Docker
