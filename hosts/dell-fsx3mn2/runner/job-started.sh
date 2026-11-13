@@ -14,3 +14,7 @@ if [[ -d "$ws" ]]; then
   echo "job-started: emptying $ws"
   sudo -n find "$ws" -mindepth 1 -delete
 fi
+# Sibling containers started through the host Docker socket (Tier 2, ...)
+# run as root and leave root-owned files under _work; give everything back
+# to the job uid so checkout, setup-soldr and `mkdir -p; chmod` steps work.
+sudo -n find "$work" -not -user "$(id -u)" -exec chown -h "$(id -u):$(id -g)" {} +

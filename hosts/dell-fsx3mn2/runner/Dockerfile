@@ -10,6 +10,7 @@ ADD --checksum=sha256:c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359
     https://github.com/astral-sh/uv/releases/download/0.13.7/uv-x86_64-unknown-linux-gnu.tar.gz /tmp/uv.tar.gz
 COPY entrypoint.sh /usr/local/bin/obs-runner-entrypoint
 COPY job-started.sh /usr/local/bin/obs-runner-job-started.sh
+COPY job-completed.sh /usr/local/bin/obs-runner-job-completed.sh
 USER root
 # Qt GUI/platform-plugin runtime libraries that the hosted image lacks; prebuilt
 # host Qt deps (.deps/host-qt6-*) link them. Keep this list short.
@@ -29,6 +30,6 @@ RUN set -eux; \
     tar -xzf /tmp/runner.tar.gz -C /opt/actions-runner; chown -R 1001:1001 /opt/actions-runner; \
     tar -xzf /tmp/uv.tar.gz -C /opt/runner-tools --strip-components=1; \
     rm /tmp/runner.tar.gz /tmp/uv.tar.gz; \
-    chmod 0755 /usr/local/bin/obs-runner-entrypoint /usr/local/bin/obs-runner-job-started.sh
+    chmod 0755 /usr/local/bin/obs-runner-entrypoint /usr/local/bin/obs-runner-job-started.sh /usr/local/bin/obs-runner-job-completed.sh
 ENV LANG=C.UTF-8
 ENTRYPOINT ["/usr/local/bin/obs-runner-entrypoint"]

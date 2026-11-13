@@ -5,11 +5,11 @@ let
   # change gets a new tag and an unchanged source reuses the local image:
   # no build or apt work at boot. Nothing is pushed to a registry.
   runnerSrc = ./runner;
-  runnerImage = "localhost/obs-rust-runner:" + builtins.substring 0 12 (builtins.hashString "sha256" (builtins.readFile (runnerSrc + "/Dockerfile") + builtins.readFile (runnerSrc + "/entrypoint.sh") + builtins.readFile (runnerSrc + "/job-started.sh")));
+  runnerImage = "localhost/obs-rust-runner:" + builtins.substring 0 12 (builtins.hashString "sha256" (builtins.readFile (runnerSrc + "/Dockerfile") + builtins.readFile (runnerSrc + "/entrypoint.sh") + builtins.readFile (runnerSrc + "/job-started.sh") + builtins.readFile (runnerSrc + "/job-completed.sh")));
   # Image ID of the build of ${runnerSrc} on the Dell (local images have no
   # registry digest). Runners start this exact ID; after changing ./runner,
   # build on the host and update it, or the image service fails loudly.
-  runnerImageId = "sha256:b8da5287a974fa341fb9665465f503151a2e52a11d49d4d23ff21cbe8c7e0006";
+  runnerImageId = "sha256:51c26edcd757ac44ec54a0b11d9ba94df376740282b6f84a587debcb56bece31";
   # Parallel runner instances. Each gets its own state, work dir and
   # registration (name dell-fsx3mn2-<n>) under /var/lib/obs-runner/r<n> on
   # the NVMe root, so credentials survive reboots.

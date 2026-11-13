@@ -62,6 +62,12 @@ fi
 export RUNNER_TOOL_CACHE="$runner_toolcache" AGENT_TOOLSDIRECTORY="$runner_toolcache"
 export PATH="$runner_state/tools/bin:$PATH"
 export ACTIONS_RUNNER_HOOK_JOB_STARTED=/usr/local/bin/obs-runner-job-started.sh
+export ACTIONS_RUNNER_HOOK_JOB_COMPLETED=/usr/local/bin/obs-runner-job-completed.sh
+# Start clean: no leftover temp files, everything under _work owned by the
+# runner uid (sibling containers run as root).
+rm -rf "$runner_state/_work/_temp"
+install -d -o 1001 -g 1001 -m 0750 "$runner_state/_work/_temp"
+chown -R -h 1001:1001 "$runner_state/_work"
 cd "$runner_agent"
 # Jobs take PATH from .path (written once at registration); keep it equal to
 # the image PATH so a base image change reaches jobs.
