@@ -1,6 +1,15 @@
 { lib, pkgs, ... }:
 let
-  runnerImage = "localhost/obs-rust-runner:2.338.2-uv0.13.7-r5";
+  # Thin layer over catthehacker/ubuntu:full-26.04 (base pinned by digest in
+  # runner/Dockerfile). The tag is the Nix hash of ./runner, so a source
+  # change gets a new tag and an unchanged source reuses the local image:
+  # no build or apt work at boot. Nothing is pushed to a registry.
+  runnerSrc = ./runner;
+  runnerImage = "localhost/obs-rust-runner:" + builtins.substring 0 12 (builtins.hashString "sha256" (builtins.readFile (runnerSrc + "/Dockerfile") + builtins.readFile (runnerSrc + "/entrypoint.sh") + builtins.readFile (runnerSrc + "/job-started.sh")));
+  # Image ID of the build of ${runnerSrc} on the Dell (local images have no
+  # registry digest). Runners start this exact ID; after changing ./runner,
+  # build on the host and update it, or the image service fails loudly.
+  runnerImageId = "sha256:8e79ca05fe90a6915d59f013a7cfaf1dc4b43df9f9e48a501bb58672614732f1";
   # Parallel runner instances. Each gets its own state, work dir and
   # registration (name dell-fsx3mn2-<n>) under /var/lib/obs-runner/r<n> on
   # the NVMe root, so credentials survive reboots.
@@ -29,7 +38,7 @@ let
       # Host and container see the workspace at the identical path, so local
       # `uses: ./...` actions and docker bind mounts from jobs resolve.
       serviceConfig = {
-        ExecStart = "${docker} run --rm --init --name ${name} --shm-size=2g --env OBS_RUNNER_STATE=${state} --env OBS_RUNNER_NAME=dell-fsx3mn2-${toString n} --volume ${state}:${state} --volume /var/lib/obs-runner-secrets:/run/obs-runner-secrets:ro --volume /var/run/docker.sock:/var/run/docker.sock ${runnerImage}";
+        ExecStart = "${docker} run --rm --init --name ${name} --shm-size=2g --env OBS_RUNNER_STATE=${state} --env OBS_RUNNER_NAME=dell-fsx3mn2-${toString n} --volume ${state}:${state} --volume /var/lib/obs-runner-secrets:/run/obs-runner-secrets:ro --volume /var/run/docker.sock:/var/run/docker.sock ${runnerImageId}";
         ExecStop = "${docker} stop --time 30 ${name}";
         Restart = "on-failure";
         RestartSec = 10;
@@ -63,7 +72,13 @@ in
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
-        ExecStart = "${docker} build --tag ${runnerImage} ${./runner}";
+        ExecStart = pkgs.writeShellScript "obs-rust-runner-image" ''
+          set -eu
+          if ! ${docker} image inspect ${runnerImageId} >/dev/null 2>&1; then
+            DOCKER_BUILDKIT=1 ${docker} build --tag ${runnerImage} ${runnerSrc}
+          fi
+          ${docker} tag ${runnerImageId} ${runnerImage}
+        '';
         TimeoutStartSec = 1800;
       };
     };
