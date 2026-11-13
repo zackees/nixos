@@ -9,7 +9,7 @@ let
   # Image ID of the build of ${runnerSrc} on the Dell (local images have no
   # registry digest). Runners start this exact ID; after changing ./runner,
   # build on the host and update it, or the image service fails loudly.
-  runnerImageId = "sha256:b60aa7396735e8b8b1a0d5221ea16f39f47b1dbcbfc76c75719f42fe0e549847";
+  runnerImageId = "sha256:b8da5287a974fa341fb9665465f503151a2e52a11d49d4d23ff21cbe8c7e0006";
   # Parallel runner instances. Each gets its own state, work dir and
   # registration (name dell-fsx3mn2-<n>) under /var/lib/obs-runner/r<n> on
   # the NVMe root, so credentials survive reboots.

@@ -4,7 +4,7 @@ set -euo pipefail
 runner_state=${OBS_RUNNER_STATE:?}
 runner_name=${OBS_RUNNER_NAME:?}
 runner_agent="$runner_state/agent"
-runner_image_version=2.338.2-uv0.13.7-full2604-r7
+runner_image_version=2.338.2-uv0.13.7-full2604-r8
 
 install -d -o 1001 -g 1001 -m 0750 \
   "$runner_agent" "$runner_state/_work" \
@@ -29,6 +29,23 @@ usermod -aG "$runner_docker_group" runner
 # (/home/runner, where rustup/cargo/pipx are preinstalled); rustup refuses a
 # HOME that differs from the passwd home.
 export HOME=/home/runner
+# Keep HOME on the same filesystem *and mount* as _work, persistent across
+# restarts: rename() across mounts fails with EXDEV even on one filesystem,
+# so /home/runner becomes a symlink into this runner's bind mount (a second
+# bind mount at /home/runner would not do). passwd home stays /home/runner.
+# Seeded from the image's /home/runner once per image version.
+runner_home="$runner_state/runner-home"
+if [[ ! -f "$runner_home/.seeded-$runner_image_version" ]]; then
+  rm -rf "$runner_home"
+  install -d -o 1001 -g 1001 -m 0750 "$runner_home"
+  cp -a /home/runner/. "$runner_home/"
+  chown -R 1001:1001 "$runner_home"
+  touch "$runner_home/.seeded-$runner_image_version"
+fi
+if [[ ! -L /home/runner ]]; then
+  rm -rf /home/runner
+  ln -s "$runner_home" /home/runner
+fi
 # Tool cache on the same filesystem and bind mount as _work. The image's
 # /opt/hostedtoolcache sits on the container overlay; setup-soldr links its
 # rustup toolchains from the tool cache into _work/_temp, and rustup's
