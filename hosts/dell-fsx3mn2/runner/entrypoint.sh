@@ -16,7 +16,7 @@ if [[ ! -f "$runner_agent/.image-version" ]] || \
   printf '%s\n' "$runner_image_version" > "$runner_agent/.image-version"
 fi
 
-# Match the host socket's GID; runuser initializes the runner's groups anew.
+# Match the host socket's GID; setpriv --init-groups reads the runner's groups anew.
 runner_socket_gid=$(stat -c %g /var/run/docker.sock)
 runner_docker_group=$(getent group "$runner_socket_gid" | cut -d: -f1 || true)
 if [[ -z "$runner_docker_group" ]]; then
@@ -46,7 +46,7 @@ if [[ ! -f .runner ]]; then
   # The token never enters argv, the image, the repository, or the Nix store.
   export ACTIONS_RUNNER_INPUT_TOKEN
   ACTIONS_RUNNER_INPUT_TOKEN=$(cat /run/obs-runner-secrets/registration-token)
-  runuser --preserve-environment --user runner -- ./config.sh --unattended \
+  setpriv --reuid=runner --regid=runner --init-groups -- ./config.sh --unattended \
     --url https://github.com/obs-rust \
     --name "$runner_name" \
     --runnergroup Dell-NixOS \
@@ -56,4 +56,9 @@ if [[ ! -f .runner ]]; then
     --replace
   unset ACTIONS_RUNNER_INPUT_TOKEN
 fi
-exec runuser --preserve-environment --user runner -- ./run.sh
+# setpriv execs in place (runuser stays as a parent), so run.sh is tini's
+# direct child: docker stop's SIGTERM reaches run.sh, which sends INT to the
+# listener so it deletes its GitHub session before exiting. run.sh only traps
+# and forwards signals when RUNNER_MANUALLY_TRAP_SIG is set.
+export RUNNER_MANUALLY_TRAP_SIG=1
+exec setpriv --reuid=runner --regid=runner --init-groups -- ./run.sh

@@ -11,6 +11,13 @@ ADD --checksum=sha256:c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359
 COPY entrypoint.sh /usr/local/bin/obs-runner-entrypoint
 COPY job-started.sh /usr/local/bin/obs-runner-job-started.sh
 USER root
+# Qt GUI/platform-plugin runtime libraries that the hosted image lacks; prebuilt
+# host Qt deps (.deps/host-qt6-*) link them. Keep this list short.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libopengl0 libegl1 libwayland-server0 libxcb-cursor0 libxcb-icccm4 libxcb-image0 \
+      libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxcb-util1 libxcb-xkb1 libxkbcommon-x11-0 \
+    && rm -rf /var/lib/apt/lists/*
+STOPSIGNAL SIGTERM
 RUN set -eux; \
     if ! id -u runner >/dev/null 2>&1; then \
       getent group 1001 >/dev/null || groupadd --gid 1001 runner; \
