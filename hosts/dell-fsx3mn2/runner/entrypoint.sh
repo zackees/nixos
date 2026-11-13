@@ -4,7 +4,7 @@ set -euo pipefail
 runner_state=${OBS_RUNNER_STATE:?}
 runner_name=${OBS_RUNNER_NAME:?}
 runner_agent="$runner_state/agent"
-runner_image_version=2.338.2-uv0.13.7-r3
+runner_image_version=2.338.2-uv0.13.7-r5
 
 install -d -o 1001 -g 1001 -m 0750 \
   "$runner_agent" "$runner_state/home" "$runner_state/_work" \
@@ -24,6 +24,8 @@ if [[ -z "$runner_docker_group" ]]; then
   runner_docker_group=host-docker
 fi
 usermod -aG "$runner_docker_group" runner
+# rustup and others compare $HOME with the passwd home; make them agree.
+usermod --home "$runner_state/home" runner
 
 export HOME="$runner_state/home"
 export RUNNER_TOOL_CACHE="$runner_state/toolcache"
