@@ -29,5 +29,6 @@ COPY --from=distribution /uv/uv /opt/runner-tools/uv
 COPY --from=distribution /uv/uvx /opt/runner-tools/uvx
 RUN /opt/actions-runner/bin/installdependencies.sh
 COPY entrypoint.sh /usr/local/bin/obs-runner-entrypoint
-RUN chmod 0755 /usr/local/bin/obs-runner-entrypoint
+COPY job-started.sh /usr/local/bin/obs-runner-job-started
+RUN chmod 0755 /usr/local/bin/obs-runner-entrypoint /usr/local/bin/obs-runner-job-started
 ENTRYPOINT ["/usr/local/bin/obs-runner-entrypoint"]
