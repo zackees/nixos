@@ -4,7 +4,7 @@ set -euo pipefail
 runner_state=${OBS_RUNNER_STATE:?}
 runner_name=${OBS_RUNNER_NAME:?}
 runner_agent="$runner_state/agent"
-runner_image_version=2.338.2-uv0.13.7-full2604-r6
+runner_image_version=2.338.2-uv0.13.7-full2604-r7
 
 install -d -o 1001 -g 1001 -m 0750 \
   "$runner_agent" "$runner_state/_work" \
@@ -29,7 +29,20 @@ usermod -aG "$runner_docker_group" runner
 # (/home/runner, where rustup/cargo/pipx are preinstalled); rustup refuses a
 # HOME that differs from the passwd home.
 export HOME=/home/runner
-# Keep the base image RUNNER_TOOL_CACHE (/opt/hostedtoolcache, preinstalled).
+# Tool cache on the same filesystem and bind mount as _work. The image's
+# /opt/hostedtoolcache sits on the container overlay; setup-soldr links its
+# rustup toolchains from the tool cache into _work/_temp, and rustup's
+# rename between the two then fails with EXDEV (os error 18). Seed a
+# persistent per-runner copy from the image once per image version.
+runner_toolcache="$runner_state/hostedtoolcache"
+if [[ ! -f "$runner_toolcache/.seeded-$runner_image_version" ]]; then
+  rm -rf "$runner_toolcache"
+  install -d -o 1001 -g 1001 -m 0755 "$runner_toolcache"
+  cp -a /opt/hostedtoolcache/. "$runner_toolcache/"
+  chown -R 1001:1001 "$runner_toolcache"
+  touch "$runner_toolcache/.seeded-$runner_image_version"
+fi
+export RUNNER_TOOL_CACHE="$runner_toolcache" AGENT_TOOLSDIRECTORY="$runner_toolcache"
 export PATH="$runner_state/tools/bin:$PATH"
 export ACTIONS_RUNNER_HOOK_JOB_STARTED=/usr/local/bin/obs-runner-job-started.sh
 cd "$runner_agent"
