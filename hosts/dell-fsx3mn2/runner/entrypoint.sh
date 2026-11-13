@@ -4,7 +4,7 @@ set -euo pipefail
 runner_state=${OBS_RUNNER_STATE:?}
 runner_name=${OBS_RUNNER_NAME:?}
 runner_agent="$runner_state/agent"
-runner_image_version=2.338.2-uv0.13.7-r2
+runner_image_version=2.338.2-uv0.13.7-r3
 
 install -d -o 1001 -g 1001 -m 0750 \
   "$runner_agent" "$runner_state/home" "$runner_state/_work" \
@@ -28,7 +28,7 @@ usermod -aG "$runner_docker_group" runner
 export HOME="$runner_state/home"
 export RUNNER_TOOL_CACHE="$runner_state/toolcache"
 export PATH="$runner_state/tools/bin:$PATH"
-export ACTIONS_RUNNER_HOOK_JOB_STARTED=/usr/local/bin/obs-runner-job-started
+export ACTIONS_RUNNER_HOOK_JOB_STARTED=/usr/local/bin/obs-runner-job-started.sh
 cd "$runner_agent"
 if [[ ! -f .runner ]]; then
   if [[ ! -s /run/obs-runner-secrets/registration-token ]]; then

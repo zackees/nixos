@@ -1,6 +1,6 @@
 { lib, pkgs, ... }:
 let
-  runnerImage = "localhost/obs-rust-runner:2.338.2-uv0.13.7-r2";
+  runnerImage = "localhost/obs-rust-runner:2.338.2-uv0.13.7-r3";
   # Parallel runner instances. Each gets its own state, work dir and
   # registration (name dell-fsx3mn2-<n>) under /var/lib/obs-runner/r<n> on
   # the NVMe root, so credentials survive reboots.
