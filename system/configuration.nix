@@ -2580,7 +2580,17 @@ in
   # initrd. The probe then happens in stage 2 under udevd, where it can
   # only stall that one device, not boot. hardware-configuration.nix is
   # generated, hence the override here instead of an edit there.
-  boot.initrd.availableKernelModules = lib.mkForce [ "nvme" "xhci_pci" "ahci" "usbhid" "sd_mod" ];
+  #
+  # mkForce REPLACES the generated module list, it does not add to it, so
+  # everything stage 1 needs must be named here. ext4 is the driver for the
+  # root filesystem: without it the initrd discovers the NVMe disk, fsck
+  # succeeds, and then /sysroot fails to mount with no journal written
+  # (emergency shell, no explanations). autofs4 is what systemd's automount
+  # support asks for during stage 1.
+  boot.initrd.availableKernelModules = lib.mkForce [
+    "nvme" "xhci_pci" "ahci" "usbhid" "sd_mod"
+    "ext4" "autofs4"
+  ];
 
   # Failing loudly instead: a user service that reads this boot's kernel
   # log from the start (so a drive that broke before login is reported at
