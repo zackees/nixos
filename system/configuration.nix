@@ -23,6 +23,121 @@ let
     '';
   };
 
+  # KWIN_DRM_DEVICES needs a stable, colon-free path to the desktop GPU's DRM
+  # nodes, and which node that is does not stay put: pulling the RTX 2080 Ti
+  # renumbered the PCIe root ports and moved the RTX 3060 from 0000:06:00.0
+  # to 0000:07:00.0, so a udev SYMLINK rule pinned to the old slot created
+  # nothing and kwin_wayland died with
+  #
+  #   kwin_core: Failed to open drm node /dev/dri/desktop-gpu-render:
+  #   No such file or directory
+  #
+  # leaving the machine without a desktop. A SYMLINK rule cannot see the GPU
+  # UUID, so it can only be pinned by slot (breaks on renumbering) or by
+  # model (breaks on a card swap). This asks nvidia-smi instead, and the
+  # UUID it matches on is the same desktopGpuUuid CUDA_VISIBLE_DEVICES uses,
+  # so there is one answer to "which GPU is the desktop GPU" rather than two
+  # that can disagree.
+  #
+  # What it does for the layouts this machine actually sees:
+  #   3060 alone            -> UUID matches, alias the 3060 wherever it sits
+  #   3060 + 2080 Ti        -> UUID picks the 3060, not the ML card
+  #   2080 Ti alone         -> no UUID match, but it is the only NVIDIA GPU,
+  #                            so alias it rather than leave no desktop
+  #   two cards, no match   -> refuse to guess; KWin then fails with a clear
+  #                            message instead of silently rendering on the
+  #                            wrong GPU (or falling back to software Mesa)
+  #   no NVIDIA at all      -> exactly one DRM card is aliased as-is, with
+  #                            the bound driver logged, so a nouveau fallback
+  #                            is visible in the journal rather than silent
+  desktopGpuAlias = pkgs.writeShellApplication {
+    name = "desktop-gpu-alias";
+    runtimeInputs = [ pkgs.coreutils pkgs.gnugrep pkgs.gawk ];
+    text = ''
+      want='${desktopGpuUuid}'
+      dri=/dev/dri
+      smi='${lib.getBin config.hardware.nvidia.package}/bin/nvidia-smi'
+
+      # nvidia-smi is the one place the UUID and the PCI slot meet. It is
+      # unusable when the proprietary module did not load at all, which is
+      # itself worth seeing in the journal.
+      gpus=""
+      if [ -x "$smi" ]; then
+        raw="$("$smi" --query-gpu=uuid,pci.bus_id --format=csv,noheader 2>/dev/null || true)"
+        # When the driver is not loaded nvidia-smi writes its complaint to
+        # stdout, not stderr ("NVIDIA-SMI has failed because it couldn't
+        # communicate with the NVIDIA driver"), so keep only rows that are
+        # actually a UUID and a PCI bus id. Normalised to "UUID BUSID".
+        gpus="$(printf '%s\n' "$raw" | awk -F', *' '$1 ~ /^GPU-/ && $2 ~ /^[0-9a-fA-F]+:[0-9a-fA-F]+:[0-9a-fA-F]+\.[0-7]$/ { print $1, $2 }')"
+      fi
+
+      slot=""
+      if [ -n "$gpus" ]; then
+        slot="$(printf '%s\n' "$gpus" | awk -v want="$want" '$1 == want { print $2; exit }')"
+        if [ -z "$slot" ] && [ "$(printf '%s\n' "$gpus" | grep -c .)" -eq 1 ]; then
+          slot="$(printf '%s\n' "$gpus" | awk 'NF { print $2; exit }')"
+          echo "desktop-gpu-alias: $want is not installed; aliasing the only NVIDIA GPU ($slot)"
+        fi
+      fi
+
+      # sysfs class node ($1 = card|renderD) on PCI function $2.
+      node_for() {
+        local b
+        for n in /sys/class/drm/"$1"[0-9]*; do
+          # Connectors are card0-DP-1 etc.; only the whole-node name counts.
+          b="$(basename "$n")"
+          case "$b" in *-*) continue ;; esac
+          [ -e "$n/device" ] || continue
+          case "$(readlink -f "$n/device")" in
+            *":$2") echo "$n"; return 0 ;;
+          esac
+        done
+        return 1
+      }
+
+      card=""
+      render=""
+      if [ -n "$slot" ]; then
+        # nvidia-smi pads the PCI domain (00000000:07:00.0); sysfs does not.
+        pci="''${slot#*:}"
+        card="$(node_for card "$pci" || true)"
+        render="$(node_for renderD "$pci" || true)"
+      fi
+
+      cards=""
+      for n in /sys/class/drm/card[0-9]*; do
+        b="$(basename "$n")"
+        case "$b" in *-*) continue ;; esac
+        # if/then rather than `test && assign`: a false test as the last
+        # command of the loop body would trip errexit.
+        if [ -e "$n/device" ]; then
+          cards="$cards$n"$'\n'
+        fi
+      done
+      count="$(printf '%s' "$cards" | grep -c . || true)"
+
+      if [ -z "$card" ] || [ -z "$render" ]; then
+        echo "desktop-gpu-alias: no DRM node matched $want (slot: ''${slot:-unknown}); $count DRM card(s) present" >&2
+        if [ "$count" -ne 1 ]; then
+          echo "desktop-gpu-alias: refusing to guess which card is the desktop GPU; ''${dri}/desktop-gpu* left alone" >&2
+          exit 1
+        fi
+        card="''${cards%$'\n'}"
+        for n in /sys/class/drm/renderD[0-9]*; do
+          [ "$(readlink -f "$n/device")" = "$(readlink -f "$card/device")" ] || continue
+          render="$n"
+          break
+        done
+        [ -n "$render" ] || { echo "desktop-gpu-alias: $card has no render node" >&2; exit 1; }
+        echo "desktop-gpu-alias: single DRM card, aliasing it (driver: $(basename "$(readlink -f "$card/device/driver")"))"
+      fi
+
+      ln -sfn "$(basename "$card")" "$dri/desktop-gpu"
+      ln -sfn "$(basename "$render")" "$dri/desktop-gpu-render"
+      echo "desktop-gpu-alias: desktop-gpu -> $(basename "$card"), desktop-gpu-render -> $(basename "$render")"
+    '';
+  };
+
   # ── Discord ──
   # The pinned nixpkgs carries Discord 1.0.138, twenty-eight stable releases
   # behind upstream's 1.0.168, and Discord does not tolerate a stale client: it
@@ -2141,11 +2256,27 @@ in
   # applies and no ACL ever appears. Verified: TAGS did contain uaccess
   # while getfacl showed nothing.
   users.groups.voxtype-input = { };
+  # Creates /dev/dri/desktop-gpu and -render, which KWIN_DRM_DEVICES points
+  # at; see desktopGpuAlias for why this is a resolver rather than a udev
+  # SYMLINK rule. Ordered before the display manager, and also pulled in by
+  # the udev rule below when a DRM card appears (a driver that binds late).
+  systemd.services.desktop-gpu-alias = {
+    description = "Alias the desktop GPU's DRM nodes for KWIN_DRM_DEVICES";
+    wantedBy = [ "multi-user.target" ];
+    before = [ "display-manager.service" ];
+    after = [ "systemd-modules-load.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${desktopGpuAlias}/bin/desktop-gpu-alias";
+    };
+  };
   services.udev.extraRules = ''
-    # Stable, colon-free path for KWIN_DRM_DEVICES. Match only the real
-    # PCI DRM card, not its render node or the firmware framebuffer.
-    SUBSYSTEM=="drm", KERNEL=="card[0-9]*", KERNELS=="0000:06:00.0", DRIVERS=="nvidia", SYMLINK+="dri/desktop-gpu"
-    SUBSYSTEM=="drm", KERNEL=="renderD[0-9]*", KERNELS=="0000:06:00.0", DRIVERS=="nvidia", SYMLINK+="dri/desktop-gpu-render"
+    # Stable, colon-free path for KWIN_DRM_DEVICES. The service does the
+    # resolution; this only makes sure it runs again if a card appears after
+    # boot. No KERNELS== pin and no SYMLINK here: the 3060 moved from
+    # 0000:06:00.0 to 0000:07:00.0 when the 2080 Ti was pulled, and a slot
+    # pin is what left the desktop with no GPU nodes at all.
+    SUBSYSTEM=="drm", ACTION=="add", KERNEL=="card[0-9]*", TAG+="systemd", ENV{SYSTEMD_WANTS}+="desktop-gpu-alias.service"
 
     SUBSYSTEM=="input", KERNEL=="event*", ATTRS{name}=="keyd virtual keyboard", GROUP="voxtype-input", MODE="0640"
 
