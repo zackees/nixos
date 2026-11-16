@@ -133,5 +133,20 @@
         home-manager.nixosModules.home-manager
       ];
     };
+
+    # `nix flake check` runs these. mkforce-discards fails when an mkForce
+    # (or any mkOverride below 100) in this repo throws away another module's
+    # definition without a `# mkforce-ok: <reason>` marker -- the class of
+    # bug that dropped ext4 from the initrd. Evaluation-only: the derivation
+    # just prints the report. Readable report: scripts/mkforce-lint.sh.
+    checks.x86_64-linux.mkforce-discards =
+      (import ./checks/mkforce-discards.nix {
+        inherit (nixpkgs) lib;
+        nixpkgs = nixpkgs.outPath;
+        root = self.outPath;
+        inherit inputs;
+      }).check self.nixosConfigurations.nixos.pkgs {
+        inherit (self.nixosConfigurations) nixos;
+      };
   };
 }

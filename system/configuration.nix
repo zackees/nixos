@@ -2469,7 +2469,7 @@ in
     # NixOS gives every unit a minimal PATH (coreutils, systemd), LOCALE_ARCHIVE
     # and TZDIR. In a drop-in those would REPLACE what the dock passes kitty,
     # leaving every terminal without the user's PATH.
-    environment = lib.mkForce { };
+    environment = lib.mkForce { }; # mkforce-ok: a drop-in must not set PATH/LOCALE_ARCHIVE/TZDIR; it would replace the env the dock gives kitty
     serviceConfig = {
       Nice = -5;
       LimitNICE = "-5";
@@ -2480,7 +2480,7 @@ in
   # Match KDE's transient app-Zoom@<id>.service without restarting meetings.
   systemd.user.services."app-Zoom@" = {
     overrideStrategy = "asDropin";
-    environment = lib.mkForce { };
+    environment = lib.mkForce { }; # mkforce-ok: drop-in; NixOS's default PATH would replace the env KDE launches Zoom with
     serviceConfig = {
       Nice = -10;
       LimitNICE = "-10";
@@ -3181,7 +3181,7 @@ in
     # NixOS would otherwise add Environment=PATH=<coreutils...> to the
     # drop-in, replacing the session PATH the generated unit inherits, and
     # the Hermes key's desktop entry finds pyweb-view on that PATH.
-    path = lib.mkForce [ ];
+    path = lib.mkForce [ ]; # mkforce-ok: drop-in; the default coreutils PATH would hide the session PATH pyweb-view is found on
     environment.PATH = lib.mkForce null;
     serviceConfig = {
       Restart = "on-failure";
