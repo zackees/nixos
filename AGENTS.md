@@ -97,6 +97,23 @@ definition, naming the file and the value lost. If the discard is the point,
 end that line with `# mkforce-ok: <why>`; do not add the marker just to get
 a push through.
 
+**Boot-test before any reboot that follows a change to `boot.*`, the kernel,
+`fileSystems` or `hardware-configuration.nix`:**
+
+    scripts/verify-boot.sh            # boots ./result; exit 0 = PASS
+
+A build and a `switch` both succeed with an initrd that cannot mount `/`,
+because the running kernel already has every driver loaded -- that is how
+two weeks of generations (2026-10-30..11-15) ended up unbootable. The script
+boots the toplevel's own kernel, initrd and kernel-params in QEMU/KVM against
+the real disk, attached read-only under a throwaway overlay, and passes at
+`multi-user.target` (~40-60 s; `--skip-fsck` saves ~15-45 s). It asks for
+one `sudo -A` to open the disk; qemu itself runs as you. A FAIL prints the
+console lines that decided it; do not reboot on one. The system also falls
+back on its own now (see "Try a new generation once" in
+`system/configuration.nix`), but that costs a failed boot, a 30 s wait and
+the newest generation; the VM costs a minute.
+
 ## Making a change stick
 
     scripts/sync.sh -m "short description"
