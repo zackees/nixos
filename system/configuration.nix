@@ -2731,6 +2731,10 @@ in
     usb_storage = lib.mkForce false;
     uas = lib.mkForce false;
   };
+  # The veto removes the names; this makes initrd-guard fail the build if
+  # either .ko still lands in the initrd, e.g. pulled back in through
+  # modules.dep by some other module that depends on usb-storage.
+  local.initrdGuard.forbiddenModules = [ "usb_storage" "uas" ];
 
   # Dropping ext4 cost days (2026-10-30 to 11-16): the build and `switch`
   # both succeed, because the running kernel already has ext4 loaded, and
