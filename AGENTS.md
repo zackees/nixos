@@ -88,6 +88,15 @@ A successful build ends with `Done. The new configuration is /nix/store/...`
 and writes a `./result` symlink (gitignored). Building does not activate
 anything, so it is safe to run at any time.
 
+**A build does not catch an `mkForce` that throws away someone else's
+definition** -- that is how ext4 left the initrd and the machine stopped
+booting. `scripts/mkforce-lint.sh` (also `nix flake check`, and `sync.sh`
+whenever Nix files are being pushed; ~30 s of evaluation) lists every
+`mkForce`/`mkOverride < 100` in this repo that discards another module's
+definition, naming the file and the value lost. If the discard is the point,
+end that line with `# mkforce-ok: <why>`; do not add the marker just to get
+a push through.
+
 ## Making a change stick
 
     scripts/sync.sh -m "short description"

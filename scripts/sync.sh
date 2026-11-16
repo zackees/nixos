@@ -125,6 +125,28 @@ WARN
   exit 1
 fi
 
+# An mkForce that silently discards another module's definition built and
+# switched fine and only broke the NEXT boot (ext4 dropped from the initrd).
+# The lint costs ~30 s of evaluation, so it runs only when what is about to be
+# pushed touches Nix; a capture-only sync of home/kde/ skips it.
+# (The file list goes through a variable: `git diff | grep -q` under pipefail
+# reports SIGPIPE as failure whenever grep matches early.)
+UPSTREAM="$(git rev-parse -q --verify '@{u}' || true)"
+NIX_CHANGES=""
+[ -n "$UPSTREAM" ] && NIX_CHANGES="$(git diff --cached --name-only "$UPSTREAM" \
+  | grep -E '\.nix$|^flake\.lock$' || true)"
+if [ -z "$UPSTREAM" ] || [ -n "$NIX_CHANGES" ]; then
+  echo "== linting mkForce discards"
+  if ! LINT_OUT="$("$REPO/scripts/mkforce-lint.sh" 2>&1)"; then
+    printf '%s\n' "$LINT_OUT" >&2
+    echo >&2
+    echo "REFUSING TO PUSH -- an mkForce above discards definitions. Fix it, or" >&2
+    echo "mark the line '# mkforce-ok: <reason>' if the discard is intended." >&2
+    git reset >/dev/null
+    exit 1
+  fi
+fi
+
 # ── 4. show what changed ──────────────────────────────────────────────
 echo
 git status --short

@@ -49,6 +49,7 @@ in {
   systemd.user.services.voxtype = {
     requires = [ "voxtype-popup.service" ];
     after = [ "voxtype-popup.service" ];
+    # mkforce-ok: swaps in the notify-send-patched voxtype; keep the args in step with configuration.nix
     serviceConfig.ExecStart = lib.mkForce "${voxtype}/bin/voxtype daemon";
   };
 }
