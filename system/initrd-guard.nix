@@ -121,21 +121,71 @@ let
     while IFS= read -r f; do norm n "$f"; present[$n]=''${f#"$moddir"/}; done \
       < <(find "$moddir" \( -name '*.ko' -o -name '*.ko.xz' -o -name '*.ko.zst' -o -name '*.ko.gz' \) -not -type l)
 
+    # -- Aliases. A listed name need not be a module file name: NixOS's
+    # systemd initrd asks for "autofs", which is `alias autofs autofs4`, and
+    # the kernel asks for filesystems as "fs-<type>". modprobe resolves
+    # these through modules.alias, so do the same: the initrd's own copy
+    # first (that is what stage 1's modprobe reads; depmod regenerates it
+    # for just the shipped modules), then the kernel's full one (so a name
+    # whose module was left out still resolves to the module to report),
+    # then the builtin modules' aliases from modules.builtin.modinfo.
+    # Wildcard modaliases (pci:v*...) cannot match a plain name; skip them.
+    declare -A alias_initrd=() alias_kernel=() alias_builtin=()
+    # Written to files rather than read through <(...), so a failing awk
+    # stops the check under set -e instead of silently resolving nothing.
+    plain='function plain(s) { return s !~ /[*?:]/ && index(s, "[") == 0 }'
+    : > "$work/alias.initrd"; : > "$work/alias.kernel"; : > "$work/alias.builtin"
+    for src in "$moddir/modules.alias:initrd" "$kmoddir/modules.alias:kernel"; do
+      [ -f "''${src%:*}" ] || continue
+      awk "$plain"' $1 == "alias" && plain($2) { a = $2; m = $3; gsub(/-/, "_", a); gsub(/-/, "_", m); print a, m }' \
+        "''${src%:*}" > "$work/alias.''${src##*:}"
+    done
+    if [ -f "$kmoddir/modules.builtin.modinfo" ]; then
+      tr '\0' '\n' < "$kmoddir/modules.builtin.modinfo" > "$work/builtin.modinfo"
+      awk -F'[.]alias=' "$plain"' NF == 2 && plain($2) { a = $2; m = $1; gsub(/-/, "_", a); gsub(/-/, "_", m); print a, m }' \
+        "$work/builtin.modinfo" > "$work/alias.builtin"
+    fi
+    while read -r a m; do [ -n "''${alias_initrd[$a]:-}" ] || alias_initrd[$a]=$m; done < "$work/alias.initrd"
+    while read -r a m; do [ -n "''${alias_kernel[$a]:-}" ] || alias_kernel[$a]=$m; done < "$work/alias.kernel"
+    while read -r a m; do [ -n "''${alias_builtin[$a]:-}" ] || alias_builtin[$a]=$m; done < "$work/alias.builtin"
+    echo "initrd-guard: aliases: $(wc -l < "$work/alias.initrd") initrd, $(wc -l < "$work/alias.kernel") kernel, $(wc -l < "$work/alias.builtin") builtin"
+
+    # resolve NAME: sets r (normalised module name) and via (the alias
+    # source, empty when NAME is itself a module). A real module name wins
+    # over an alias of the same spelling, as in modprobe.
+    resolve() {
+      norm r "$1"; via=
+      if [ -n "''${present[$r]:-}''${depline[$r]:-}''${builtin[$r]:-}" ]; then return 0; fi
+      if [ -n "''${alias_initrd[$r]:-}" ]; then r=''${alias_initrd[$r]}; via="initrd modules.alias"
+      elif [ -n "''${alias_kernel[$r]:-}" ]; then r=''${alias_kernel[$r]}; via="kernel modules.alias"
+      elif [ -n "''${alias_builtin[$r]:-}" ]; then r=''${alias_builtin[$r]}; via="modules.builtin.modinfo"
+      fi
+    }
+
     failures=0
-    fail() { echo "initrd-guard: $1" >&2; failures=$((failures + 1)); }
+    failmsgs=()
+    fail() { echo "initrd-guard: $1" >&2; failmsgs+=("$1"); failures=$((failures + 1)); }
 
     # -- Collect requirements first, keyed by normalised module name, so a
     # module wanted for several reasons is checked and reported once with
     # all of them (ext4 is both the root fs driver and a listed module).
-    declare -A reasons=() display=()
+    # Keyed by the RESOLVED name, so "autofs" and "autofs4" are one entry.
+    declare -A reasons=() display=() aliasnote=()
     order=()
     want() {
       local mod=$1 why=$2
-      norm n "$mod"
-      if [ -z "''${reasons[$n]:-}" ]; then
-        order+=("$n"); display[$n]=$mod; reasons[$n]=$why
+      resolve "$mod"
+      if [ -n "$via" ]; then
+        case ", ''${aliasnote[$r]:-}, " in
+          *", '$mod' via $via, "*) ;;
+          *) aliasnote[$r]+="''${aliasnote[$r]:+, }'$mod' via $via" ;;
+        esac
+      fi
+      if [ -z "''${reasons[$r]:-}" ]; then
+        order+=("$r"); display[$r]=$r; reasons[$r]=$why
+        [ -n "$via" ] || display[$r]=$mod
       else
-        case "; ''${reasons[$n]}; " in *"; $why; "*) ;; *) reasons[$n]+="; $why" ;; esac
+        case "; ''${reasons[$r]}; " in *"; $why; "*) ;; *) reasons[$r]+="; $why" ;; esac
       fi
     }
     while IFS=$'\t' read -r kind name sym why; do
@@ -145,9 +195,10 @@ let
             echo "  ok  $name filesystem (CONFIG_$sym=y, built in)"; continue
           fi
           # The kernel requests filesystem drivers as "fs-<type>"; resolve
-          # that the same way (ext2/ext3 are served by ext4, for one).
-          mod=$(awk -v a="fs-$name" '$1 == "alias" && $2 == a { print $3; exit }' "$kmoddir/modules.alias")
-          want "''${mod:-$name}" "$why" ;;
+          # that the same way. With no such alias, assume the module is
+          # named after the type, so the report still names something.
+          resolve "fs-$name"
+          if [ -n "$via" ]; then want "fs-$name" "$why"; else want "$name" "$why"; fi ;;
         mod) want "$name" "$why" ;;
       esac
     done < "$reqs"
@@ -155,16 +206,17 @@ let
     # -- Everything required must be present, with its modules.dep closure.
     for n in "''${order[@]}"; do
       mod=''${display[$n]} why=''${reasons[$n]}
+      note=''${aliasnote[$n]:+; resolved from alias ''${aliasnote[$n]}}
       if [ -n "''${builtin[$n]:-}" ]; then
-        echo "  ok  $mod (built into the kernel)"; continue
+        echo "  ok  $mod (built into the kernel$note)"; continue
       fi
       if [ -z "''${present[$n]:-}" ]; then
-        fail "MISSING module '$mod': no $mod.ko[.xz|.zst|.gz] in the initrd. Needed because: $why."
+        fail "MISSING module '$mod': no $mod.ko[.xz|.zst|.gz] in the initrd''${note:+ (''${note#; })}. Needed because: $why."
         continue
       fi
       line=''${depline[$n]:-}
       if [ -z "$line" ]; then
-        fail "MISSING module '$mod': ''${present[$n]} is in the initrd but has no modules.dep entry, so modprobe cannot load it. Needed because: $why."
+        fail "MISSING module '$mod': ''${present[$n]} is in the initrd but has no modules.dep entry''${note:+ (''${note#; })}, so modprobe cannot load it. Needed because: $why."
         continue
       fi
       ok=1
@@ -174,7 +226,7 @@ let
           fail "MISSING module '$dep', a dependency of '$mod' per modules.dep, is not in the initrd, so '$mod' cannot load. '$mod' is needed because: $why."
         fi
       done
-      if [ -n "$ok" ]; then echo "  ok  $mod (''${present[$n]}, $(wc -w <<<"''${line#*:}") deps)"; fi
+      if [ -n "$ok" ]; then echo "  ok  $mod (''${present[$n]}, $(wc -w <<<"''${line#*:}") deps$note)"; fi
     done
 
     # -- Nothing forbidden may be present, whatever dragged it in. Vetoing a
@@ -182,13 +234,14 @@ let
     # other listed module from copying it back.
     while IFS= read -r f; do
       [ -n "$f" ] || continue
-      norm n "$f"
+      resolve "$f"; n=$r
+      fnote=''${via:+, alias of ''$r via ''$via}
       if [ -n "''${builtin[$n]:-}" ]; then
-        echo "  warn  forbidden module '$f' is built into this kernel; the initrd cannot exclude it" >&2
+        echo "  warn  forbidden module '$f'$fnote is built into this kernel; the initrd cannot exclude it" >&2
         continue
       fi
       if [ -z "''${present[$n]:-}" ]; then
-        echo "  ok  $f absent (forbidden)"; continue
+        echo "  ok  $f absent (forbidden$fnote)"; continue
       fi
       path=''${present[$n]}
       # Who lists it as a dependency, and which of those were required.
@@ -201,7 +254,7 @@ let
             if [ -n "''${reasons[$k]:-}" ]; then required+=("''${display[$k]} [''${reasons[$k]}]"); fi ;;
         esac
       done
-      msg="FORBIDDEN module '$f' ($path) is in the initrd (local.initrdGuard.forbiddenModules)."
+      msg="FORBIDDEN module '$f' ($path$fnote) is in the initrd (local.initrdGuard.forbiddenModules)."
       [ -n "''${reasons[$n]:-}" ] && msg+=" It is required directly: ''${reasons[$n]}."
       if [ ''${#required[@]} -gt 0 ]; then
         joined=$(printf '%s; ' "''${required[@]}"); msg+=" Pulled in via modules.dep by required module(s): ''${joined%; }."
@@ -214,6 +267,11 @@ let
     done < "$forbidden"
 
     if [ "$failures" -gt 0 ]; then
+      # Repeat the failures last: nix shows only the tail of a failed
+      # build's log, and with dozens of "ok" lines the first report of a
+      # missing module scrolls out of it (seen with the veto-form list).
+      echo "initrd-guard: ---- summary ----" >&2
+      for m in "''${failmsgs[@]}"; do echo "initrd-guard: $m" >&2; done
       echo "initrd-guard: $failures problem(s) in the built initrd ($initrd)." >&2
       echo "initrd-guard: a MISSING module means this machine would fail to boot it; a FORBIDDEN one" >&2
       echo "initrd-guard: means stage 1 can again hang on the device class it was excluded for." >&2
