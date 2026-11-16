@@ -128,6 +128,7 @@
       modules = [
         ./system/configuration.nix
         ./system/talos-bar.nix
+        ./system/initrd-guard.nix
         inputs.client-skills.nixosModules.consent-sudo
         home-manager.nixosModules.home-manager
       ];
