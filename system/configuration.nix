@@ -2581,24 +2581,44 @@ in
   # only stall that one device, not boot. hardware-configuration.nix is
   # generated, hence the override here instead of an edit there.
   #
-  # mkForce REPLACES the generated module list, it does not add to it, so
-  # everything stage 1 needs must be named here. ext4 is the driver for the
-  # root filesystem: without it the initrd discovers the NVMe disk, fsck
-  # succeeds, and then /sysroot fails to mount with no journal written
-  # (emergency shell, no explanations). autofs4 is what systemd's automount
-  # support asks for during stage 1.
-  boot.initrd.availableKernelModules = lib.mkForce [
-    "nvme" "xhci_pci" "ahci" "usbhid" "sd_mod"
-    "ext4" "autofs4"
-  ];
+  # So veto exactly usb_storage and uas, and nothing else. In the pinned
+  # nixpkgs (nixos/modules/system/boot/kernel.nix) this option is an
+  # attrset of bools that also accepts a list: each list entry becomes
+  # `name = true`, all definitions merge per name, and the module list is
+  # the names left true. `mkForce false` therefore outranks the generated
+  # `usb_storage = true` (and any other module's) for that one name only,
+  # and every other contribution -- hardware-configuration.nix, NixOS's
+  # default drivers, ext.nix's "ext4" for the root filesystem, systemd
+  # initrd's "autofs" -- still merges in untouched. This is the form
+  # kernel.nix's own documentation recommends for dropping a module. uas
+  # is vetoed too because it depends on usb-storage, so anything that added
+  # it would drag usb-storage.ko back in through the dependency closure.
+  #
+  # The earlier version (5397ce8) did this with `lib.mkForce [ ... ]` on the
+  # whole list. That does not remove one entry, it discards every other
+  # definition, so NixOS's automatic "ext4" went with it: the initrd found
+  # the NVMe disk, fsck passed, and /sysroot failed to mount with no
+  # journal written. Naming ext4 by hand fixed that once, but any driver a
+  # future NixOS adds here would have vanished the same silent way. Do not
+  # go back to forcing the list.
+  #
+  # Not chosen: editing hardware-configuration.nix (02-install.sh
+  # --regen-hardware rewrites it, losing the edit with no warning), and
+  # boot.blacklistedKernelModules (it reaches stage 2 as well and would
+  # disable USB disks entirely; and a modprobe blacklist leaves the .ko in
+  # the initrd, where an explicit modprobe still loads it).
+  boot.initrd.availableKernelModules = {
+    usb_storage = lib.mkForce false;
+    uas = lib.mkForce false;
+  };
 
-  # The list above is hand-maintained, and dropping ext4 from it cost days
-  # (2026-10-30 to 11-16): the build and `switch` both succeed, because the
-  # running kernel already has ext4 loaded, and only the NEXT boot fails --
-  # with no journal, since the journal lives on the disk that will not
-  # mount. Rolling back did not help either, because every generation built
-  # in those two weeks shared the broken initrd. So turn the omission into a
-  # build error: every filesystem stage 1 mounts must have its driver in the
+  # Dropping ext4 cost days (2026-10-30 to 11-16): the build and `switch`
+  # both succeed, because the running kernel already has ext4 loaded, and
+  # only the NEXT boot fails -- with no journal, since the journal lives on
+  # the disk that will not mount. Rolling back did not help either, because
+  # every generation built in those two weeks shared the broken initrd. So
+  # keep the omission a build error even now that the list is no longer
+  # forced: every filesystem stage 1 mounts must have its driver in the
   # initrd's module list (or be built into the kernel).
   assertions =
     let
@@ -2614,11 +2634,12 @@ in
       assertion = builtin fs.fsType || lib.elem fs.fsType initrdMods;
       message = ''
         ${fs.mountPoint} is ${fs.fsType}, which stage 1 has to mount, but
-        "${fs.fsType}" is not in boot.initrd.availableKernelModules. That list
-        is lib.mkForce'd in system/configuration.nix, which replaces NixOS's
-        generated list instead of extending it, so the filesystem driver must
-        be named there. Without it the machine drops to an emergency shell at
-        the next boot and writes no journal.
+        "${fs.fsType}" is not in boot.initrd.availableKernelModules. NixOS
+        normally adds it itself, so look for something that overrides the
+        whole list (a `lib.mkForce [ ... ]`, which discards every other
+        definition) or vetoes this name with `mkForce false`. Without it the
+        machine drops to an emergency shell at the next boot and writes no
+        journal.
       '';
     }) stage1Fs;
 
