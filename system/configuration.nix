@@ -1213,6 +1213,126 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Try a new generation once; if it cannot boot, fall back to the last entry
+  # that DID boot -- automatically. Every generation built 2026-10-30..11-15
+  # shared an initrd that could not mount / , and picking an older entry in
+  # the menu did not help, because the newest few dozen were all the same
+  # broken initrd and the last good one was far down the list. What was
+  # missing is a record of which entry last reached multi-user.
+  #
+  # systemd-boot keeps three choices, highest first: LoaderEntryOneShot (used
+  # once, deleted by the loader as it reads it), LoaderEntryDefault (an EFI
+  # variable that overrides loader.conf), then loader.conf's `default`, which
+  # NixOS points at the newest generation. So:
+  #   - the boot-known-good service below sets LoaderEntryDefault to this
+  #     boot's entry once it reaches multi-user -- but only when that entry
+  #     is the newest (loader.conf's default), so booting an old generation
+  #     by hand does not quietly pin the machine to it;
+  #   - every bootloader install (switch / boot) arms LoaderEntryOneShot with
+  #     the new newest entry, so the next boot -- planned or a power cut --
+  #     tries it exactly once, and the boot after that is the known-good one;
+  #   - a stage-1 emergency (root is locked in the initrd, so that shell is
+  #     useless anyway) reboots after 30 s when the entry that failed is not
+  #     already the known-good one. No loop: a failing known-good entry has
+  #     nothing to fall back to and stays in emergency mode.
+  # After a fallback the newest generation is NOT retried until the next
+  # nixos-rebuild switch/boot (or `bootctl set-oneshot <entry>`): retrying
+  # it from the fallback boot would be a reboot loop.
+  #
+  # Why not boot counting (`foo+3.conf` + systemd-bless-boot): this nixpkgs'
+  # systemd-boot builder has no option for it, and renaming its entries
+  # from extraInstallCommands breaks its own cleanup (the `+N` suffix makes
+  # its generation regex miss, so entries leak and get duplicated). It would
+  # also only have stepped down one generation per three failed boots
+  # through two weeks of identical broken initrds. configurationLimit stays
+  # unset (keep every generation in the menu): with a limit, enough broken
+  # switches would push the known-good entry off the ESP, and
+  # LoaderEntryDefault would then name an entry that no longer exists --
+  # systemd-boot just ignores it, which is stock behaviour, but no fallback.
+  #
+  # scripts/verify-boot.sh is the other half: it boots a build in a VM
+  # before the machine has to, so this should rarely fire.
+  boot.loader.systemd-boot.extraInstallCommands =
+    let esp = config.boot.loader.efi.efiSysMountPoint; in ''
+      bootctl=${config.systemd.package}/bin/bootctl
+      efivar() {
+        local f=/sys/firmware/efi/efivars/$1-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f
+        [ -r "$f" ] && ${pkgs.coreutils}/bin/tail -c +5 "$f" | ${pkgs.coreutils}/bin/tr -d '\000'
+      }
+      arm_boot_fallback() {
+        newest=$(${pkgs.gnused}/bin/sed -n 's/^default //p' ${esp}/loader/loader.conf)
+        saved=$(efivar LoaderEntryDefault || true)
+        booted=$(efivar LoaderEntrySelected || true)
+        # No usable fallback yet (first install, or its entry was garbage
+        # collected): the entry this running system booted from has proven
+        # itself by getting this far.
+        if { [ -z "$saved" ] || [ ! -e "${esp}/loader/entries/$saved" ]; } \
+           && [ -n "$booted" ] && [ -e "${esp}/loader/entries/$booted" ]; then
+          $bootctl set-default "$booted" && saved=$booted
+        fi
+        if [ -n "$saved" ] && [ -n "$newest" ] && [ "$newest" != "$saved" ]; then
+          echo "boot fallback: next boot tries $newest once, then $saved"
+          $bootctl set-oneshot "$newest" || true
+        elif [ -n "$(efivar LoaderEntryOneShot || true)" ]; then
+          # e.g. after `switch --rollback`: do not leave a one-shot pointing at
+          # the generation just rolled back from.
+          $bootctl set-oneshot "" || true
+        fi
+      }
+      # The install runs under `set -e`; called from `||`, the function runs
+      # without it, so a failing EFI write never fails the install.
+      arm_boot_fallback || echo "boot fallback: not armed" >&2
+    '';
+
+  systemd.services.boot-known-good = {
+    description = "Make this boot's entry the systemd-boot fallback";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "multi-user.target" ];
+    unitConfig.ConditionPathExists = "/sys/firmware/efi/efivars";
+    serviceConfig.Type = "oneshot";
+    path = [ config.systemd.package pkgs.coreutils pkgs.gnused ];
+    script = ''
+      efivar() {
+        local f=/sys/firmware/efi/efivars/$1-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f
+        [ -r "$f" ] && tail -c +5 "$f" | tr -d '\000'
+      }
+      booted=$(efivar LoaderEntrySelected || true)
+      saved=$(efivar LoaderEntryDefault || true)
+      newest=$(sed -n 's/^default //p' ${config.boot.loader.efi.efiSysMountPoint}/loader/loader.conf)
+      [ -n "$booted" ] || exit 0
+      if [ "$booted" = "$newest" ]; then
+        [ "$saved" = "$booted" ] || bootctl set-default "$booted"
+      else
+        echo "<4>booted $booted, not the newest entry $newest: a fallback after" \
+          "a failed boot, or picked by hand. $newest is retried only after the" \
+          "next nixos-rebuild switch/boot or bootctl set-oneshot $newest."
+      fi
+    '';
+  };
+
+  boot.initrd.systemd.services.fallback-reboot =
+    lib.mkIf (config.boot.initrd.systemd.emergencyAccess == false) {
+      description = "Reboot into the last systemd-boot entry that booted";
+      wantedBy = [ "emergency.target" ];
+      unitConfig.DefaultDependencies = false;
+      serviceConfig.StandardOutput = "journal+console";
+      script = ''
+        efivar() {
+          f=/sys/firmware/efi/efivars/$1-4a67b082-0a4c-41cf-b6c7-440b29bb8c4f
+          [ -r "$f" ] && tail -c +5 "$f" | tr -d '\000'
+        }
+        sel=$(efivar LoaderEntrySelected || true)
+        def=$(efivar LoaderEntryDefault || true)
+        if [ -z "$sel" ] || [ -z "$def" ] || [ "$sel" = "$def" ]; then
+          echo "fallback-reboot: no other known-good entry; staying in emergency mode"
+          exit 0
+        fi
+        echo "fallback-reboot: $sel failed in stage 1; rebooting into $def in 30 s"
+        sleep 30
+        systemctl --no-block reboot
+      '';
+    };
+
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
