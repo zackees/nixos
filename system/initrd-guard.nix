@@ -43,21 +43,28 @@ let
   };
   symbolFor = t: fsSymbol.${t} or "${lib.toUpper t}_FS";
 
+  # In 26.05 these options are attrsOf bool (accepting lists), so a name can
+  # be vetoed with `name = false`; read them either way.
+  enabledNames = v: if builtins.isAttrs v then lib.attrNames (lib.filterAttrs (_: on: on) v) else v;
+
+  forbidden = pkgs.writeText "initrd-forbidden.txt"
+    (lib.concatMapStrings (m: "${m}\n") config.local.initrdGuard.forbiddenModules);
+
   # One requirement per line: kind, name, Kconfig symbol (fs only), reason.
   requirements = pkgs.writeText "initrd-requirements.tsv" (lib.concatStrings (
     map (fs: "fs\t${fs.fsType}\t${symbolFor fs.fsType}\t"
           + "driver for the ${fs.fsType} filesystem at ${fs.mountPoint}, which stage 1 mounts\n")
       (lib.filter (fs: !lib.elem fs.fsType pseudoFs) stage1Fs)
     ++ map (m: "mod\t${m}\t-\tlisted in boot.initrd.kernelModules (loaded unconditionally in stage 1)\n")
-      config.boot.initrd.kernelModules
+      (enabledNames config.boot.initrd.kernelModules)
     ++ map (m: "mod\t${m}\t-\tlisted in boot.initrd.availableKernelModules\n")
-      config.boot.initrd.availableKernelModules
+      (enabledNames config.boot.initrd.availableKernelModules)
   ));
 
   check = pkgs.writeShellScript "initrd-guard-check" ''
-    # usage: initrd-guard-check INITRD REQUIREMENTS KERNEL_CONFIG KERNEL_MODDIR WORKDIR
+    # usage: initrd-guard-check INITRD REQUIREMENTS KERNEL_CONFIG KERNEL_MODDIR WORKDIR FORBIDDEN
     set -euo pipefail
-    initrd=$1 reqs=$2 kconfig=$3 kmoddir=$4 work=$5
+    initrd=$1 reqs=$2 kconfig=$3 kmoddir=$4 work=$5 forbidden=$6
     modver=$(basename "$kmoddir")
 
     # -- Find the compressed main archive. NixOS prepends uncompressed cpio
@@ -114,36 +121,23 @@ let
     while IFS= read -r f; do norm n "$f"; present[$n]=''${f#"$moddir"/}; done \
       < <(find "$moddir" \( -name '*.ko' -o -name '*.ko.xz' -o -name '*.ko.zst' -o -name '*.ko.gz' \) -not -type l)
 
-    failures=0 checked=0
-    fail() { echo "initrd-guard: MISSING $1" >&2; failures=$((failures + 1)); }
+    failures=0
+    fail() { echo "initrd-guard: $1" >&2; failures=$((failures + 1)); }
 
-    check_module() {
-      local mod=$1 why=$2 line dep
+    # -- Collect requirements first, keyed by normalised module name, so a
+    # module wanted for several reasons is checked and reported once with
+    # all of them (ext4 is both the root fs driver and a listed module).
+    declare -A reasons=() display=()
+    order=()
+    want() {
+      local mod=$1 why=$2
       norm n "$mod"
-      checked=$((checked + 1))
-      if [ -n "''${builtin[$n]:-}" ]; then
-        echo "  ok  $mod (built into the kernel)"; return
+      if [ -z "''${reasons[$n]:-}" ]; then
+        order+=("$n"); display[$n]=$mod; reasons[$n]=$why
+      else
+        case "; ''${reasons[$n]}; " in *"; $why; "*) ;; *) reasons[$n]+="; $why" ;; esac
       fi
-      if [ -z "''${present[$n]:-}" ]; then
-        fail "module '$mod': no $mod.ko[.xz|.zst|.gz] in the initrd. Needed because: $why."
-        return
-      fi
-      line=''${depline[$n]:-}
-      if [ -z "$line" ]; then
-        fail "module '$mod': ''${present[$n]} is in the initrd but has no modules.dep entry, so modprobe cannot load it. Needed because: $why."
-        return
-      fi
-      local ok=1
-      for dep in ''${line#*:}; do
-        if [ ! -f "$moddir/$dep" ]; then
-          ok=
-          fail "module '$dep', a dependency of '$mod' per modules.dep, is not in the initrd, so '$mod' cannot load. '$mod' is needed because: $why."
-        fi
-      done
-      [ -n "$ok" ] && echo "  ok  $mod (''${present[$n]}, $(( $(wc -w <<<"''${line#*:}") )) deps)"
-      return 0
     }
-
     while IFS=$'\t' read -r kind name sym why; do
       case $kind in
         fs)
@@ -153,28 +147,107 @@ let
           # The kernel requests filesystem drivers as "fs-<type>"; resolve
           # that the same way (ext2/ext3 are served by ext4, for one).
           mod=$(awk -v a="fs-$name" '$1 == "alias" && $2 == a { print $3; exit }' "$kmoddir/modules.alias")
-          check_module "''${mod:-$name}" "$why" ;;
-        mod) check_module "$name" "$why" ;;
+          want "''${mod:-$name}" "$why" ;;
+        mod) want "$name" "$why" ;;
       esac
     done < "$reqs"
 
+    # -- Everything required must be present, with its modules.dep closure.
+    for n in "''${order[@]}"; do
+      mod=''${display[$n]} why=''${reasons[$n]}
+      if [ -n "''${builtin[$n]:-}" ]; then
+        echo "  ok  $mod (built into the kernel)"; continue
+      fi
+      if [ -z "''${present[$n]:-}" ]; then
+        fail "MISSING module '$mod': no $mod.ko[.xz|.zst|.gz] in the initrd. Needed because: $why."
+        continue
+      fi
+      line=''${depline[$n]:-}
+      if [ -z "$line" ]; then
+        fail "MISSING module '$mod': ''${present[$n]} is in the initrd but has no modules.dep entry, so modprobe cannot load it. Needed because: $why."
+        continue
+      fi
+      ok=1
+      for dep in ''${line#*:}; do
+        if [ ! -f "$moddir/$dep" ]; then
+          ok=
+          fail "MISSING module '$dep', a dependency of '$mod' per modules.dep, is not in the initrd, so '$mod' cannot load. '$mod' is needed because: $why."
+        fi
+      done
+      if [ -n "$ok" ]; then echo "  ok  $mod (''${present[$n]}, $(wc -w <<<"''${line#*:}") deps)"; fi
+    done
+
+    # -- Nothing forbidden may be present, whatever dragged it in. Vetoing a
+    # name in the module list does not stop the modules.dep closure of some
+    # other listed module from copying it back.
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
+      norm n "$f"
+      if [ -n "''${builtin[$n]:-}" ]; then
+        echo "  warn  forbidden module '$f' is built into this kernel; the initrd cannot exclude it" >&2
+        continue
+      fi
+      if [ -z "''${present[$n]:-}" ]; then
+        echo "  ok  $f absent (forbidden)"; continue
+      fi
+      path=''${present[$n]}
+      # Who lists it as a dependency, and which of those were required.
+      pullers=() required=()
+      for k in "''${!depline[@]}"; do
+        l=''${depline[$k]}
+        case " ''${l#*:} " in
+          *" $path "*)
+            pullers+=("$k")
+            if [ -n "''${reasons[$k]:-}" ]; then required+=("''${display[$k]} [''${reasons[$k]}]"); fi ;;
+        esac
+      done
+      msg="FORBIDDEN module '$f' ($path) is in the initrd (local.initrdGuard.forbiddenModules)."
+      [ -n "''${reasons[$n]:-}" ] && msg+=" It is required directly: ''${reasons[$n]}."
+      if [ ''${#required[@]} -gt 0 ]; then
+        joined=$(printf '%s; ' "''${required[@]}"); msg+=" Pulled in via modules.dep by required module(s): ''${joined%; }."
+      elif [ ''${#pullers[@]} -gt 0 ]; then
+        msg+=" Depended on by: ''${pullers[*]}, none of which is itself required."
+      elif [ -z "''${reasons[$n]:-}" ]; then
+        msg+=" Nothing in modules.dep depends on it, so it was added by name (e.g. boot.initrd.includeDefaultModules or another module's availableKernelModules)."
+      fi
+      fail "$msg"
+    done < "$forbidden"
+
     if [ "$failures" -gt 0 ]; then
       echo "initrd-guard: $failures problem(s) in the built initrd ($initrd)." >&2
-      echo "initrd-guard: this machine would fail to boot it. If boot.initrd.availableKernelModules" >&2
-      echo "initrd-guard: is lib.mkForce'd in system/configuration.nix, name the module there." >&2
+      echo "initrd-guard: a MISSING module means this machine would fail to boot it; a FORBIDDEN one" >&2
+      echo "initrd-guard: means stage 1 can again hang on the device class it was excluded for." >&2
+      echo "initrd-guard: The module lists are in system/configuration.nix (boot.initrd.*KernelModules)." >&2
       exit 1
     fi
-    echo "initrd-guard: all $checked required modules and their dependencies are present"
+    echo "initrd-guard: all ''${#order[@]} required modules and their dependencies are present, no forbidden ones"
   '';
 in
 {
-  system.checks = [
+  options.local.initrdGuard.forbiddenModules = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    example = [ "usb_storage" "uas" ];
+    description = ''
+      Kernel modules that must NOT end up in the built initrd; the build
+      fails if one does. Removing a name from
+      boot.initrd.availableKernelModules is not enough on its own, because
+      the initrd also receives the modules.dep closure of every module
+      that IS listed, so adding some unrelated driver that depends on a
+      vetoed one silently copies it back. Exists for usb_storage/uas: a
+      dying USB disk probed in stage 1 stalled boot for nine minutes
+      (2026-10-28). Names match with - and _ interchangeable.
+    '';
+  };
+
+  config.system.checks = [
     (pkgs.runCommand "initrd-guard" {
       nativeBuildInputs = with pkgs; [ coreutils gnugrep gawk cpio zstd xz gzip findutils ];
-      passthru = { inherit check requirements; };
+      passthru = { inherit check requirements forbidden; };
     } ''
       ${check} ${initrd}/initrd ${requirements} ${kernel.configfile} \
-        ${kernel.modules}/lib/modules/${kernel.modDirVersion} "$TMPDIR/initrd-guard" > report 2>&1 || status=$?
+        ${kernel.modules}/lib/modules/${kernel.modDirVersion} "$TMPDIR/initrd-guard" ${forbidden} \
+        > report 2>&1 || status=$?
       chmod -R u+w "$TMPDIR/initrd-guard" 2>/dev/null || true
       cat report
       [ "''${status:-0}" -eq 0 ] || exit 1
