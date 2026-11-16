@@ -2592,6 +2592,36 @@ in
     "ext4" "autofs4"
   ];
 
+  # The list above is hand-maintained, and dropping ext4 from it cost days
+  # (2026-10-30 to 11-16): the build and `switch` both succeed, because the
+  # running kernel already has ext4 loaded, and only the NEXT boot fails --
+  # with no journal, since the journal lives on the disk that will not
+  # mount. Rolling back did not help either, because every generation built
+  # in those two weeks shared the broken initrd. So turn the omission into a
+  # build error: every filesystem stage 1 mounts must have its driver in the
+  # initrd's module list (or be built into the kernel).
+  assertions =
+    let
+      initrdMods = config.boot.initrd.availableKernelModules
+        ++ config.boot.initrd.kernelModules;
+      stage1Paths = [ "/" "/nix" "/nix/store" "/var" "/var/log" "/var/lib" "/etc" "/usr" ];
+      stage1Fs = lib.filter
+        (fs: fs.neededForBoot || lib.elem fs.mountPoint stage1Paths)
+        (lib.attrValues config.fileSystems);
+      builtin = t: lib.elem t [ "tmpfs" "ramfs" "proc" "sysfs" "devtmpfs" "none" "auto" ];
+    in
+    map (fs: {
+      assertion = builtin fs.fsType || lib.elem fs.fsType initrdMods;
+      message = ''
+        ${fs.mountPoint} is ${fs.fsType}, which stage 1 has to mount, but
+        "${fs.fsType}" is not in boot.initrd.availableKernelModules. That list
+        is lib.mkForce'd in system/configuration.nix, which replaces NixOS's
+        generated list instead of extending it, so the filesystem driver must
+        be named there. Without it the machine drops to an emergency shell at
+        the next boot and writes no journal.
+      '';
+    }) stage1Fs;
+
   # Failing loudly instead: a user service that reads this boot's kernel
   # log from the start (so a drive that broke before login is reported at
   # login) and then follows it, posting one critical notification per disk

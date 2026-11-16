@@ -424,6 +424,30 @@ real files. This has happened; it cost a restore from the last commit.
 regeneration. Do not regenerate it on a whim. Installing onto different
 hardware needs `scripts/02-install.sh --regen-hardware`.
 
+**`boot.initrd.availableKernelModules` is `lib.mkForce`d, so it is the
+whole stage-1 driver list.** It exists to keep a dying USB disk's probe out
+of the initrd, but mkForce *replaces* NixOS's generated list rather than
+adding to it, and the first version silently dropped `ext4`. Nothing
+noticed for two weeks: the build passes, `switch` passes (the running kernel
+already has ext4 loaded), and only the next boot fails -- fsck succeeds,
+`/sysroot` will not mount, emergency shell, and *no journal*, because the
+journal is on the disk that did not mount. Rolling back did not help, since
+every generation of those two weeks shared the one initrd. That wedged the
+machine 2026-11-13 to 11-16. An assertion beside the list now fails the
+build if any stage-1 filesystem's driver is missing; if you add a module
+the initrd needs (a new root fs, LUKS, a RAID or HBA driver), it has to be
+named in that list too. To check an initrd by hand, its compressed
+archive follows an uncompressed microcode cpio, so plain `cpio -t` only
+shows `AuthenticAMD.bin`: skip to the zstd magic (`28 b5 2f fd`) first.
+
+**A rescue run as root leaves root-owned files in `$HOME`.** The 2026-11-16
+repair committed from a root shell and ran the Hermes gateway as root, which
+left `.git/index` and refs here, and every `gateway.lock` under
+`~/dev/hermes`, owned by root. Hermes then crash-looped on
+`foreign_stale_lock`, and the next commit here would have failed. After any
+recovery done as root, run `find ~ -xdev -user root -newermt <date>` and
+`chown` what turns up.
+
 **`docs/hardware.md` is generated** by `scripts/gen-hardware-doc.sh`. Edit
 that script, not the output. It deliberately carries no timestamp, so the
 file only changes when the hardware does.

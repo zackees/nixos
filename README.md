@@ -43,21 +43,21 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
 
 ## GPU assignments
 
-The RTX 3060 drives the desktop and voxtype. The modified RTX 2080 Ti
-(22 GiB of VRAM, reserved for ML workloads) was removed on 2026-11-15; pulling
-it renumbered the PCIe root ports and moved the 3060 from `06:00.0` to
-`07:00.0`, so nothing in the config names a slot any more. `system/
-configuration.nix` identifies the desktop GPU by UUID (`desktopGpuUuid`) and
-resolves `/dev/dri/desktop-gpu*` from nvidia-smi at boot, which works with one
-or two NVIDIA cards; with more than one and no UUID match it refuses to guess
-instead of aliasing the wrong card or falling back to software Mesa. KWin's
-display and render devices are restricted to that GPU. Ordinary CUDA programs
-and services see only the 3060 by default; voxtype is also explicitly pinned
-to it. KWin's restriction takes effect at the next login. Open a new shell
-after changing the CUDA default.
+The RTX 3060 at PCI `06:00.0` drives the desktop and voxtype. The modified
+RTX 2080 Ti at `07:00.0` has 22 GiB of VRAM and is reserved for ML workloads.
+The 2080 Ti was out of the machine from 2026-11-15 to 11-16, and pulling it
+renumbered the PCIe root ports (the 3060 moved to `07:00.0`), so nothing in
+the config names a slot any more. `system/configuration.nix` identifies the
+desktop GPU by UUID (`desktopGpuUuid`) and resolves `/dev/dri/desktop-gpu*`
+from nvidia-smi at boot, which works with one or two NVIDIA cards; with more
+than one and no UUID match it refuses to guess instead of aliasing the wrong
+card or falling back to software Mesa. KWin's display and render devices are
+restricted to that GPU. Ordinary CUDA programs and services see only the 3060
+by default; voxtype is also explicitly pinned to it. KWin's restriction takes
+effect at the next login. Open a new shell after changing the CUDA default.
 
-`ml-gpu` still targets the 2080 Ti's UUID, so it only works with that card
-installed; reinstall it or repoint `modelGpuUuid` before using it.
+`ml-gpu` targets the 2080 Ti by UUID (`modelGpuUuid`), so it only works with
+that card installed.
 
 Launch CUDA model workloads on the 2080 Ti with:
 
