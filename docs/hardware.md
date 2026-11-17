@@ -15,14 +15,10 @@ replacement parts and sanity-checking a restore. Nothing reads it at runtime.
 ## Block devices
 
 ```
-NAME          SIZE FSTYPE LABEL           UUID                                 MOUNTPOINT
-sda         931.5G                                                             
-├─sda1         50M ntfs   System Reserved C7C0D431375DBADC                     
-├─sda2        931G ntfs                   F03CCA193CC9DB2C                     
-└─sda3        499M ntfs                   0313E9927EEEBDAC                     
-nvme0n1       1.8T                                                             
-├─nvme0n1p1     2G vfat                   866F-1102                            /boot
-└─nvme0n1p2   1.8T ext4   root            ea0caf0b-ae20-413c-bb57-22a9bdc5719e /
+NAME        SIZE FSTYPE LABEL UUID                                 MOUNTPOINT
+nvme0n1     1.8T                                                   
+├─nvme0n1p1   2G vfat         866F-1102                            /boot
+└─nvme0n1p2 1.8T ext4   root  ea0caf0b-ae20-413c-bb57-22a9bdc5719e /
 ```
 
 ## Filesystems in use
@@ -39,4 +35,14 @@ nvme0n1       1.8T
 
 ## Audio capture devices
 
-    (pipewire not reachable from this shell)
+    38	obs_mic	PipeWire	float32le 2ch 48000Hz	SUSPENDED
+    39	obs_mix.monitor	PipeWire	float32le 2ch 48000Hz	SUSPENDED
+    76	alsa_input.usb-Elgato_Cam_Link_4K_0005C96983000-03.analog-stereo	PipeWire	s16le 2ch 48000Hz	SUSPENDED
+    81	alsa_output.usb-Focusrite_Scarlett_2i2_USB_Y848YEZ1801BE0-00.HiFi__Line__sink.monitor	PipeWire	s32le 2ch 48000Hz	RUNNING
+    83	alsa_input.usb-Focusrite_Scarlett_2i2_USB_Y848YEZ1801BE0-00.HiFi__Mic2__source	PipeWire	float32le 1ch 48000Hz	SUSPENDED
+    85	alsa_input.usb-Focusrite_Scarlett_2i2_USB_Y848YEZ1801BE0-00.HiFi__Mic1__source	PipeWire	float32le 1ch 48000Hz	SUSPENDED
+    87	alsa_output.usb-Elgato_Systems_Elgato_Wave_3_BS38J1A03981-00.analog-stereo.monitor	PipeWire	s24le 2ch 48000Hz	SUSPENDED
+    88	alsa_input.usb-Elgato_Systems_Elgato_Wave_3_BS38J1A03981-00.mono-fallback	PipeWire	s24le 1ch 48000Hz	SUSPENDED
+    89	alsa_output.pci-0000_09_00.4.iec958-stereo.monitor	PipeWire	s32le 2ch 48000Hz	SUSPENDED
+    90	alsa_input.pci-0000_09_00.4.analog-stereo	PipeWire	s32le 2ch 48000Hz	SUSPENDED
+    193	alsa_output.pci-0000_06_00.1.hdmi-stereo.monitor	PipeWire	s32le 2ch 48000Hz	SUSPENDED

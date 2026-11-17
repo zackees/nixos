@@ -64,5 +64,10 @@
   },
   "worktrees": {
     "warn_bytes": 53687091200
+  },
+  "providers": {
+    "openrouter": {
+      "model": "~deepseek/deepseek-flash-latest"
+    }
   }
 }

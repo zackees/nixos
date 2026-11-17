@@ -17,7 +17,7 @@
       "effortLevel": "low"
     },
     "claude-opus-5-5": {
-      "effortLevel": "low",
+      "effortLevel": "medium",
       "autoCompactWindow": 400000
     },
     "claude-sonnet-5-5": {
@@ -38,5 +38,6 @@
   },
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark"
+  "theme": "dark",
+  "switchModelsOnFlag": true
 }

@@ -8,11 +8,31 @@ Switch to Next Keyboard Layout=Meta+Alt+K,Meta+Alt+K,
 _k_friendly_name=Keyboard Layout Switcher
 
 [hermes]
+00FB26DED2FBAD7A4E8786BE1467E717-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-4 shortcut: Ctrl+Shift+Space
+079E229923A79166F359ED6B3B9B1473-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533137563 shortcut: Ctrl+Shift+Space
+07B8922EBE62CA6B65A492B00ADC8037-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794530151704 shortcut: Ctrl+Shift+Space
+0FC0FD3D8D52195EA3226151AF6EDF37-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533137287 shortcut: Ctrl+Shift+Space
+1108E74E11EED7F7B49BF63677430734-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794529892368 shortcut: Ctrl+Shift+Space
+2551ECCB82F49E3812F096E41C230F6D-Ctrl+Shift+Space=Ctrl+Shift+Space,Ctrl+Shift+Space,HermesE2E-1794529465220 shortcut: Ctrl+Shift+Space
+3E3CDDEE554703273FDF0F823825BDE5-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1 shortcut: Ctrl+Shift+Space
+608BE2571431C985B027A3FAEAEACB88-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794529782472 shortcut: Ctrl+Shift+Space
 65B218E5A748F9F3CB16BEF40AB83A7A-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
 71894EF51B8BEC25A4D79657FCDB3E16-Ctrl+Shift+Space=Ctrl+Shift+Space,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
+7318148A6336EE2E0544EFDF9D5432BE-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533323243 shortcut: Ctrl+Shift+Space
 7C059A9905597642D42AF74372033857-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
 823B815EE35A4E9ED3C7C186D45DCE9C-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
+A37D9AF24BE28CED3F6A136899883305-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794529390582 shortcut: Ctrl+Shift+Space
+AD6F8F84887EE798E7222185DE3B3E6D-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794530026608 shortcut: Ctrl+Shift+Space
+B14B7C22C58F5F022BB85D6F552E8F83-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-6 shortcut: Ctrl+Shift+Space
+C8EC88BD12CC5206C6D4D48F869004B6-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533137380 shortcut: Ctrl+Shift+Space
+CCB2F9E08B55C1953C05DF1750E3B410-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533137408 shortcut: Ctrl+Shift+Space
+D3D742743432B330EE16EA1E6BBD3DA5-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794532845218 shortcut: Ctrl+Shift+Space
 D4FCF2D050942F5BDD9FCDAF01CC5AB3-Ctrl+Shift+Space=Ctrl+Shift+Space,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
+D8B114710F7492B38B010A9B459A229D-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533035099 shortcut: Ctrl+Shift+Space
+E4E235C6B235B456C78FD5DC873F74DD-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-5 shortcut: Ctrl+Shift+Space
+F2538C53675258E2509CBBB090E5C2C1-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-3 shortcut: Ctrl+Shift+Space
+F6117484F256750F6E0A4B032B7FDEDA-Ctrl+Shift+Space=none,Ctrl+Shift+Space,HermesE2E-1794533137317 shortcut: Ctrl+Shift+Space
+F9D237F83DECC777C670C071E786FF5D-Ctrl+Shift+Space=none,Ctrl+Shift+Space,Hermes shortcut: Ctrl+Shift+Space
 _k_friendly_name=hermes
 
 [kaccess]

@@ -1,8 +1,6 @@
 [Desktops]
 Id_1=Desktop_1
-Id_10=f7d3a692-3970-4e86-a927-760c26005ca8
-Id_11=d6a86b34-8044-4930-b559-afea20b8f7c3
-Id_12=fc741680-8555-4a9c-a33a-35ae988d0373
+Id_10=d6a86b34-8044-4930-b559-afea20b8f7c3
 Id_2=Desktop_2
 Id_3=Desktop_3
 Id_4=Desktop_4
@@ -12,9 +10,7 @@ Id_7=Desktop_7
 Id_8=Desktop_8
 Id_9=Desktop_9
 Name_1=Main
-Name_10=soldr
-Name_11=forge-ci
-Name_12=Robbie Man
+Name_10=forge-ci
 Name_2=NixOS & Hermes
 Name_3=TWP
 Name_4=Clud
@@ -23,10 +19,11 @@ Name_6=zach vorhies
 Name_7=talos-hq
 Name_8=Kernal-api
 Name_9=obs-rust
-Number=12
+Number=10
 Rows=1
 
 [Plugins]
+aux-screens-stickyEnabled=true
 bosn-widget-cornerEnabled=true
 
 [Tiling][088e3c20-fecb-4424-9c1b-83f0560fdb31][3888de78-b2a4-4178-8007-1a30ee96f969]
@@ -734,5 +731,5 @@ PerOutputVirtualDesktops=true
 RollOverDesktops=false
 
 [Xwayland]
-Scale=1
-XwaylandEisNoPromptApps=test_x11_hotkey_layout
+Scale=1.95
+XwaylandEisNoPromptApps=test_x11_hotkey_layout,cua-driver
