@@ -23,14 +23,21 @@ CONF enablegpucomputeutilization true
 CONF enablehardwareaccforvideosend true
 CONF enablehardwareaccforvideoreceive true'
 
-# A Zoom already running takes the request itself (single instance). Touch
-# nothing: Zoom rewrites zoomus.conf on exit, and the guard must never
-# disturb a live meeting.
+# A Zoom already running takes the request itself (single instance), so
+# the guard and zoomus.conf are left alone: Zoom rewrites that file on exit,
+# and the guard must never disturb a live meeting. The env and the unit are
+# still applied. A running Zoom is often one that is exiting, and then this
+# launch becomes the real instance; before 2026-11-16 that branch exec'd the
+# bare binary, and a meeting link started Zoom inside
+# xdg-desktop-portal.service with no EGL/OpenCL config at all. If the
+# hand-off does happen, the unit simply exits with the forwarding process.
+running=
 if @pgrep@ -u "$(id -u)" -x zoom >/dev/null; then
-  exec @zoom@ "$@"
+  running=1
+  profile=$default
+else
+  profile=$(@timeout@ 10 @guard@ pre) || profile=
 fi
-
-profile=$(@timeout@ 10 @guard@ pre) || profile=
 case "$profile" in
   "PROFILE "*" "[0-9]*) ;;
   *) profile=$default ;;   # guard failed, or disabled
@@ -43,11 +50,12 @@ while read -r kind key value; do
   case "$kind" in
     PROFILE) rank=$value ;;
     ENV) export "$key=$value"; envargs+=(-E "$key=$value") ;;
-    CONF) [ -f "$conf" ] && @crudini@ --set "$conf" General "$key" "$value" ;;
+    CONF) [ -z "$running" ] && [ -f "$conf" ] && @crudini@ --set "$conf" General "$key" "$value" ;;
   esac
 done <<<"$profile"
 
 watch() {
+  [ -n "$running" ] && return 0   # the live instance already has a watcher
   @systemd_run@ --user --quiet --collect --unit="zoom-guard-watch-$$" \
     @guard@ watch "$1" "$rank" || true
 }

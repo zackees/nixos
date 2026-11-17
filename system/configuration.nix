@@ -6,6 +6,14 @@
 let
   # Settings-profile ladder for Zoom; see zoom-guard.nix.
   zoomGuard = import ./zoom-guard.nix { inherit pkgs; };
+  # `zoom-unhide`: re-maps a meeting window Zoom unmapped and lost; see the
+  # script header.
+  zoomUnhide = pkgs.writeShellApplication {
+    name = "zoom-unhide";
+    runtimeInputs = [ pkgs.xdotool pkgs.xorg.xwininfo pkgs.xorg.xprop pkgs.procps pkgs.gnugrep
+                      pkgs.gawk pkgs.coreutils pkgs.qt6.qttools ];
+    text = builtins.readFile ./zoom-guard/zoom-unhide.sh;
+  };
   # UUIDs keep CUDA assignments stable when its performance ordering or
   # nvidia-smi's PCI ordering changes. The modified 2080 Ti is for models.
   desktopGpuUuid = "GPU-b4e0b439-9095-b6cd-3c07-3db8fbc05acd";
@@ -1749,6 +1757,7 @@ in
       '';
     })
     zoomGuard           # `zoom-guard status | step-down | reset`
+    zoomUnhide          # meeting window vanished but the call is still on
     dbeaver-bin         # SQL client; binary release, unfree
     vscode.fhs          # `code`; the FHS variant so extensions that ship
                         # their own binaries (language servers, debuggers) run
