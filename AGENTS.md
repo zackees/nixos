@@ -186,17 +186,18 @@ which is the opposite of restoring KDE files underneath a running
 plasmashell, and is why that one is safe and the other is not.
 
 **Verify the dock with a screenshot, not with grep.** Three monitors: the
-2560x1440 primary is Plasma's screen 0 at x=1463, with two 1463x823 monitors
-stacked to its left. The capture is 2x, so it comes out 8046x3292 and the
-44px dock runs along the bottom of screen 0, starting at pixel 2926,2792. The
-old crop (a 10240x4526 capture, `+5120+3630`) came from a previous layout and
-now lands on empty space, so if the monitors move, re-derive the offset from
+2560x1440 primary is Plasma's screen 0 at 1423,99, with a 1422x800 and a
+1313x738 monitor stacked to its left (as of 2026-11-17). The capture is 2x, so
+it comes out 7966x3078 and the 44px dock runs along the bottom of screen 0,
+starting at pixel 2846,2990. Earlier crops (`+2926+2792` on an 8046x3292
+capture, `+5120+3630` on a 10240x4526 one) came from previous layouts and
+now land on the wrong place, so if the monitors move, re-derive the offset from
 the `screenGeometry` script under the panel `screen` trap below rather than
 trusting these numbers. Widen the crop as launchers are added -- it is
 currently eighteen:
 
     spectacle -f -b -n -o /tmp/full.png
-    magick /tmp/full.png -crop 1800x88+2926+2792 +repage -resize 150% /tmp/dock.png
+    magick /tmp/full.png -crop 2400x88+2846+2990 +repage -resize 150% /tmp/dock.png
 
 `grep launchers= plasma-org.kde.plasma.desktop-appletsrc` reported all nine
 entries present while the dock was drawing four. Only the picture was right.

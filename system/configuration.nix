@@ -858,8 +858,10 @@ let
   # any of them, so you get the right number of blank placeholder icons.
   # Verified both ways against a live widget before this was written.
   #
-  # That is also why preferred://filemanager had to become Dolphin by name:
-  # there is no scheme here that expands to a default application.
+  # That is also why preferred://filemanager had to be a file manager by
+  # name: there is no scheme here that expands to a default application.
+  # Nautilus, not Dolphin, since it became every app's Save dialog too
+  # (system/nautilus.nix explains why).
   # Both go through plasmoid.nix, which fails the build on QML that would
   # not load, rather than leaving it to fail when the widget is opened.
   devLauncherApplet = import ./plasmoid.nix { inherit pkgs; } {
@@ -868,7 +870,7 @@ let
   };
   dockLaunchers = map (d: "file:///run/current-system/sw/share/applications/${d}") [
     "systemsettings.desktop"
-    "org.kde.dolphin.desktop"
+    "org.gnome.Nautilus.desktop"
     "chromium-cdp.desktop"
     "org.kde.korganizer.desktop"
     "kitty.desktop"
@@ -1215,6 +1217,7 @@ in
       ./chromium-cdp.nix
       ./rustdesk.nix
       ./priority-guard.nix
+      ./nautilus.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
