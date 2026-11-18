@@ -2188,6 +2188,8 @@ in
         inherit (unstable) qt6 qt6Packages;
         # See the nixpkgs-kitty input in flake.nix.
         kitty = inputs.nixpkgs-kitty.legacyPackages.${prev.stdenv.hostPlatform.system}.kitty;
+        # See the nixpkgs-signal input in flake.nix.
+        signal-desktop = inputs.nixpkgs-signal.legacyPackages.${prev.stdenv.hostPlatform.system}.signal-desktop;
         kdePackages = unstable.kdePackages.overrideScope (_kfinal: kprev: {
           # Mixed fractional DPR previews resample even single-screen regions.
           # Keep the captured native pixels for plain region crops (KDE #490353).

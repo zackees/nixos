@@ -21,6 +21,12 @@
     # Only `kitty` is taken from it, by the overlay in configuration.nix.
     nixpkgs-kitty.url = "github:NixOS/nixpkgs/6dadaf4375be35033e1c84395adbd53ff5fded96";
 
+    # Signal alone, the same way: the pin above ships 8.24 and Signal stops
+    # linking a desktop client that falls too far behind, so it tracks
+    # nixos-unstable (8.35.0 here). Bump the rev to upgrade Signal; nothing
+    # else is taken from it.
+    nixpkgs-signal.url = "github:NixOS/nixpkgs/04906337b6d53e8bb0eaf0470ae9f070a4d4eb55";
+
     # Was builtins.fetchTarball of release-26.05.tar.gz pinned by sha256.
     # `follows` keeps it on the same nixpkgs as the system, which the tarball
     # form could not express -- it silently used whatever <nixpkgs> resolved to.
