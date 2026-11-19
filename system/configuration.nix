@@ -146,175 +146,6 @@ let
     '';
   };
 
-  # ── Discord ──
-  # The pinned nixpkgs carries Discord 1.0.138, twenty-eight stable releases
-  # behind upstream's 1.0.168, and Discord does not tolerate a stale client: it
-  # eventually parks itself on "Update Required", and it cannot update itself
-  # out of /nix/store. So pin the distro here rather than waiting for a nixpkgs
-  # bump.
-  #
-  # The URLs and SRI hashes come from the same manifest nixpkgs' own update.py
-  # reads (updates.discord.com/distributions/app/manifests/latest, linux x64
-  # stable), so the build stays fixed-output and reproducible.
-  # `uv run --script scripts/discord-source.py` re-prints this block at the
-  # current upstream version; replace the block wholesale when it changes.
-  # Everything else stays nixpkgs': its wrapper is what provides the pulse,
-  # appindicator, CUPS, speech-dispatcher and wayland plumbing.
-  discordSource = {
-    version = "1.0.168";
-    distro = {
-      url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/full.distro";
-      hash = "sha256-rlIVKuhx5KF81QMldCO+cxlgU95vSep3H03Bix18hHI=";
-    };
-    modules = {
-      discord_cloudsync = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_cloudsync/1/full.distro";
-        hash = "sha256-uKWSyQDG/VdByhysOceJtZYHWoUoek0N7zPO1/SY6LI=";
-      };
-      discord_desktop_core = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_desktop_core/1/full.distro";
-        hash = "sha256-VJ3P48d8wBdDxbKAcEjKQ7sHFIAF/QBnj1JKdET5y+Y=";
-      };
-      discord_dispatch = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_dispatch/1/full.distro";
-        hash = "sha256-2kGzMWBCTnjAPfNMPqqwlCKaf3vqBJwgsD5AuCMHjac=";
-      };
-      discord_erlpack = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_erlpack/1/full.distro";
-        hash = "sha256-4OT9XN5zD8iLnV8HOIK8Lu2r09pnipcyxXYJCo0vThw=";
-      };
-      discord_game_utils = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_game_utils/1/full.distro";
-        hash = "sha256-JTpg4MFkTIvl32nFJO4Aj/ChVyVP+yflNniOdCijy/Q=";
-      };
-      discord_krisp = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_krisp/1/full.distro";
-        hash = "sha256-KTnAEDIMDwnrjK6zJeJz65XEkx9xLW0mArrDakdueSI=";
-      };
-      discord_modules = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_modules/1/full.distro";
-        hash = "sha256-2dvRJS3Z0IaHJTWS8Fv1KHYRo11czs9oX5DVqsCAqvc=";
-      };
-      discord_ndi = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_ndi/1/full.distro";
-        hash = "sha256-q3kYMnNORZqzmfBwLcpgZqggzdDG8sADw0DAAzcJMSY=";
-      };
-      discord_rpc = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_rpc/1/full.distro";
-        hash = "sha256-wBtbFEdLROognVpQf6abxU8VCfKb4KNY79oZzFiTenA=";
-      };
-      discord_spellcheck = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_spellcheck/1/full.distro";
-        hash = "sha256-8Ow/cgS7uesrveChBauFLdfAEslaqM/2uhhL7bvhF54=";
-      };
-      discord_sysimg = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_sysimg/1/full.distro";
-        hash = "sha256-E+/vFaZDRJyWibj/R701Bk8UVRY6xXBxmTpKRLnnnM0=";
-      };
-      discord_utils = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_utils/1/full.distro";
-        hash = "sha256-LthjBEehrjZperHkW1767nEuwvk5a6LzjV8O8mEckH4=";
-      };
-      discord_voice = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_voice/1/full.distro";
-        hash = "sha256-5f9ipb8fkfynL0O6eVQtBZbbIR0W2H6ELVWrAeBAQI0=";
-      };
-      discord_zstd = {
-        version = 1;
-        url = "https://stable.dl2.discordapp.net/distro/app/stable/linux/x64/1.0.168/discord_zstd/1/full.distro";
-        hash = "sha256-s0YN6VFvWfO3UXiYYGatWYDoUF0TrpbWnTjiK1jkJrg=";
-      };
-    };
-  };
-  # Native Wayland, not XWayland. This desktop runs three monitors at
-  # *fractional* scales (1.5 / 1.8 / 1.95), and Chromium on X11 gets no
-  # fractional-scale information: it reads Xft.dpi (187 here, i.e. 1.95) while
-  # KWin also scales the surface itself, so Discord came up at 656x369 instead
-  # of its 1280x720 default and rendered soft -- the tell is fractional window
-  # geometry, which is X11 scaling. Ozone/Wayland takes the real per-monitor
-  # scale from the compositor, so the window is placed and sized in whole
-  # logical pixels (1280x720, resizes cleanly to the primary's 1706x960) and
-  # the UI renders 1:1 instead of being upscaled. Verified against the login
-  # screen on the primary monitor.
-  #
-  # The trade-off is screen sharing, which is widely reported broken for
-  # Discord under Ozone/Wayland. If that turns out to matter more than
-  # correct sizing, flip this one flag back to x11 -- everything else here is
-  # independent of the choice.
-  #
-  # NIXOS_OZONE_WL is deliberately NOT relied on: it is unset system-wide, and
-  # spelling the flags here keeps the choice visible and independent of the
-  # environment.
-  # ── Why the modules are staged differently from nixpkgs' wrapper ──
-  # Discord checks every native module's resolved realpath against the module
-  # root. This revision of nixpkgs stages modules as one symlink *per module*
-  # into ~/.config/discord/<ver>/modules, so require.resolve() realpaths every
-  # one of them into /nix/store -- outside the root -- and the client dies at
-  # startup with
-  #   Uncaught Error: "discord_utils" resolved outside the native module
-  #   directories
-  # leaving a black, unresponsive window (nixpkgs#580512; --preserve-symlinks
-  # does not help). Upstream master's fix appeared after this pin: it writes
-  # installed.json into the store's modules dir and symlinks the whole
-  # directory, so root and children share one realpath.
-  #
-  # A whole-directory symlink would make Discord's own bookkeeping
-  # (modules/pending, discord_krisp/KMS/logs, installed.json) write into
-  # /nix/store, so this copies the tree once per version instead: real paths
-  # land inside the config dir, everything stays writable, and the stamp file
-  # makes every later launch a no-op. 364 MiB, once, on a version bump.
-  discordStageModules = pkgs.writeShellScript "discord-stage-modules-copy" ''
-    set -eu
-    store_modules="$1"
-    modules_dir="''${DISCORD_USER_DATA_DIR-''${XDG_CONFIG_HOME:-$HOME/.config}}/discord/${discordSource.version}/modules"
-    want="$(readlink -f "$store_modules")"
-    if [ -d "$modules_dir" ] && [ "$(cat "$modules_dir/.nixos-stamp" 2>/dev/null || true)" = "$want" ]; then
-      exit 0
-    fi
-    rm -rf "$modules_dir"
-    mkdir -p "$(dirname "$modules_dir")"
-    cp -a "$store_modules" "$modules_dir"
-    chmod -R u+w "$modules_dir"
-    printf '%s\n' "$want" > "$modules_dir/.nixos-stamp"
-  '';
-  discordPinned =
-    (pkgs.discord.override {
-      source = discordSource;
-      commandLineArgs = "--ozone-platform=wayland --enable-features=WaylandWindowDecorations --enable-wayland-ime=true";
-    }).overrideAttrs
-      (old: {
-        # The moduleUpdater reads installed.json from the modules dir before
-        # it will trust the modules it finds; nixpkgs here writes that file at
-        # launch time, into the copy's predecessor. Put it in the store
-        # instead, alongside the two directories Discord expects to write.
-        postInstall = (old.postInstall or "") + ''
-          echo ${lib.escapeShellArg
-            (builtins.toJSON (
-              lib.mapAttrs (_: m: { installedVersion = m.version; }) discordSource.modules
-            ))} > $out/opt/Discord/modules/installed.json
-          mkdir -p $out/opt/Discord/modules/pending $out/opt/Discord/modules/discord_krisp/KMS/logs
-        '';
-        postFixup = (old.postFixup or "") + ''
-          wrapper=$out/opt/Discord/Discord
-          chmod u+w "$wrapper"
-          stage=$(grep -o '/nix/store/[^ "]*discord-stage-modules' "$wrapper" | head -1)
-          substituteInPlace "$wrapper" --replace-fail "$stage" ${discordStageModules}
-        '';
-      });
-
   # KWin knows a new window's PID but not which terminal created that process.
   # Keep ancestry lookup outside the compositor; the tiny script only applies
   # an unambiguous result. Read-only kitty metadata handles its shared PID.
@@ -927,7 +758,7 @@ let
       apps = [
         { name = "Telegram"; icon = "org.telegram.desktop"; desktop = "org.telegram.desktop.desktop"; }
         { name = "Signal"; icon = "signal-desktop"; desktop = "signal.desktop"; }
-        { name = "Discord"; icon = "discord"; desktop = "discord.desktop"; }
+        { name = "Discord"; icon = "Dorion"; desktop = "Dorion.desktop"; }
         { name = "Slack"; icon = "slack"; desktop = "slack.desktop"; }
         { name = "Zoom"; icon = "Zoom"; desktop = "Zoom.desktop"; }
       ];
@@ -1719,7 +1550,15 @@ in
       '';
     })
     signal-desktop
-    discordPinned       # version pinned in the let block; see there for why
+    # Discord through Dorion, a Tauri (Rust) shell around Discord's web
+    # client, not the official Electron app -- the user's choice (2026-11-19).
+    # The official client also needed its distro pinned here (nixpkgs lagged
+    # and Discord refuses stale clients) and its native modules re-staged to
+    # start at all; Dorion loads the web app, which is always current. Its
+    # WebKitGTK window takes the compositor's scale on Wayland, where the
+    # Electron one needed ozone flags to stop rendering oversized and soft.
+    # Untested trade-off: screen share and voice depend on WebKitGTK WebRTC.
+    dorion
     slack               # unfree; allowUnfree below covers it
     # Zoom meetings; unfree. Screen share and camera go through PipeWire and
     # xdg-desktop-portal-kde, as OBS's do.
