@@ -18,6 +18,12 @@ Every few seconds, as root:
   caught it, and short ones finished first. Zoom sat 17-20% of the time
   waiting for CPU. Renicing the whole tree means later children are born at
   19, and the rule below makes them SCHED_IDLE.
+- Agent windows: each kitty-*.scope holding an agent gets cpu.idle=1, and
+  back to 0 once no agent is left in it. SCHED_IDLE on a task does not make
+  its cgroup idle: the kernel still hands a scope of SCHED_IDLE builds its
+  full weight against Zoom's slice, so with ~25 agent scopes at weight 100
+  Zoom waited for CPU as long as it ran. An idle cgroup is pre-empted by any
+  non-idle one, which is what bosn.slice already relies on.
 - Spectacle (screenshots): every thread to nice -10 as well, silently. A
   capture under a saturated box stalled or timed out at nice 0, and a user
   unit cannot lower its own nice (DefaultLimitNICE=0), so only root can make
@@ -60,6 +66,10 @@ BUILD_TOOLS = {
 # Agent harnesses: everything under one of these is batch work.
 AGENTS = {"clud", "claude", "codex"}
 NICE_AGENT = 19
+CGROOT = "/sys/fs/cgroup"
+# Only kitty window scopes are made idle. An agent under a service (Hermes's
+# gateway) shares that cgroup with the service's own interactive work.
+AGENT_SCOPE = "/app.slice/kitty-"
 
 
 def comm(path: str) -> str:
@@ -126,12 +136,48 @@ def agent_tree(procs: dict[int, tuple[int, str, bool]]) -> set[int]:
     return {pid for pid, (_, _, mine) in procs.items() if mine and under(pid)}
 
 
+def cgroup_of(pid: int) -> str | None:
+    try:
+        with open(f"/proc/{pid}/cgroup") as f:  # io-ok: root daemon, not kitty
+            return f.read().strip().split("::", 1)[1]
+    except (OSError, IndexError):
+        return None
+
+
+def idle_agent_scopes(procs: dict[int, tuple[int, str, bool]], uid: int) -> None:
+    """cpu.idle=1 on kitty scopes with an agent in them, 0 on the rest."""
+    want = set()
+    for pid, (_, name, mine) in procs.items():
+        if mine and name in AGENTS:
+            cg = cgroup_of(pid)
+            if cg and AGENT_SCOPE in cg and cg.endswith(".scope"):
+                want.add(cg)
+    app = f"{CGROOT}/user.slice/user-{uid}.slice/user@{uid}.service/app.slice"
+    try:
+        scopes = [e for e in os.listdir(app) if e.startswith("kitty-") and e.endswith(".scope")]
+    except OSError:
+        return
+    for e in scopes:
+        rel = f"{app}/{e}"[len(CGROOT):]
+        path = f"{app}/{e}/cpu.idle"
+        target = "1" if rel in want else "0"
+        try:
+            with open(path) as f:  # io-ok: root daemon, not kitty
+                if f.read().strip() == target:
+                    continue
+            with open(path, "w") as f:  # io-ok: root daemon, not kitty
+                f.write(target)
+        except OSError:
+            continue  # scope went away
+
+
 def main() -> None:
     uid = pwd.getpwnam(USER).pw_uid
     while True:
         zoom_fixed = 0
         procs = scan(uid)
         agents = agent_tree(procs)
+        idle_agent_scopes(procs, uid)
         for pid, (_, name, mine) in procs.items():
             base = f"/proc/{pid}"
             # By the process's name, not each thread's: a daemon's workers

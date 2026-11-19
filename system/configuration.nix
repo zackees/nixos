@@ -2610,6 +2610,23 @@ in
     };
   };
 
+  # The weight has to be on the SLICE, not only on the service. systemd puts
+  # every app-Zoom@<id>.service instance in its own app-app\x2dZoom.slice,
+  # and weight only ranks siblings: the service's 10000 competed with
+  # nothing, while the slice sat at the default 100 beside ~25 agent
+  # kitty-*.scope's at 100 each. That is how Zoom, nice -10 and "weight
+  # 10000", spent more time waiting for a CPU than running (2026-11-19:
+  # render thread 37% run / 40% wait). Check with
+  #   cat '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-app\x2dZoom.slice/cpu.weight'
+  # (expect 10000) and `cpu.pressure` beside it.
+  systemd.user.slices."app-app\\x2dZoom" = {
+    description = "Zoom (ahead of builds and agents)";
+    sliceConfig = {
+      CPUWeight = 10000;
+      IOWeight = 10000;
+    };
+  };
+
   # Zoom audio/video takes priority over terminals and background builds.
   # Match KDE's transient app-Zoom@<id>.service without restarting meetings.
   systemd.user.services."app-Zoom@" = {

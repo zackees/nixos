@@ -365,6 +365,17 @@ Zoom to -10, logging a WARNING when a Zoom outside app-Zoom@ needed it --
 a warning means a new launch path got past the wrapper. A build daemon it does not know runs
 at normal priority: add its process name to `BUILD_TOOLS`.
 
+Two cgroup facts undo all of that if forgotten. A `CPUWeight` on an
+`app-<name>@` *service* ranks it only against siblings inside the
+per-app `app-app\x2d<name>.slice` systemd creates for template instances,
+so give the weight to that slice (`systemd.user.slices`), as Zoom's now
+is. And SCHED_IDLE on every task in a cgroup leaves the cgroup itself at
+full weight; only `cpu.idle=1` makes the group yield, which is why the
+guard sets it on each agent's `kitty-*.scope`. Measure Zoom with
+`/proc/<tid>/schedstat` (run vs wait ns), not with `ps` nice values: on
+2026-11-19 every nice value was right and the render thread still waited
+for a CPU 40% of the time.
+
 **Zoom's sandbox hides the GPU's config files, and it fails silently.**
 nixpkgs runs Zoom in a bwrap FHS sandbox whose `/etc` is a tmpfs: no
 `/etc/egl` (NVIDIA EGL then has no Wayland platform and glvnd falls back to
