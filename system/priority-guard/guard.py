@@ -8,8 +8,16 @@ Every few seconds, as root:
 
 - Zoom: every thread to nice -10. The session cannot raise priority itself
   (DefaultLimitNICE=0), and a Zoom launched from an agent's browser inherits
-  nice 19. Each correction is logged as a WARNING: it means a launch path got
-  past the app-Zoom@ wrapper.
+  nice 19. A correction to a Zoom outside an app-Zoom@ unit is logged as a
+  WARNING: it means a launch path got past the wrapper. Inside the unit,
+  some of Zoom's new threads still start at 0, so those are fixed quietly.
+- Agents: every process descended from an agent harness (clud, claude,
+  codex) to nice 19. The harness used to start sessions at 19 itself, and
+  this file relied on that; by 2026-11-19 every session ran at 0, so each
+  compiler an agent spawned ran at normal priority until the next scan
+  caught it, and short ones finished first. Zoom sat 17-20% of the time
+  waiting for CPU. Renicing the whole tree means later children are born at
+  19, and the rule below makes them SCHED_IDLE.
 - Spectacle (screenshots): every thread to nice -10 as well, silently. A
   capture under a saturated box stalled or timed out at nice 0, and a user
   unit cannot lower its own nice (DefaultLimitNICE=0), so only root can make
@@ -49,6 +57,9 @@ BUILD_TOOLS = {
     "buildkitd", "docker-buildx", "act", "bosn-daemon",
     "fbuild", "fbuild-daemon", "pytest",
 }
+# Agent harnesses: everything under one of these is batch work.
+AGENTS = {"clud", "claude", "codex"}
+NICE_AGENT = 19
 
 
 def comm(path: str) -> str:
@@ -74,27 +85,70 @@ def boost_spectacle(uid: int) -> None:
             continue
 
 
+def scan(uid: int) -> dict[int, tuple[int, str, bool]]:
+    """pid -> (ppid, comm, owned by uid), for every live process."""
+    procs = {}
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        base = f"/proc/{pid}"
+        try:
+            with open(f"{base}/stat") as f:  # io-ok: root daemon, not kitty
+                stat = f.read()
+            mine = os.stat(base).st_uid == uid
+        except OSError:
+            continue
+        # comm sits in parentheses and may itself contain ") ".
+        name = stat[stat.index("(") + 1:stat.rindex(")")]
+        ppid = int(stat[stat.rindex(")") + 2:].split()[1])
+        procs[int(pid)] = (ppid, name, mine)
+    return procs
+
+
+def agent_tree(procs: dict[int, tuple[int, str, bool]]) -> set[int]:
+    """The user's processes that are, or descend from, an agent harness."""
+    memo: dict[int, bool] = {}
+
+    def under(pid: int) -> bool:
+        chain = []
+        while pid > 1 and pid in procs and pid not in memo:
+            ppid, name, mine = procs[pid]
+            if mine and name in AGENTS:
+                memo[pid] = True
+                break
+            chain.append(pid)
+            pid = ppid
+        hit = memo.get(pid, False)
+        for c in chain:
+            memo[c] = hit
+        return hit
+
+    return {pid for pid, (_, _, mine) in procs.items() if mine and under(pid)}
+
+
 def main() -> None:
     uid = pwd.getpwnam(USER).pw_uid
     while True:
         zoom_fixed = 0
-        for pid in os.listdir("/proc"):
-            if not pid.isdigit():
-                continue
+        procs = scan(uid)
+        agents = agent_tree(procs)
+        for pid, (_, name, mine) in procs.items():
             base = f"/proc/{pid}"
+            # By the process's name, not each thread's: a daemon's workers
+            # are called tokio-rt-worker and the like.
+            tool = name in BUILD_TOOLS
+            if not (mine or tool):
+                continue  # build tools are batch whoever runs them
             try:
-                mine = os.stat(base).st_uid == uid
-                # By the process's name, not each thread's: a daemon's
-                # workers are called tokio-rt-worker and the like.
-                tool = comm(base) in BUILD_TOOLS
-                if not (mine or tool):
-                    continue  # build tools are batch whoever runs them
                 exe = os.readlink(f"{base}/exe")
                 tids = os.listdir(f"{base}/task")
+                with open(f"{base}/cgroup") as f:  # io-ok: root daemon, not kitty
+                    cgroup = f.read()
             except OSError:
                 continue
             is_zoom = mine and exe.startswith("/opt/zoom/")
             is_snap = mine and "-spectacle-" in exe
+            is_agent = pid in agents and not (is_zoom or is_snap)
             for t in tids:
                 tid = int(t)
                 try:
@@ -102,7 +156,8 @@ def main() -> None:
                     if is_zoom:
                         if ni > NICE_ZOOM:
                             os.setpriority(os.PRIO_PROCESS, tid, NICE_ZOOM)
-                            zoom_fixed += 1
+                            if "/app-Zoom@" not in cgroup:
+                                zoom_fixed += 1
                         continue
                     if is_snap:
                         if os.sched_getscheduler(tid) == os.SCHED_IDLE:
@@ -110,6 +165,9 @@ def main() -> None:
                         if ni > NICE_ZOOM:
                             os.setpriority(os.PRIO_PROCESS, tid, NICE_ZOOM)
                         continue
+                    if is_agent and ni < NICE_AGENT:
+                        os.setpriority(os.PRIO_PROCESS, tid, NICE_AGENT)
+                        ni = NICE_AGENT
                     if os.sched_getscheduler(tid) != os.SCHED_OTHER:
                         continue  # already idle/batch, or real-time audio
                     if tool and ni < NICE_BUILD:
@@ -132,8 +190,9 @@ def main() -> None:
             except OSError:
                 pass  # slice not created yet
         if zoom_fixed:
-            print(f"WARNING: reniced {zoom_fixed} Zoom threads to {NICE_ZOOM}; "
-                  "a launch path bypassed app-Zoom@", file=sys.stderr, flush=True)
+            print(f"WARNING: reniced {zoom_fixed} Zoom threads to {NICE_ZOOM} "
+                  "outside app-Zoom@; a launch path bypassed the wrapper",
+                  file=sys.stderr, flush=True)
         # Between full scans, re-check only for Spectacle every 0.5 s: a
         # capture lasts a few seconds, so a 3 s wait for nice -10 is most of it.
         for _ in range(int(INTERVAL / 0.5)):

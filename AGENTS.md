@@ -340,7 +340,11 @@ as RR/FF. Note too that the NVMe runs the `none` I/O scheduler, so any
 `IOWeight` (bosn.slice, hermes-gateway) is inert; only CPUWeight takes effect.
 
 **An app launched by an agent runs at nice 19, and so does everything it
-opens.** Agent sessions run at nice 19, nice is inherited, and
+opens.** Agent sessions run at nice 19 -- `desktop-priority-guard` renices
+every process under a `clud`/`claude`/`codex` to 19, because the harness
+stopped doing it itself and by 2026-11-19 every session ran at 0, leaving
+Zoom waiting on CPU a fifth of the time (read `cpu.pressure` in its
+app-Zoom@ cgroup to check). Nice is inherited, and
 `DefaultLimitNICE=0` stops anything in the session lowering it again -- so a
 browser an agent opened, and a Zoom meeting clicked in that browser, ran the
 whole call at 19 with its video threads losing to every build (2026-11-02).
@@ -357,8 +361,8 @@ threads every one still gets a slice on each CPU before a click is served,
 so Zoom's Start button stopped responding. `desktop-priority-guard`
 (`system/priority-guard/`) therefore puts build tools (by process name, any
 user) and the user's nice >= 10 work into SCHED_IDLE every 3 s, and renices
-Zoom to -10, logging a WARNING whenever Zoom needed it -- a warning means a
-new launch path got past the wrapper. A build daemon it does not know runs
+Zoom to -10, logging a WARNING when a Zoom outside app-Zoom@ needed it --
+a warning means a new launch path got past the wrapper. A build daemon it does not know runs
 at normal priority: add its process name to `BUILD_TOOLS`.
 
 **Zoom's sandbox hides the GPU's config files, and it fails silently.**
