@@ -1,0 +1,1 @@
+{"KPlugin":{"Id":"zoom-screen","Name":"Zoom on the side screen","Description":"Every new Zoom window opens on DP-1, the lower-left monitor, instead of the main 4K screen.","Version":"1.0","License":"MIT","EnabledByDefault":true},"X-Plasma-API":"javascript","KPackageStructure":"KWin/Script"}
