@@ -347,11 +347,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793752004,
-        "narHash": "sha256-xMUlUZLnYdRntStw/cAVBVzR5bm1wHpHlwNw/h1sQhE=",
+        "lastModified": 1795200700,
+        "narHash": "sha256-ywz7gvxwovttms6Oelig3JrYJ5OBQU8OMPaGjdSnR/k=",
         "ref": "refs/heads/main",
-        "rev": "9f9d3ea25c5e1ba5265c951b23387ad1a1ff8aa6",
-        "revCount": 50,
+        "rev": "53ac6f6bd413ab961a347a4be5069fd64196abfe",
+        "revCount": 63,
         "type": "git",
         "url": "https://github.com/talos-hq/talos-bar"
       },
