@@ -3020,9 +3020,19 @@ in
   # wantedBy makes the login-time start happen. Residual limit: with nobody
   # logged in there is no Bridge, which is the price of keeping the vault key
   # in KWallet rather than in an unprotected key store.
+  #
+  # Below normal priority: Bridge answers every IMAP SEARCH by decrypting the
+  # matching mail on this machine's CPU. The production site's mail sync (via
+  # protonmail-render-tunnel) held it at 3-4 cores for ~3 minutes of every
+  # sync on 2026-11-21 -- 3.6 CPU-hours in 2.75 h since login -- competing
+  # with the desktop as an equal. Mail can wait a few seconds; a click cannot.
   systemd.user.services.protonmail-bridge = {
     wantedBy = [ "graphical-session.target" ];
     unitConfig.Requisite = [ "graphical-session.target" ];
+    serviceConfig = {
+      Nice = 10;
+      CPUWeight = 20;
+    };
   };
 
   # Newsletter retention: drop approved Epoch Times mail once it is seven days
