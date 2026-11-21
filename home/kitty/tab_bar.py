@@ -174,3 +174,83 @@ def draw_tab(draw_data, screen, tab, before, max_tab_length, index, is_last,
                 screen.cursor.fg = as_rgb(colour)
                 screen.draw(text)
     return end
+
+
+# ── OS window title: folder, program and full path ──
+# KWin's title bar and the task manager show the OS window's title, which
+# kitty otherwise copies from the active pane's OSC 2: the bare command
+# ("clud -c") while something runs, so a row of agent windows all read the
+# same. Compose it here instead, most distinguishing part first, because a
+# narrow title bar or a task-manager entry keeps only the start of it:
+#   nixos · clud -c — ~/dev/nixos     (a program running)
+#   nixos — ~/dev/nixos               (at the prompt)
+# The full path goes last, where elision costs least. kitty-resurrect and
+# launch-origin match KWin captions against get_os_window_title(), so a
+# title that names the directory makes those matches less ambiguous too.
+TITLE_INTERVAL = 1.0
+TITLE_CMD_MAX = 48
+
+
+def _os_title(wd, cmd):
+    """Pure: compose an OS-window title from a directory and a pane title."""
+    short = _short_wd(wd)
+    name = '~' if wd == HOME else (os.path.basename(wd.rstrip(os.sep)) or os.sep)
+    cmd = ' '.join((cmd or '').split())
+    # At a prompt the shell's title is the directory itself; drop it.
+    if cmd in (wd, short) or (cmd.startswith(('~', '/')) and ' ' not in cmd):
+        cmd = ''
+    if len(cmd) > TITLE_CMD_MAX:
+        cmd = cmd[:TITLE_CMD_MAX - 1] + '…'
+    head = '%s · %s' % (name, cmd) if cmd else name
+    # `~` and `/` are already the whole path; do not repeat them.
+    return head if name == short else '%s — %s' % (head, short)
+
+
+def _install_os_titles():
+    from kitty.boss import get_boss
+    from kitty.fast_data_types import add_timer, remove_timer, set_os_window_title
+
+    boss = get_boss()
+    old = getattr(boss, 'os_title_timer', None)
+    if old is not None:
+        remove_timer(old)
+    owned = getattr(boss, 'os_title_owned', None)
+    if owned is None:
+        owned = boss.os_title_owned = {}
+
+    def tick(_timer_id):
+        try:
+            live = set(boss.os_window_map)
+            for os_id in list(owned):
+                if os_id not in live:
+                    del owned[os_id]
+            for os_id, manager in list(boss.os_window_map.items()):
+                tab = manager.active_tab
+                # kitty-resurrect pins a restore tag as the title until KWin
+                # has placed the window; leave the title alone until then.
+                if tab is None or any(w.user_vars.get('kitty_resurrect')
+                                      for t in manager.tabs for w in t.windows):
+                    owned.pop(os_id, None)
+                    continue
+                w = tab.active_window
+                wd = _pane_wd(w)
+                if not wd:
+                    # ssh or a child with no cwd: kitty's own title again.
+                    if owned.pop(os_id, None) is not None:
+                        set_os_window_title(os_id, '')
+                    continue
+                title = _os_title(wd, w.title if w is not None else '')
+                if owned.get(os_id) != title:
+                    owned[os_id] = title
+                    set_os_window_title(os_id, title)
+        except Exception:
+            pass  # A title must never stop the terminal from drawing.
+
+    boss.os_title_timer = add_timer(tick, TITLE_INTERVAL, True)
+    tick(None)
+
+
+try:
+    _install_os_titles()
+except Exception:
+    pass
