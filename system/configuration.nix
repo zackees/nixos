@@ -1050,6 +1050,7 @@ in
       ./rustdesk.nix
       ./priority-guard.nix
       ./nautilus.nix
+      ./lastpass.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
