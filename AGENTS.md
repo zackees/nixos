@@ -414,7 +414,9 @@ uses the reply on a later tick -- `client.offline()` answers kitty's own
 module and its build runs `check_kitty_side.py` over them, failing on any
 blocking call not marked `# io-ok: <why>`; add new kitty-side modules to that
 list. Measure the main thread with
-`sudo py-spy record --nonblocking --pid <kitty>`. To load a changed
+`py-spy record --nonblocking --pid <kitty>`. No sudo needed:
+`system/ptrace.nix` sets ptrace_scope 0 and installs a py-spy new enough
+for kitty's Python 3.14. To load a changed
 `kitty_snapshot.py` into a running kitty, `touch` the dotfiles
 `tab_bar.py` and send kitty SIGUSR1: kitty skips re-importing an unchanged
 `tab_bar.py`, so a bare SIGUSR1 leaves the old timers running.

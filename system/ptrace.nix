@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 {
   # Let any process attach to any other process of the same user: gdb -p,
   # strace -p and py-spy all work without sudo.
@@ -15,5 +15,10 @@
   # processes stay out of reach, as with classic Unix ptrace rules.
   boot.kernel.sysctl."kernel.yama.ptrace_scope" = 0;
 
-  environment.systemPackages = [ pkgs.py-spy ];
+  # From nixpkgs-unstable: the pinned 0.4.0 predates Python 3.14, which
+  # kitty embeds, and failed with "Failed to find python version from
+  # target process". 0.4.2 reads it.
+  environment.systemPackages = [
+    inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.py-spy
+  ];
 }
