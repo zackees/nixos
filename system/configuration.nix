@@ -1043,6 +1043,7 @@ in
       ./aux-screens-sticky.nix
       ./zoom-screen.nix
       ./ptrace.nix
+      ./wave3-heal.nix
       ./kitty-worker.nix
       ./go-runner.nix
       ./shader-wallpaper.nix
