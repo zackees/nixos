@@ -1042,6 +1042,7 @@ in
       ./tasks.nix
       ./aux-screens-sticky.nix
       ./zoom-screen.nix
+      ./ptrace.nix
       ./kitty-worker.nix
       ./go-runner.nix
       ./shader-wallpaper.nix
