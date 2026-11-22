@@ -43,8 +43,8 @@ generated, so they can drift; `scripts/capture.sh` pulls them back in.
 
 ## GPU assignments
 
-The RTX 3060 at PCI `06:00.0` drives the desktop and voxtype. The modified
-RTX 2080 Ti at `07:00.0` has 22 GiB of VRAM and is reserved for ML workloads.
+The RTX 3060 at PCI `06:00.0` drives the desktop. The modified RTX 2080 Ti at
+`07:00.0` has 22 GiB of VRAM and runs ML workloads and voxtype.
 The 2080 Ti was out of the machine from 2026-11-15 to 11-16, and pulling it
 renumbered the PCIe root ports (the 3060 moved to `07:00.0`), so nothing in
 the config names a slot any more. `system/configuration.nix` identifies the
@@ -53,7 +53,11 @@ from nvidia-smi at boot, which works with one or two NVIDIA cards; with more
 than one and no UUID match it refuses to guess instead of aliasing the wrong
 card or falling back to software Mesa. KWin's display and render devices are
 restricted to that GPU. Ordinary CUDA programs and services see only the 3060
-by default; voxtype is also explicitly pinned to it. KWin's restriction takes
+by default. voxtype is the exception, pinned to the 2080 Ti by UUID since
+2026-11-21: its resident model left the 3060 84% full and the desktop
+stuttering. Its build therefore includes sm_75 as well as sm_86
+(`CMAKE_CUDA_ARCHITECTURES`), without which it aborts there with "no kernel
+image is available". KWin's restriction takes
 effect at the next login. Open a new shell after changing the CUDA default.
 
 `ml-gpu` targets the 2080 Ti by UUID (`modelGpuUuid`), so it only works with

@@ -2109,9 +2109,14 @@ in
         # would also be the thing loaded at runtime, and every CUDA call
         # would fail against a library that implements nothing.
         NIX_LDFLAGS = "-L${prev.cudaPackages.cuda_cudart}/lib/stubs";
-        # sm_86 is the GA106. Naming it avoids compiling the fat binary for
-        # every architecture ggml supports, which dominates the build.
-        CMAKE_CUDA_ARCHITECTURES = "86";
+        # sm_75 is the 2080 Ti (TU102), which runs dictation; sm_86 the 3060
+        # (GA106), kept so either card works. Naming them avoids compiling
+        # the fat binary for every architecture ggml supports, which
+        # dominates the build. An sm_86-only build aborted on the 2080 Ti
+        # with "no kernel image is available" (a9b8b2f). onnxruntime, which
+        # runs Parakeet, takes nixpkgs' default CUDA capabilities, which
+        # already include 7.5.
+        CMAKE_CUDA_ARCHITECTURES = "75;86";
 
         buildInputs = (old.buildInputs or [ ]) ++ (with prev; [
           gtk4
@@ -2327,11 +2332,13 @@ in
     # Voxtype runs the synchronous pre-capture hook through bare `sh`.
     path = [ pkgs.voxtype pkgs.ydotool pkgs.wl-clipboard pkgs.bash ];
     environment.YDOTOOL_SOCKET = config.environment.variables.YDOTOOL_SOCKET;
-    # CUDA's default performance ordering puts the 2080 Ti before the 3060,
-    # unlike nvidia-smi's indices. Voxtype is compiled for sm_86 only, so
-    # using the sm_75 ML card aborts with "no kernel image is available".
-    # A UUID hides the ML card entirely and survives enumeration changes.
-    environment.CUDA_VISIBLE_DEVICES = desktopGpuUuid;
+    # On the 2080 Ti, not the 3060: the 3060 drives every display, and the
+    # model voxtype keeps resident (3.3 GB) left it 84% full on 2026-11-21,
+    # enough to make KWin and kitty stutter. The 22 GiB card has the room.
+    # The build includes sm_75 for this (CMAKE_CUDA_ARCHITECTURES above).
+    # A UUID, not an index: CUDA's ordering differs from nvidia-smi's, and
+    # the UUID survives enumeration changes.
+    environment.CUDA_VISIBLE_DEVICES = modelGpuUuid;
 
     # voxtype refuses to start when another instance holds the lock in
     # /run/user/1000/voxtype, and exits 1 every time. Without a start limit
