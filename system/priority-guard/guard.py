@@ -29,14 +29,19 @@ Every few seconds, as root:
   unit cannot lower its own nice (DefaultLimitNICE=0), so only root can make
   this stick. Its unit also carries CPUWeight=1000 (priority-guard.nix),
   which covers the first seconds before this loop reaches it.
-- Batch work: SCHED_IDLE for the user's threads at nice >= 10 (agents run at
-  19, build scopes at 10) and for known build tools at any nice, which also
-  get at least nice 10. Nice and CPUWeight only shrink a build's share; a
-  runnable build still takes a full slice on every CPU before a Zoom click is
-  served, and with 150 runnable threads that was a call you could not click
-  in (2026-11-02). SCHED_IDLE threads run only when nothing else wants the
-  CPU, so an idle machine still gives builds every core. Children inherit the
-  policy at fork, so catching a make/cargo parent covers its whole tree.
+- Batch work: SCHED_BATCH at nice 19 for the user's threads at nice >= 10
+  (agents run at 19, build scopes at 10) and for known build tools at any
+  nice. Plain nice was not enough: a runnable build still took a full slice
+  on every CPU before a Zoom click was served, and with 150 runnable threads
+  that was a call you could not click in (2026-11-02). SCHED_BATCH never
+  preempts on wakeup, so a waking Zoom thread is served first, and nice 19 is
+  the smallest share. It replaced SCHED_IDLE (2026-11-22): an idle-class
+  thread can go many seconds without any CPU under load, and soldr 0.9.45's
+  zccache stall watchdog read one 5 s sample without CPU progress as a hung
+  compiler and SIGKILLed it (bosn CI, 8 kills on 2026-11-22). A batch thread
+  always gets some CPU. Children inherit the policy at fork, so catching a
+  make/cargo parent covers its whole tree; a thread a previous guard left
+  in SCHED_IDLE is moved to SCHED_BATCH.
 """
 
 import os
@@ -46,7 +51,8 @@ import time
 
 USER = "niteris"
 NICE_ZOOM = -10
-NICE_BUILD = 10
+NICE_BUILD = 10  # threshold: the user's threads at this nice or above are batch
+NICE_BATCH = 19
 INTERVAL = 3.0
 # Container builds. Declared CPUWeight=idle in configuration.nix, but a
 # `systemctl set-property bosn.slice CPUWeight=10` (no --runtime) from any
@@ -214,13 +220,13 @@ def main() -> None:
                     if is_agent and ni < NICE_AGENT:
                         os.setpriority(os.PRIO_PROCESS, tid, NICE_AGENT)
                         ni = NICE_AGENT
-                    if os.sched_getscheduler(tid) != os.SCHED_OTHER:
-                        continue  # already idle/batch, or real-time audio
-                    if tool and ni < NICE_BUILD:
-                        os.setpriority(os.PRIO_PROCESS, tid, NICE_BUILD)
-                        ni = NICE_BUILD
-                    if tool or (mine and ni >= NICE_BUILD):
-                        os.sched_setscheduler(tid, os.SCHED_IDLE, os.sched_param(0))
+                    policy = os.sched_getscheduler(tid)
+                    if policy not in (os.SCHED_OTHER, os.SCHED_IDLE):
+                        continue  # already batch, or real-time audio
+                    if tool or (mine and ni >= NICE_BUILD) or policy == os.SCHED_IDLE:
+                        if ni < NICE_BATCH:
+                            os.setpriority(os.PRIO_PROCESS, tid, NICE_BATCH)
+                        os.sched_setscheduler(tid, os.SCHED_BATCH, os.sched_param(0))
                 except OSError:
                     continue  # thread exited mid-scan
         for path in IDLE_SLICES:

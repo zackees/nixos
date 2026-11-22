@@ -360,7 +360,10 @@ nice and low weight were not enough on their own: with ~150 runnable build
 threads every one still gets a slice on each CPU before a click is served,
 so Zoom's Start button stopped responding. `desktop-priority-guard`
 (`system/priority-guard/`) therefore puts build tools (by process name, any
-user) and the user's nice >= 10 work into SCHED_IDLE every 3 s, and renices
+user) and the user's nice >= 10 work into SCHED_BATCH at nice 19 every 3 s
+(not SCHED_IDLE since 2026-11-22: an idle-class compiler can get no CPU for
+seconds, which zccache's stall watchdog in soldr 0.9.45 read as a hang and
+SIGKILLed; a batch thread always gets some CPU), and renices
 Zoom to -10, logging a WARNING when a Zoom outside app-Zoom@ needed it --
 a warning means a new launch path got past the wrapper. A build daemon it does not know runs
 at normal priority: add its process name to `BUILD_TOOLS`.

@@ -1,4 +1,4 @@
-# desktop-priority-guard: Zoom up, builds to SCHED_IDLE. See
+# desktop-priority-guard: Zoom up, builds to SCHED_BATCH nice 19. See
 # priority-guard/guard.py for the why; CLAUDE.md has the nice-19 trap.
 # Check: `journalctl -u desktop-priority-guard` is quiet during a call, and
 # `ps -L -o cls,ni,comm -p <a cc1plus pid>` says IDL.
@@ -26,7 +26,7 @@ in
   environment.systemPackages = [ spectacleWrapper ];
 
   systemd.services.desktop-priority-guard = {
-    description = "Keep Zoom and Spectacle ahead of builds (Zoom nice -10, builds SCHED_IDLE)";
+    description = "Keep Zoom and Spectacle ahead of builds (Zoom nice -10, builds SCHED_BATCH nice 19)";
     wantedBy = [ "multi-user.target" ];
     path = [ pkgs.uv ];
     environment = {
