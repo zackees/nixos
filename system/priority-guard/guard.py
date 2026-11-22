@@ -221,12 +221,13 @@ def main() -> None:
                         os.setpriority(os.PRIO_PROCESS, tid, NICE_AGENT)
                         ni = NICE_AGENT
                     policy = os.sched_getscheduler(tid)
-                    if policy not in (os.SCHED_OTHER, os.SCHED_IDLE):
-                        continue  # already batch, or real-time audio
-                    if tool or (mine and ni >= NICE_BUILD) or policy == os.SCHED_IDLE:
+                    if policy not in (os.SCHED_OTHER, os.SCHED_IDLE, os.SCHED_BATCH):
+                        continue  # real-time audio
+                    if tool or (mine and ni >= NICE_BUILD) or policy != os.SCHED_OTHER:
                         if ni < NICE_BATCH:
                             os.setpriority(os.PRIO_PROCESS, tid, NICE_BATCH)
-                        os.sched_setscheduler(tid, os.SCHED_BATCH, os.sched_param(0))
+                        if policy != os.SCHED_BATCH:
+                            os.sched_setscheduler(tid, os.SCHED_BATCH, os.sched_param(0))
                 except OSError:
                     continue  # thread exited mid-scan
         for path in IDLE_SLICES:
