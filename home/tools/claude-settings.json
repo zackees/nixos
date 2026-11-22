@@ -39,5 +39,19 @@
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "switchModelsOnFlag": true
+  "switchModelsOnFlag": true,
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet --python-preference only-managed --script /home/niteris/dev/nixos/system/claude-notify/claude_notify.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "preferredNotifChannel": "notifications_disabled"
 }
