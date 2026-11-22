@@ -3044,6 +3044,41 @@ in
     };
   };
 
+  # Production (www.zachvorhies.com on Render) reads the mailbox through this
+  # Bridge over a reverse SSH tunnel. It forwards a Unix SOCKET on the
+  # instance, not a TCP port: Render port-scans a fresh deploy for 15 minutes
+  # and sent an HTTP request into the Bridge's IMAP port every second of it
+  # (5,800 parse errors on 2026-11-21), and a socket is invisible to a port
+  # scan. The app (zachvorhies_com inbound.TUNNEL_SOCKET) uses the socket
+  # whenever it exists. Render's sshd will not replace a socket file left by a
+  # dropped session -- the bind fails and ExitOnForwardFailure would loop
+  # forever -- so each start deletes it first. The SMTP forward is gone: the
+  # app sends through smtp.protonmail.ch and never used it.
+  # Was a hand-made ~/.config/systemd/user unit until 2026-11-21; that copy
+  # is renamed .disabled, as it would shadow this one.
+  systemd.user.services.protonmail-render-tunnel =
+    let
+      host = "srv-dasprqgjo6nc73csete0@ssh.oregon.render.com";
+      socket = "/tmp/proton-bridge-imap.sock";
+      ssh = lib.concatStringsSep " " [
+        "${pkgs.openssh}/bin/ssh -T -i %h/.ssh/id_rsa"
+        "-o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes"
+        "-o UserKnownHostsFile=%h/.ssh/render_known_hosts"
+      ];
+    in
+    {
+      description = "Proton Mail Bridge tunnel to Render";
+      after = [ "network-online.target" "protonmail-bridge.service" ];
+      wants = [ "network-online.target" "protonmail-bridge.service" ];
+      wantedBy = [ "default.target" ];
+      serviceConfig = {
+        ExecStartPre = "-${ssh} ${host} rm -f ${socket}";
+        ExecStart = "${ssh} -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -R ${socket}:127.0.0.1:1143 ${host}";
+        Restart = "always";
+        RestartSec = 10;
+      };
+    };
+
   # Newsletter retention: drop approved Epoch Times mail once it is seven days
   # old, so the mailbox never fills Proton's quota and nobody sweeps by hand.
   # The script belongs to the website repo
