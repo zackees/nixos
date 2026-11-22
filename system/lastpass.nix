@@ -20,8 +20,11 @@ let
       hash = "sha256-U6tml+IqWMXfxmlqBbOleyldFCZSz1IMM1mFC7wYZmQ=";
     };
     # The nixpkgs patch only raises cmake_minimum_required; it does not apply
-    # to master, so set the policy floor directly instead.
-    patches = [ ];
+    # to master, so the policy floor is set directly instead. Ours fixes a
+    # segfault: when the LastPass Authenticator (out-of-band) step ends in an
+    # error, `login --trust` dereferenced the NULL session and crashed,
+    # hiding LastPass's error message.
+    patches = [ ./patches/lastpass-cli-oob-trust-null-session.patch ];
     cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" ];
   });
 in

@@ -1,0 +1,10 @@
+--- a/endpoints-login.c
++++ b/endpoints-login.c
+@@ -350,7 +350,7 @@
+ 	if (cause && !strcmp(cause, "outofbandrequired") &&
+ 	    oob_login(login_server, key, args, error_message, &reply, &otp_name, &session)) {
+-		if (trust)
++		if (trust && session)
+ 			http_post_lastpass("trust.php", session, NULL, "token", session->token, "uuid", trusted_id, "trustlabel", trusted_label, NULL);
+ 		return session;
+ 	}
