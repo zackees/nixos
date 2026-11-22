@@ -1,30 +1,32 @@
 { pkgs, ... }:
 
-# LastPass CLI (`lpass`), built from upstream master rather than nixpkgs.
+# LastPass CLI (`lpass`), built from our fork talos-hq/lastpass-cli rather
+# than nixpkgs.
 #
-# nixpkgs ships 1.6.1, which pins LastPass's TLS public keys. LastPass moved
-# lastpass.com to a new GlobalSign E46 chain on 2026-10-08, so every 1.6.1
-# request fails with "SSL peer certificate or SSH remote key was not OK"
-# (lastpass/lastpass-cli#740). 1.6.2 drops the pinning and verifies against
-# the system CA store. Master is used over the 1.6.2 tag for AES-256-GCM
-# vault support (#747, #750): items LastPass re-encrypts with GCM do not
-# decrypt on 1.6.2. Drop this override once nixpkgs carries a release with
-# both.
+# - nixpkgs ships 1.6.1, which pins LastPass's TLS public keys. LastPass moved
+#   lastpass.com to a new GlobalSign E46 chain on 2026-10-08, so every 1.6.1
+#   request fails with "SSL peer certificate or SSH remote key was not OK"
+#   (lastpass/lastpass-cli#740). 1.6.2 drops the pinning.
+# - Upstream master adds AES-256-GCM vault support (#747, #750).
+# - The fork adds talos-hq/lastpass-cli#1: this account's primary second
+#   factor is a FIDO2 key, which lpass cannot use, and upstream's login then
+#   fails at once with "Multifactor authentication failed!" (#719). The fork
+#   falls back to a Google Authenticator code (LPASS_MFA_PROVIDER picks the
+#   provider), and fixes a segfault in `login --trust`.
+#
+# Drop this override once nixpkgs carries a release with all three.
 let
   lastpass-cli = pkgs.lastpass-cli.overrideAttrs (old: {
-    version = "1.6.2-unstable-2026-11-19";
+    version = "1.6.2-unstable-2026-11-22";
     src = pkgs.fetchFromGitHub {
-      owner = "lastpass";
+      owner = "talos-hq";
       repo = "lastpass-cli";
-      rev = "949bad64e9db1bed89606cba78f32f6708cef3f0";
-      hash = "sha256-U6tml+IqWMXfxmlqBbOleyldFCZSz1IMM1mFC7wYZmQ=";
+      rev = "582a4a395067ae2e0dd40dcdebf57259e90fc2f5";
+      hash = "sha256-MUUWm/gV0dyg/KmyRcXsKl3lUqblyBwuTAh3O2axUP4=";
     };
-    # The nixpkgs patch only raises cmake_minimum_required; it does not apply
-    # to master, so the policy floor is set directly instead. Ours fixes a
-    # segfault: when the LastPass Authenticator (out-of-band) step ends in an
-    # error, `login --trust` dereferenced the NULL session and crashed,
-    # hiding LastPass's error message.
-    patches = [ ./patches/lastpass-cli-oob-trust-null-session.patch ];
+    # The nixpkgs patch only raises cmake_minimum_required and does not apply
+    # to this tree; set the policy floor directly instead.
+    patches = [ ];
     cmakeFlags = (old.cmakeFlags or [ ]) ++ [ "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" ];
   });
 in
