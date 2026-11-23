@@ -1776,7 +1776,18 @@ in
 
     # ── System administration ──
     inxi                # one-shot hardware/system report
-    perf                # CPU hardware-counter profiling
+    # BPF skeletons enable perf record --off-cpu.
+    (perf.overrideAttrs (old: {
+      nativeBuildInputs = old.nativeBuildInputs ++ [ llvmPackages.clang-unwrapped ];
+      makeFlags = old.makeFlags ++ [
+        "BUILD_BPF_SKEL=1"
+        "CLANG=${llvmPackages.clang-unwrapped}/bin/clang"
+        "EXTRA_BPF_FLAGS=-isystem${linuxHeaders}/include"
+      ];
+      postInstall = old.postInstall + ''
+        "$out/bin/perf" version --build-options | grep -E "bpf_skeletons:.*\[ on  \]"
+      '';
+    }))
     socat               # socket plumbing
     whois
     inetutils           # telnet, ftp, hostname, ping variants
