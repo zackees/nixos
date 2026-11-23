@@ -3,6 +3,19 @@
     "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP": "1"
   },
   "model": "opus",
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet --python-preference only-managed --script /home/niteris/dev/nixos/system/claude-notify/claude_notify.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "modelSettings": {
     "claude-fable-5-1": {
       "effortLevel": "high"
@@ -17,7 +30,7 @@
       "effortLevel": "low"
     },
     "claude-opus-5-5": {
-      "effortLevel": "medium",
+      "effortLevel": "low",
       "autoCompactWindow": 400000
     },
     "claude-sonnet-5-5": {
@@ -39,19 +52,6 @@
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "switchModelsOnFlag": true,
-  "hooks": {
-    "Notification": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --quiet --python-preference only-managed --script /home/niteris/dev/nixos/system/claude-notify/claude_notify.py",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  },
-  "preferredNotifChannel": "notifications_disabled"
+  "preferredNotifChannel": "notifications_disabled",
+  "switchModelsOnFlag": true
 }
