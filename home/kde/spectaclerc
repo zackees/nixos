@@ -1,4 +1,5 @@
 [Annotations]
+annotationToolType=4
 freehandStrokeWidth=5
 highlighterStrokeColor=170,0,0
 highlighterStrokeWidth=10
@@ -6,7 +7,7 @@ rectangleFillColor=255,0,0,0
 
 [ImageSave]
 imageCompressionQuality=95
-lastImageSaveLocation=file:///home/niteris/.cache/agent-shots/full.png
+lastImageSaveLocation=file:///tmp/forge-render-safe-window.png
 preferredImageFormat=jpeg
 translatedScreenshotsFolder=Screenshots
 

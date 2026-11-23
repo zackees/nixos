@@ -10,6 +10,7 @@ text/html=browser-here.desktop;brave-browser.desktop;
 application/xhtml+xml=browser-here.desktop
 x-scheme-handler/about=chromium-cdp.desktop
 x-scheme-handler/unknown=chromium-cdp.desktop
+inode/directory=org.kde.dolphin.desktop
 
 [Default Applications]
 text/html=browser-here.desktop
@@ -23,3 +24,4 @@ x-scheme-handler/tg=org.telegram.desktop._7776a2115a2859f597d002adc3777459.deskt
 x-scheme-handler/tonsite=org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop
 x-scheme-handler/slack=slack.desktop
 x-scheme-handler/ton=org.telegram.desktop._7776a2115a2859f597d002adc3777459.desktop
+inode/directory=org.kde.dolphin.desktop

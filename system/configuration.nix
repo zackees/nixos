@@ -3860,6 +3860,9 @@ in
         # System Settings at activation; the reset appears at next login.
         # Leave those options unset so KWin persists the user's layout.
         configFile.kwinrc.Windows.PerOutputVirtualDesktops = true;
+        # Activating an off-desktop window adds it to the current desktop
+        # on its own monitor, so the monitor does not switch desktops.
+        configFile.kwinrc.Windows.ActivationDesktopPolicy = "BringToCurrentDesktop";
         # No wrap-around when stepping desktops: the mouse back/forward
         # buttons on the desktop (below) stop at the first and last one.
         # Global by nature -- the keyboard "Switch One Desktop" shortcuts
