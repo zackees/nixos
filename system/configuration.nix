@@ -573,61 +573,48 @@ let
     '';
   };
 
-  # ── Links from kitty open in the browser window on THIS desktop ──
-  # The browser is Chromium with its CDP port open (system/chromium-cdp.nix).
-  # Chromium opens a URL in whichever of its windows was focused most
-  # recently, which with per-screen virtual desktops is usually one on
-  # another desktop. So: focus the Brave window closest to the terminal you
-  # clicked in (same desktop, nearest on screen), then hand Chromium the
-  # URL; with no Brave on that desktop, open a fresh window instead, which
-  # KWin places on the current desktop. kdotool is KWin's own scripting API
-  # wrapped as an xdotool-alike; it works on Wayland where xdotool cannot.
+  # ── External links open in a fresh Chromium window ──
   kittyOpenUrl = pkgs.writeShellApplication {
     name = "kitty-open-url";
-    runtimeInputs = [ pkgs.kdotool pkgs.coreutils pkgs.gawk pkgs.util-linux ];
+    runtimeInputs = [ pkgs.coreutils pkgs.util-linux ];
     text = ''
       url="$1"
+      # A mouse-aware pane can open a clicked link through xdg-open while
+      # kitty opens the same hyperlink through open_url_with. Both reach
+      # this wrapper. Serialize the check so concurrent requests agree.
+      if [ -n "''${XDG_RUNTIME_DIR:-}" ]; then
+        recent_link="$XDG_RUNTIME_DIR/kitty-open-url.recent"
+        if (
+          flock 9 || exit 1
+          read -r uptime _ < /proc/uptime || exit 1
+          now=$((10#''${uptime/./}))
+          read -r digest _ < <(printf '%s' "$url" | sha256sum) || exit 1
+          if read -r previous_time previous_digest <&9 &&
+             [ "$digest" = "$previous_digest" ] &&
+             [ "$((now - previous_time))" -lt 75 ]; then
+            exit 0
+          fi
+          printf '%s %s\n' "$now" "$digest" > "$recent_link"
+          exit 1
+        ) 9<>"$recent_link"; then
+          exit 0
+        fi
+      fi
+
       # Started by the user manager, not as our child: a link opened by an
       # agent (nice 19, inside a weight-10 kitty build scope) would otherwise
       # put the whole browser there, and Zoom after it when a meeting link is
       # clicked -- see the zoom wrapper. A running Chromium just takes the
       # URL and the unit exits at once.
-      open_in_browser() {
-        systemd-run --user --quiet --collect --unit="app-chromium-cdp@$$.service" \
-          /run/current-system/sw/bin/chromium-cdp "$@" >/dev/null 2>&1
-      }
-      # The window that got the click is still the active one.
-      me="$(kdotool getactivewindow || true)"
-      desk="$(kdotool get_desktop_for_window "$me" 2>/dev/null || echo "")"
-      center() { # -> "x y" of a window's centre
-        kdotool getwindowgeometry "$1" 2>/dev/null | awk -F'[ ,x]+' '
-          /Position:/ {x=$3; y=$4} /Geometry:/ {w=$3; h=$4} END {printf "%d %d", x+w/2, y+h/2}'
-      }
-      read -r mx my <<< "$(center "$me")"
-      best=""; bestd=""
-      for w in $(kdotool search --class chromium-browser 2>/dev/null); do
-        [ "$(kdotool get_desktop_for_window "$w" 2>/dev/null)" = "$desk" ] || continue
-        read -r bx by <<< "$(center "$w")"
-        d=$(( (bx-mx)*(bx-mx) + (by-my)*(by-my) ))
-        if [ -z "$best" ] || [ "$d" -lt "$bestd" ]; then best="$w"; bestd="$d"; fi
-      done
-      if [ -n "$best" ]; then
-        kdotool windowactivate "$best"
-        sleep 0.15
-        open_in_browser "$url"
-      else
-        open_in_browser --new-window "$url"
-      fi
+      exec systemd-run --user --quiet --collect --unit="app-chromium-cdp@$$.service" \
+        /run/current-system/sw/bin/chromium-cdp --new-window -- "$url" >/dev/null 2>&1
     '';
   };
-  # The same placement for every link, not only clicks in kitty (#41). A CLI
-  # running in a terminal -- an agent's sign-in, `gh auth`, anything calling
-  # xdg-open -- reached Brave directly, and Brave reused its last-focused
-  # window, usually on another desktop. Registered below as the http/https
-  # handler, so xdg-open lands here.
+  # Route xdg-open through the same launcher so terminal apps and kitty
+  # agree on opening a new window and share duplicate detection (#41).
   browserHere = pkgs.makeDesktopItem {
     name = "browser-here";
-    desktopName = "Chromium (this desktop)";
+    desktopName = "Chromium (new window)";
     exec = "${kittyOpenUrl}/bin/kitty-open-url %u";
     icon = "${pkgs.chromium}/share/icons/hicolor/256x256/apps/chromium.png";
     noDisplay = true;
@@ -1623,7 +1610,7 @@ in
     stepDesktop
     kittyOpenUrl
     browserHere
-    kdotool             # KWin window queries from scripts; see kittyOpenUrl
+    kdotool             # KWin window queries from desktop scripts
     # GTK dialogs for scripts that must ask the user something -- above all
     # a secret -- on the desktop instead of through a terminal or an agent's
     # chat. `zenity --password` hands the value straight to the caller's
