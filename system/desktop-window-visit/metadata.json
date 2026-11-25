@@ -1,0 +1,11 @@
+{
+  "KPlugin": {
+    "Id": "desktop-window-visit",
+    "Name": "Visit kitty and borrow windows",
+    "Description": "Temporarily visit a kitty desktop or borrow another application window.",
+    "Version": "1.0",
+    "License": "MIT"
+  },
+  "X-Plasma-API": "javascript",
+  "KPackageStructure": "KWin/Script"
+}

@@ -139,6 +139,23 @@ The sync creates its Akonadi calendar resource automatically. An API outage leav
 the last calendar intact, with existing reminders still available; sync retries
 every minute. Check `journalctl --user -u calendar-sync` for connection failures.
 
+### Virtual desktop shortcuts
+
+Activating kitty switches its monitor to the terminal’s assigned desktop.
+Other apps can still join the current desktop when activated. Windows on the
+side monitors stay visible across desktops unless they are kitty terminals.
+
+- **Meta+Shift+J** visits the topmost eligible kitty window on another desktop
+  of the active monitor. It returns to the previous desktop after 30 seconds
+  once the terminal loses focus. Switching desktops yourself cancels the return.
+- **Meta+Shift+B** temporarily borrows the topmost eligible non-kitty window
+  from another desktop of the active monitor. Its temporary membership ends
+  after 30 seconds once the window loses focus. Reassigning the window to
+  another desktop cancels the automatic return.
+
+The shortcuts select ordinary, non-minimized windows assigned to exactly
+one desktop.
+
 ### KDE Shader Wallpaper
 
 KDE Shader Wallpaper is installed system-wide and selected for Plasma's lock
