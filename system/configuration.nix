@@ -4,6 +4,10 @@
 
 { config, pkgs, lib, inputs, ... }:
 let
+  kittyActivationKwin = pkgs.kdePackages.kwin.overrideAttrs (old: {
+    patches = (old.patches or []) ++ [ ./patches/kwin-kitty-activation.patch ];
+  });
+
   # Settings-profile ladder for Zoom; see zoom-guard.nix.
   zoomGuard = import ./zoom-guard.nix { inherit pkgs; };
   # `zoom-unhide`: re-maps a meeting window Zoom unmapped and lost; see the
@@ -1320,6 +1324,9 @@ in
   # Enable the KDE Plasma Desktop Environment.
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
+  # Plasma's Wayland session starts kwin_wayland through this wrapper. Patch
+  # the compositor here so its activation policy stays local to the session.
+  security.wrappers.kwin_wayland.source = lib.mkForce "${lib.getBin kittyActivationKwin}/bin/kwin_wayland"; # mkforce-ok: use the patched compositor through the existing security wrapper
 
   # ── Default web browser ──
   # Chromium with its CDP port (system/chromium-cdp.nix), so an agent can

@@ -2,6 +2,7 @@ const MAIN = "HDMI-A-1";
 const managed = new Set();
 function apply(w) {
   if (!w || !w.normalWindow || !w.output) return;
+  if (String(w.resourceClass) === "kitty") return;
   const onMain = w.output.name === MAIN;
   if (!onMain && !w.onAllDesktops) { w.onAllDesktops = true; managed.add(w.internalId.toString()); }
   else if (onMain && managed.has(w.internalId.toString())) {

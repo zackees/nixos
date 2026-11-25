@@ -1,10 +1,10 @@
-# Only the main 4K screen (HDMI-A-1) switches virtual desktops. KWin has no
-# per-screen desktops, so this KWin script pins every window on the smaller
-# auxiliary screens to all desktops, and unpins it when it moves back to the
-# main screen. Installed and enabled declaratively so a rebuild restores it.
+# Keep ordinary side-monitor windows visible across desktops. Kitty windows
+# follow their own desktop assignments on every monitor.
 { ... }: {
   home-manager.users.niteris = {
     home.file.".local/share/kwin/scripts/aux-screens-sticky".source = ./aux-screens-sticky;
+    home.file.".local/share/kwin/scripts/desktop-window-visit".source = ./desktop-window-visit;
+    programs.plasma.configFile.kwinrc.Plugins.desktop-window-visitEnabled = true;
     programs.plasma.configFile.kwinrc.Plugins.aux-screens-stickyEnabled = true;
   };
 }

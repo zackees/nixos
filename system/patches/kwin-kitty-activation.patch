@@ -1,0 +1,19 @@
+diff --git a/src/activation.cpp b/src/activation.cpp
+--- a/src/activation.cpp
++++ b/src/activation.cpp
+@@ -308,7 +308,14 @@ void Workspace::activateWindow(Window *window, bool force)
+     raiseWindow(window);
+     if (!window->isOnCurrentDesktop()) {
+         ++block_focus;
+-        switch (options->activationDesktopPolicy()) {
++        auto policy = options->activationDesktopPolicy();
++        // Keep kitty on its assigned desktop, including when the task manager
++        // or an activation token requests focus from a different desktop.
++        if (policy == Options::ActivationDesktopPolicy::BringToCurrentDesktop
++            && window->resourceClass() == QStringLiteral("kitty")) {
++            policy = Options::ActivationDesktopPolicy::SwitchToOtherDesktop;
++        }
++        switch (policy) {
+         case Options::ActivationDesktopPolicy::SwitchToOtherDesktop:
+             VirtualDesktopManager::self()->setCurrent(window->desktops().constLast(), window->output());
+             break;

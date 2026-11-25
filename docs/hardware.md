@@ -15,10 +15,12 @@ replacement parts and sanity-checking a restore. Nothing reads it at runtime.
 ## Block devices
 
 ```
-NAME        SIZE FSTYPE LABEL UUID                                 MOUNTPOINT
-nvme0n1     1.8T                                                   
-├─nvme0n1p1   2G vfat         866F-1102                            /boot
-└─nvme0n1p2 1.8T ext4   root  ea0caf0b-ae20-413c-bb57-22a9bdc5719e /
+NAME        SIZE FSTYPE   LABEL UUID                                 MOUNTPOINT
+loop0        40G btrfs          6c4ed51b-594c-4909-aa3d-4a5cd20ce124 /home/niteris/dev/btrfs-lab/mnt
+loop2       4.7G squashfs                                            /tmp/comp-sweep/mnt
+nvme0n1     1.8T                                                     
+├─nvme0n1p1   2G vfat           866F-1102                            /boot
+└─nvme0n1p2 1.8T ext4     root  ea0caf0b-ae20-413c-bb57-22a9bdc5719e /
 ```
 
 ## Filesystems in use
@@ -43,6 +45,6 @@ nvme0n1     1.8T
     381	alsa_input.usb-Focusrite_Scarlett_2i2_USB_Y848YEZ1801BE0-00.HiFi__Mic1__source	PipeWire	float32le 1ch 48000Hz	SUSPENDED
     383	alsa_output.pci-0000_09_00.4.iec958-stereo.monitor	PipeWire	s32le 2ch 48000Hz	SUSPENDED
     384	alsa_input.pci-0000_09_00.4.analog-stereo	PipeWire	s32le 2ch 48000Hz	SUSPENDED
-    6330	alsa_output.pci-0000_06_00.1.hdmi-stereo.monitor	PipeWire	s32le 2ch 48000Hz	SUSPENDED
     6589	alsa_output.usb-Elgato_Systems_Elgato_Wave_3_BS38J1A03981-00.analog-stereo.monitor	PipeWire	s24le 2ch 48000Hz	SUSPENDED
-    6590	alsa_input.usb-Elgato_Systems_Elgato_Wave_3_BS38J1A03981-00.mono-fallback	PipeWire	s24le 1ch 48000Hz	RUNNING
+    6590	alsa_input.usb-Elgato_Systems_Elgato_Wave_3_BS38J1A03981-00.mono-fallback	PipeWire	s24le 1ch 48000Hz	SUSPENDED
+    8680	alsa_output.pci-0000_06_00.1.hdmi-stereo.monitor	PipeWire	s32le 2ch 48000Hz	SUSPENDED
