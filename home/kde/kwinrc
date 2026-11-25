@@ -26,6 +26,7 @@ Rows=1
 aux-screens-stickyEnabled=true
 bosn-widget-cornerEnabled=true
 zoom-screenEnabled=true
+desktop-window-visitEnabled=true
 
 [Tiling][088e3c20-fecb-4424-9c1b-83f0560fdb31][3888de78-b2a4-4178-8007-1a30ee96f969]
 padding=4
@@ -728,9 +729,9 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Windows]
+ActivationDesktopPolicy=BringToCurrentDesktop
 PerOutputVirtualDesktops=true
 RollOverDesktops=false
-ActivationDesktopPolicy=BringToCurrentDesktop
 
 [Xwayland]
 Scale=1.95
